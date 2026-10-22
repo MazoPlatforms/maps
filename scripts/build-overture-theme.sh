@@ -27,12 +27,15 @@ fi
 for file in "${inputs[@]}"; do
   type=${file#*/type=}
   type=${type%%/*}
-# `@name` is derived from `names.primary` by the official tile profile. Count
-# actual primary names, not merely non-null names containers, so label coverage
-# is not overstated.
-values=$(duckdb -noheader -csv -c "SELECT count(*), count(*) FILTER (WHERE names.primary IS NOT NULL AND length(names.primary) > 0) FROM read_parquet('$file')" | tail -n 1 | tr -d '\r')
-  [[ "$values" =~ ^[0-9]+,[0-9]+$ ]] || { echo "Could not count $THEME/$type source rows and names" >&2; exit 4; }
-  printf '%s\t%s\t%s\n' "$type" "${values%,*}" "${values#*,}" >> "/counts/$THEME.tsv"
+  rows=$(duckdb -noheader -csv -c "SELECT count(*) FROM read_parquet('$file')" | tail -n 1 | tr -d '\r')
+  [[ "$rows" =~ ^[0-9]+$ ]] || { echo "Could not count $THEME/$type source rows" >&2; exit 4; }
+  named=0
+  if [[ "$THEME/$type" == "places/place" ]]; then
+    # Overture's place schema exposes primary labels at names.primary.
+    named=$(duckdb -noheader -csv -c "SELECT count(*) FILTER (WHERE names.primary IS NOT NULL AND length(names.primary) > 0) FROM read_parquet('$file')" | tail -n 1 | tr -d '\r')
+    [[ "$named" =~ ^[0-9]+$ ]] || { echo "Could not count primary place names" >&2; exit 4; }
+  fi
+  printf '%s\t%s\t%s\n' "$type" "$rows" "$named" >> "/counts/$THEME.tsv"
 done
 
 cd /
