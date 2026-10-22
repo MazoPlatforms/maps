@@ -87,6 +87,7 @@ jobs:
         run: |
           mkdir -p _site
           rsync -a --exclude='.git/' --exclude='.github/' --exclude='_site/' --exclude='counts/' ./ _site/
+          python3 scripts/finalize-styles.py _site
           site_bytes="$(du -sb _site | cut -f1)"
           # Keep headroom below GitHub Pages' published-site 1 GB hard limit.
           if (( site_bytes <= 943718400 )); then deploy_allowed=true; else deploy_allowed=false; fi

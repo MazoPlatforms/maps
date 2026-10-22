@@ -20,7 +20,7 @@ SOURCE_LAYERS = {
     "places": {"place": "place"},
 }
 EXPECTED_COUNTS = {
-    "base": {"land", "land_use", "water"},
+    "base": {"land", "water"},
     "transportation": {"segment", "connector"},
     "buildings": {"building"},
     "places": {"place"},
@@ -115,6 +115,8 @@ def main():
         unknown_types = set(counts) - SOURCE_LAYERS[theme].keys()
         if unknown_types:
             raise ValueError(f"unrecognized source feature types would be unaccounted for in {theme}: {sorted(unknown_types)}")
+        for source_type in SOURCE_LAYERS[theme]:
+            counts.setdefault(source_type, {"rows": 0, "namedRows": 0})
         missing_counts = [name for name in EXPECTED_COUNTS[theme] if counts.get(name, {}).get("rows", 0) <= 0]
         if missing_counts:
             raise ValueError(f"no bbox-filtered Overture source rows for {theme}: {missing_counts}")
@@ -134,6 +136,10 @@ def main():
         "overtureTilesImage": args.image_digest,
         "archives": archives,
         "bboxFilteredSourceFeatureCounts": input_counts,
+        "sourceTypesWithoutFeaturesInBbox": {
+            theme: sorted(name for name, item in counts.items() if item["rows"] == 0)
+            for theme, counts in input_counts.items()
+        },
         "countNote": "Counts are source Parquet rows selected by Overture's bbox filter before tiling. namedRows counts source rows with a names object; these are not deduplicated rendered-tile feature totals.",
         "attribution": "© OpenStreetMap contributors, Overture Maps Foundation",
     }

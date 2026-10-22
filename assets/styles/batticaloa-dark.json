@@ -12,22 +12,22 @@
     "base": {
       "type": "vector",
       "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/base.pmtiles",
-      "attribution": "© <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> · © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
     },
     "transportation": {
       "type": "vector",
       "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/transportation.pmtiles",
-      "attribution": "© <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> · © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
     },
     "buildings": {
       "type": "vector",
       "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/buildings.pmtiles",
-      "attribution": "© <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> · © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
     },
     "places": {
       "type": "vector",
       "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/places.pmtiles",
-      "attribution": "© <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> · © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
     }
   },
   "layers": [
@@ -100,6 +100,24 @@
         "fill-opacity": 0.65
       },
       "minzoom": 6,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "bathymetry-fill",
+      "type": "fill",
+      "source": "base",
+      "source-layer": "bathymetry",
+      "minzoom": 3,
+      "paint": {
+        "fill-color": "#234450",
+        "fill-opacity": 0.42
+      },
       "filter": [
         "==",
         [

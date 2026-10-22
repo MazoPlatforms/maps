@@ -41,7 +41,8 @@ async function inspectTheme(theme) {
   const rendering = await page.evaluate(() => {
     const map = window.__mazoMap;
     const sourceCounts = Object.fromEntries(['base', 'transportation', 'buildings', 'places'].map(source => [source, map.querySourceFeatures(source).length]));
-    const layerCounts = Object.fromEntries(['land', 'land-use', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => [layer, map.queryRenderedFeatures({ layers: [layer] }).length]));
+    const styleLayers = new Set(map.getStyle().layers.map(layer => layer.id));
+    const layerCounts = Object.fromEntries(['land', 'land-use', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => [layer, styleLayers.has(layer) ? map.queryRenderedFeatures({ layers: [layer] }).length : null]));
     return { styleLoaded: map.isStyleLoaded(), styleName: map.getStyle().name, zoom: map.getZoom(), sourceCounts, layerCounts };
   });
   if (!rendering.styleLoaded || rendering.sourceCounts.base < 1 || rendering.sourceCounts.transportation < 1 || rendering.sourceCounts.buildings < 1 || rendering.sourceCounts.places < 1 || rendering.layerCounts['road-lines'] < 1) {

@@ -13,7 +13,7 @@ The configured bbox is `[81.45, 7.35, 81.90, 8.35]` (min longitude, min latitude
 
 The official bbox operation selects features whose bounding boxes intersect the region. Geometries are not clipped to the bbox. It does not create or infer missing features. Tile profiles define zoom ranges; the coverage manifest records the actual release, input row counts, named-row counts, builder image digest, archive sizes, hashes, metadata and available layer names. Counts are source Parquet rows before tile deduplication, not visible-map feature totals. The manifest is not a completeness guarantee.
 
-The build fails if required source types are empty, a non-empty source type has no corresponding output layer, the PMTiles archive is invalid, or named place records are absent. Other feature types that are present are reported rather than silently discarded. GitHub Pages deployment is skipped above a 900 MiB safety threshold; the assembled site is still uploaded as a short-lived Actions artifact. The hard published-site limit is 1 GB.
+The build fails if required source types are empty, a non-empty source type has no corresponding output layer, the PMTiles archive is invalid, an available vector layer has no light/dark style rule, or named place records are absent. Source types with zero intersecting rows are listed explicitly in the manifest; their empty style rules are removed from the published copy, while every available layer must be styled. Other feature types that are present are reported rather than silently discarded. GitHub Pages deployment is skipped above a 900 MiB safety threshold; the assembled site is still uploaded as a short-lived Actions artifact. The hard published-site limit is 1 GB.
 
 ## Browser map
 
