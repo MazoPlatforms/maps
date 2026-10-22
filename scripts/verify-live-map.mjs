@@ -25,7 +25,16 @@ const errors = [];
 page.on('pageerror', error => errors.push(error.message));
 page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
 await page.goto(`${baseUrl}?maptest=1`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-await page.waitForFunction(() => Boolean(window.__mazoMap?.isStyleLoaded()), null, { timeout: 90_000 });
+await page.waitForFunction(() => Boolean(window.__mazoMap || window.__mazoMapError), null, { timeout: 30_000 });
+if (!await page.evaluate(() => Boolean(window.__mazoMap))) {
+  throw new Error(`Map initialization failed: ${await page.evaluate(() => window.__mazoMapError)}; browser errors: ${errors.slice(0, 5).join(' | ')}`);
+}
+try {
+  await page.waitForFunction(() => Boolean(window.__mazoMap?.isStyleLoaded()), null, { timeout: 60_000 });
+} catch {
+  const state = await page.evaluate(() => ({ error: window.__mazoMapError, status: document.querySelector('#map-status')?.textContent, styleLoaded: window.__mazoMap?.isStyleLoaded(), style: window.__mazoMap?.getStyle() }));
+  throw new Error(`Map style did not load: ${JSON.stringify({ ...state, browserErrors: errors.slice(0, 10) })}`);
+}
 await mkdir('verification', { recursive: true });
 await page.evaluate(async () => {
   const map = window.__mazoMap;

@@ -36,7 +36,10 @@ async function loadStyle(theme) {
   return JSON.parse(JSON.stringify(template).replaceAll('__MAZO_SITE_ROOT__', siteRoot.replace(/\/$/, '')));
 }
 
-function showMapError() {
+function showMapError(error) {
+  if (new URLSearchParams(location.search).has('maptest')) {
+    globalThis.__mazoMapError = error instanceof Error ? error.message : String(error ?? 'Map error');
+  }
   if (!mapStatus) return;
   mapStatus.classList.remove('is-hidden');
   mapStatus.innerHTML = '<span class="map-error-mark" aria-hidden="true">!</span><span>Map data could not load. The rest of the project page remains available.</span>';
@@ -76,14 +79,14 @@ async function initializeMap() {
     });
     map.addControl(new maplibre.NavigationControl({ visualizePitch: true }), 'top-right');
     map.on('load', () => mapStatus?.classList.add('is-hidden'));
-    map.on('error', showMapError);
+    map.on('error', event => showMapError(event.error ?? event.message));
     if (new URLSearchParams(location.search).has('maptest')) globalThis.__mazoMap = map;
     document.querySelector('#map-reset')?.addEventListener('click', () => {
       map?.flyTo({ center: mapConfig.center, zoom: mapConfig.zoom, bearing: 0, pitch: 0, duration: 650 });
     });
     loadDataManifest();
-  } catch {
-    showMapError();
+  } catch (error) {
+    showMapError(error);
   }
 }
 
