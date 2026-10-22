@@ -54,7 +54,8 @@ async function inspectTheme(theme) {
     const layerCounts = Object.fromEntries(['land', 'land-use', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => [layer, styleLayers.has(layer) ? map.queryRenderedFeatures({ layers: [layer] }).length : null]));
     return { styleLoaded: map.isStyleLoaded(), styleName: map.getStyle().name, zoom: map.getZoom(), sourceCounts, layerCounts };
   });
-  if (!rendering.styleLoaded || rendering.sourceCounts.base < 1 || rendering.sourceCounts.transportation < 1 || rendering.sourceCounts.buildings < 1 || rendering.sourceCounts.places < 1 || rendering.layerCounts['road-lines'] < 1) {
+  const visibleLayerCounts = ['land', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => rendering.layerCounts[layer]);
+  if (!rendering.styleLoaded || visibleLayerCounts.some(count => !Number.isInteger(count) || count < 1)) {
     throw new Error(`${theme} Overture layers were not queryable: ${JSON.stringify(rendering)}`);
   }
   await page.locator('#map').screenshot({ path: `mazo-batticaloa-${theme}.png` });
