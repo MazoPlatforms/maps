@@ -59,7 +59,9 @@ async function inspectTheme(theme) {
   });
   const visibleLayerCounts = ['land', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => rendering.layerCounts[layer]);
   if (!rendering.styleLoaded || visibleLayerCounts.some(count => !Number.isInteger(count) || count < 1)) {
-    throw new Error(`${theme} Overture layers were not queryable: ${JSON.stringify(rendering)}`);
+    await page.locator('#map').screenshot({ path: `mazo-batticaloa-${theme}-diagnostic.png` });
+    await writeFile('verification/map-smoke-diagnostic.json', JSON.stringify({ theme, rendering, pageErrors, consoleErrors, failedResponses }, null, 2) + '\n');
+    throw new Error(`${theme} Overture layers were not queryable: ${JSON.stringify({ rendering, pageErrors, consoleErrors, failedResponses })}`);
   }
   await page.locator('#map').screenshot({ path: `mazo-batticaloa-${theme}.png` });
   return rendering;

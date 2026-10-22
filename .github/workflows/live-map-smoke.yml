@@ -28,6 +28,6 @@ jobs:
           name: mazo-batticaloa-live-verification
           path: |
             mazo-batticaloa-*.png
-            verification/map-smoke.json
+            verification/map-smoke*.json
           if-no-files-found: warn
           retention-days: 14
