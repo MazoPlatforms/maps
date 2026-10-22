@@ -83,7 +83,7 @@ def verify_archive(archive):
         diagnostic = result.stdout + result.stderr
         match = re.search(r"header (MinZoom|MaxZoom)=(\d+) does not match (?:min|max) tile z (\d+)", diagnostic)
         if not match:
-            raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
+            raise RuntimeError(f"PMTiles verification failed for {archive.name}: {diagnostic.strip()}")
         field, header_value, actual_value = match.groups()
         header = command_json("pmtiles", "show", str(archive), "--header-json")
         key = "min_zoom" if field == "MinZoom" else "max_zoom"
