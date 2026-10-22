@@ -18,7 +18,7 @@ for (const theme of themes) {
 }
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE);
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, channel: 'chrome' });
 try {
 const page = await browser.newPage({ viewport: { width: 1440, height: 960 }, deviceScaleFactor: 1, colorScheme: 'light' });
 const errors = [];
