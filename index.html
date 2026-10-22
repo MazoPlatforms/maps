@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f8">
+    <meta name="description" content="Mazo Maps is an open mapping project by Mazo Platforms, Inc., built on open data and designed to grow with Overture Maps.">
+    <meta property="og:title" content="Mazo Maps — Open mapping, built to grow">
+    <meta property="og:description" content="An open mapping project by Mazo Platforms, Inc.">
+    <title>Mazo Maps — Open mapping, built to grow</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/mazo-mark.svg">
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://tiles.openfreemap.org">
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.15.0/dist/maplibre-gl.css">
+    <link rel="stylesheet" href="./assets/css/site.css">
+    <script type="module" src="./assets/js/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Mazo Maps home">
+        <img src="./assets/mazo-mark.svg" width="36" height="36" alt="">
+        <span>Mazo <strong>Maps</strong></span>
+      </a>
+      <nav class="header-nav" aria-label="Main navigation">
+        <a href="#explore">Explore</a>
+        <a href="#project">Project</a>
+        <a href="#roadmap">Roadmap</a>
+        <a class="github-link" href="https://github.com/MazoPlatforms/maps" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false">
+        <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.6"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.7 8.7 0 1 0 20.2 15.1Z"/></svg>
+      </button>
+    </header>
+
+    <main id="main">
+      <section class="hero section-shell" id="top" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span> An open mapping project</p>
+          <h1 id="hero-title">Maps made<br><span>to move</span> with us.</h1>
+          <p class="hero-intro">A thoughtful foundation for maps, places and what comes next. Built in the open by Mazo Platforms, Inc.</p>
+          <div class="hero-actions">
+            <a class="button button-dark" href="#explore">Explore the map <span aria-hidden="true">↓</span></a>
+            <a class="text-link" href="https://github.com/MazoPlatforms/maps" target="_blank" rel="noopener noreferrer">View the project <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="hero-note"><span class="status-dot" aria-hidden="true"></span><span>Open data. Open tools. A growing foundation.</span></div>
+        </div>
+        <div class="hero-aside" aria-label="Project principles">
+          <span class="aside-index">01 / THE FOUNDATION</span>
+          <p>Useful today.<br><em>Ready for tomorrow.</em></p>
+          <span class="aside-rule" aria-hidden="true"></span>
+          <span class="aside-caption">Sri Lanka view · OpenStreetMap data</span>
+        </div>
+      </section>
+
+      <section class="map-section section-shell" id="explore" aria-labelledby="map-title">
+        <div class="section-heading map-heading">
+          <div>
+            <p class="eyebrow">A first look</p>
+            <h2 id="map-title">Explore the map<span class="period">.</span></h2>
+          </div>
+          <div class="map-tools">
+            <span class="map-location"><span class="location-dot" aria-hidden="true"></span> Colombo, Sri Lanka</span>
+            <button class="map-reset" id="map-reset" type="button" aria-label="Reset map view to Colombo">Reset view <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+        <div class="map-frame">
+          <div id="map" role="region" aria-label="Interactive map centered on Colombo, Sri Lanka"></div>
+          <div class="map-loading" id="map-status" role="status" aria-live="polite"><span class="loading-pulse" aria-hidden="true"></span><span>Loading open map…</span></div>
+          <div class="map-overlay-label"><span class="map-label-kicker">MAZO MAPS / 01</span><span>Colombo metropolitan area</span></div>
+          <div class="map-legend"><span class="legend-line" aria-hidden="true"></span> Open street data</div>
+        </div>
+        <div class="map-caption"><span>Pan, zoom and explore.</span><span>Map tiles by OpenFreeMap · Data © OpenStreetMap contributors</span></div>
+      </section>
+
+      <section class="project-section section-shell" id="project" aria-labelledby="project-title">
+        <div class="project-intro">
+          <p class="eyebrow">The project</p>
+          <h2 id="project-title">A clearer way<br>to build on place.</h2>
+        </div>
+        <div class="project-details">
+          <p class="project-lead">Mazo Maps is an open-source mapping project by Mazo Platforms, Inc. It brings together an interactive map today and a modular path toward richer, responsibly sourced geographic data.</p>
+          <div class="principles">
+            <article class="principle"><span class="principle-number">01</span><div><h3>Open by default</h3><p>Build in public with transparent code, data sources and attribution.</p></div></article>
+            <article class="principle"><span class="principle-number">02</span><div><h3>Designed to compose</h3><p>Keep the map renderer, styles and data layers distinct so each can evolve.</p></div></article>
+            <article class="principle"><span class="principle-number">03</span><div><h3>Grounded in sources</h3><p>Show where map data comes from. Do not imply coverage that has not been verified.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="roadmap-section" id="roadmap" aria-labelledby="roadmap-title">
+        <div class="section-shell roadmap-inner">
+          <div class="roadmap-heading"><p class="eyebrow">Built in layers</p><h2 id="roadmap-title">A foundation,<br>then more.</h2><p class="roadmap-intro">The project is structured to grow without treating planned data as if it already exists.</p></div>
+          <div class="roadmap-list">
+            <article class="roadmap-item roadmap-current"><div class="roadmap-marker" aria-hidden="true"><span></span></div><div class="roadmap-content"><div class="roadmap-meta"><span>Available now</span><span class="tag tag-live">Live</span></div><h3>Interactive vector map</h3><p>MapLibre GL JS with OpenFreeMap styles and OpenStreetMap data attribution.</p></div></article>
+            <article class="roadmap-item"><div class="roadmap-marker" aria-hidden="true"><span></span></div><div class="roadmap-content"><div class="roadmap-meta"><span>Planned</span><span class="tag">Future layer</span></div><h3>Overture Maps data</h3><p>A separate source adapter for licensed Overture datasets, after ingestion, provenance and update workflows are defined.</p></div></article>
+            <article class="roadmap-item"><div class="roadmap-marker" aria-hidden="true"><span></span></div><div class="roadmap-content"><div class="roadmap-meta"><span>Planned</span><span class="tag">Future layer</span></div><h3>Points of interest</h3><p>POI layers will be added when a source, schema, coverage and refresh policy are selected. No project POI dataset is published yet.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="docs-section section-shell" aria-labelledby="docs-title">
+        <div class="docs-card">
+          <div class="docs-copy"><p class="eyebrow">Open source, open direction</p><h2 id="docs-title">Come build<br>what’s next.</h2><p>Read the project notes, inspect the source and help shape a dependable, open mapping foundation.</p><a class="button button-yellow" href="https://github.com/MazoPlatforms/maps" target="_blank" rel="noopener noreferrer">Visit Mazo Maps on GitHub <span aria-hidden="true">↗</span></a></div>
+          <div class="docs-graphic" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div><span class="graphic-cross cross-one">+</span><span class="graphic-cross cross-two">+</span><span class="graphic-center"><img src="./assets/mazo-mark.svg" alt="" width="70" height="70"></span><span class="graphic-coordinate">06°55′N<br>79°51′E</span></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer section-shell">
+      <div class="footer-main"><a class="brand footer-brand" href="#top"><img src="./assets/mazo-mark.svg" width="34" height="34" alt=""><span>Mazo <strong>Maps</strong></span></a><p>An open mapping project<br>by Mazo Platforms, Inc.</p></div>
+      <div class="footer-links"><a href="https://github.com/MazoPlatforms/maps" target="_blank" rel="noopener noreferrer">Source code <span aria-hidden="true">↗</span></a><a href="./docs/">Documentation</a><a href="./ATTRIBUTION.md">Attribution</a><a href="./LICENSE">License</a></div>
+      <div class="footer-bottom"><span>© 2026 Mazo Platforms, Inc. · Project code under MIT License</span><span>Map data © OpenStreetMap contributors · ODbL</span></div>
+    </footer>
+  </body>
+</html>
