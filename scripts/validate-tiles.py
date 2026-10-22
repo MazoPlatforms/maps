@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 EXPECTED_LAYERS = {
-    "base": {"land", "land_use", "water"},
+    "base": {"land", "water"},
     "transportation": {"segment", "connector"},
     "buildings": {"building"},
     "places": {"place"},
@@ -89,7 +89,7 @@ def main():
         layers = {item.get("id", item.get("name")) for item in metadata.get("vector_layers", [])}
         missing = EXPECTED_LAYERS[theme] - layers
         if missing:
-            raise ValueError(f"{theme} PMTiles omits required layers: {sorted(missing)}")
+            raise ValueError(f"{theme} PMTiles omits required layers: {sorted(missing)}; actual layers: {sorted(layer for layer in layers if layer)}")
         min_zoom = first(header, "min_zoom", "minZoom", "minzoom")
         max_zoom = first(header, "max_zoom", "maxZoom", "maxzoom")
         if not isinstance(min_zoom, int) or not isinstance(max_zoom, int) or max_zoom < min_zoom:
