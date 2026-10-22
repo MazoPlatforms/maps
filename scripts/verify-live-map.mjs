@@ -21,19 +21,22 @@ const { chromium } = await import(process.env.PLAYWRIGHT_MODULE);
 const browser = await chromium.launch({ headless: true, channel: 'chrome' });
 try {
 const page = await browser.newPage({ viewport: { width: 1440, height: 960 }, deviceScaleFactor: 1, colorScheme: 'light' });
-const errors = [];
-page.on('pageerror', error => errors.push(error.message));
-page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+const pageErrors = [];
+const consoleErrors = [];
+const failedResponses = [];
+page.on('pageerror', error => pageErrors.push(error.message));
+page.on('console', message => { if (message.type() === 'error') consoleErrors.push({ text: message.text(), location: message.location() }); });
+page.on('response', response => { if (response.status() >= 400) failedResponses.push({ status: response.status(), url: response.url() }); });
 await page.goto(`${baseUrl}?maptest=1`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
 await page.waitForFunction(() => Boolean(window.__mazoMap || window.__mazoMapError), null, { timeout: 30_000 });
 if (!await page.evaluate(() => Boolean(window.__mazoMap))) {
-  throw new Error(`Map initialization failed: ${await page.evaluate(() => window.__mazoMapError)}; browser errors: ${errors.slice(0, 5).join(' | ')}`);
+  throw new Error(`Map initialization failed: ${await page.evaluate(() => window.__mazoMapError)}; browser errors: ${pageErrors.slice(0, 5).join(' | ')}`);
 }
 try {
   await page.waitForFunction(() => Boolean(window.__mazoMap?.isStyleLoaded()), null, { timeout: 60_000 });
 } catch {
   const state = await page.evaluate(() => ({ error: window.__mazoMapError, status: document.querySelector('#map-status')?.textContent, styleLoaded: window.__mazoMap?.isStyleLoaded(), style: window.__mazoMap?.getStyle() }));
-  throw new Error(`Map style did not load: ${JSON.stringify({ ...state, browserErrors: errors.slice(0, 10) })}`);
+  throw new Error(`Map style did not load: ${JSON.stringify({ ...state, browserErrors: pageErrors.slice(0, 10) })}`);
 }
 await mkdir('verification', { recursive: true });
 await page.evaluate(async () => {
@@ -65,9 +68,10 @@ async function inspectTheme(theme) {
 const light = await inspectTheme('light');
 await page.locator('#theme-toggle').click();
 const dark = await inspectTheme('dark');
-if (errors.length) throw new Error(`Browser reported errors: ${errors.slice(0, 5).join(' | ')}`);
-await writeFile('verification/map-smoke.json', JSON.stringify({ url: baseUrl, rangeChecks, themes: { light, dark }, browserErrors: errors }, null, 2) + '\n');
-console.log(`Live light and dark maps rendered; four PMTiles range requests returned 206.`);
+const sameOriginFailures = failedResponses.filter(item => item.url.startsWith(baseUrl));
+if (pageErrors.length || sameOriginFailures.length) throw new Error(`Browser issues: ${JSON.stringify({ pageErrors: pageErrors.slice(0, 5), failedResponses: sameOriginFailures.slice(0, 10) })}`);
+await writeFile('verification/map-smoke.json', JSON.stringify({ url: baseUrl, rangeChecks, themes: { light, dark }, pageErrors, consoleErrors, failedResponses }, null, 2) + '\n');
+console.log(`Live light and dark maps rendered; four PMTiles range requests returned 206. External resource failures: ${failedResponses.filter(item => !item.url.startsWith(baseUrl)).length}.`);
 } finally {
   await browser.close();
 }

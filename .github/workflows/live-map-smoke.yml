@@ -1,0 +1,33 @@
+name: Verify deployed Batticaloa map
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser test package
+        run: |
+          npm install --prefix "$RUNNER_TEMP/mazo-playwright" --no-save --no-package-lock playwright@1.55.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/mazo-playwright/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+      - name: Confirm runner Chrome
+        run: google-chrome --version
+      - name: Verify live archive ranges and rendered map
+        run: node scripts/verify-live-map.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mazo-batticaloa-live-verification
+          path: |
+            mazo-batticaloa-*.png
+            verification/map-smoke.json
+          if-no-files-found: warn
+          retention-days: 14

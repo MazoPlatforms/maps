@@ -3,6 +3,18 @@ name: Build and publish Batticaloa basemap
 on:
   push:
     branches: [main]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - 'docs/**'
+      - 'data/overture/**'
+      - 'scripts/build-overture-theme.sh'
+      - 'scripts/finalize-styles.py'
+      - 'scripts/validate-tiles.py'
+      - 'README.md'
+      - 'ATTRIBUTION.md'
+      - 'LICENSE'
+      - '.nojekyll'
   workflow_dispatch:
 
 permissions:
