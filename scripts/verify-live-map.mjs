@@ -52,13 +52,14 @@ async function inspectTheme(theme) {
   }, `Mazo Maps Batticaloa ${theme[0].toUpperCase()}${theme.slice(1)}`, { timeout: 90_000 });
   const rendering = await page.evaluate(() => {
     const map = window.__mazoMap;
-    const sourceCounts = Object.fromEntries(['base', 'transportation', 'buildings', 'places'].map(source => [source, map.querySourceFeatures(source).length]));
-    const styleLayers = new Set(map.getStyle().layers.map(layer => layer.id));
-    const layerCounts = Object.fromEntries(['land', 'land-use', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => [layer, styleLayers.has(layer) ? map.queryRenderedFeatures({ layers: [layer] }).length : null]));
-    return { styleLoaded: map.isStyleLoaded(), styleName: map.getStyle().name, zoom: map.getZoom(), sourceCounts, layerCounts };
+    const features = map.queryRenderedFeatures();
+    const sourceLayerCounts = Object.fromEntries(['land', 'water', 'segment', 'connector', 'building', 'place'].map(sourceLayer => [sourceLayer, features.filter(feature => feature.sourceLayer === sourceLayer).length]));
+    const placeLabels = features.filter(feature => feature.layer.type === 'symbol' && feature.sourceLayer === 'place');
+    const layerCounts = Object.fromEntries(['land', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => [layer, map.getStyle().layers.some(item => item.id === layer) ? map.queryRenderedFeatures({ layers: [layer] }).length : null]));
+    return { styleLoaded: map.isStyleLoaded(), styleName: map.getStyle().name, zoom: map.getZoom(), sourceLayerCounts, layerCounts, placeLabels: placeLabels.length };
   });
-  const visibleLayerCounts = ['land', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => rendering.layerCounts[layer]);
-  if (!rendering.styleLoaded || visibleLayerCounts.some(count => !Number.isInteger(count) || count < 1)) {
+  const visibleLayerCounts = ['land', 'water-fill', 'road-lines', 'building-fills'].map(layer => rendering.layerCounts[layer]);
+  if (!rendering.styleLoaded || visibleLayerCounts.some(count => !Number.isInteger(count) || count < 1) || rendering.sourceLayerCounts.place < 1) {
     await page.locator('#map').screenshot({ path: `mazo-batticaloa-${theme}-diagnostic.png` });
     await writeFile('verification/map-smoke-diagnostic.json', JSON.stringify({ theme, rendering, pageErrors, consoleErrors, failedResponses }, null, 2) + '\n');
     throw new Error(`${theme} Overture layers were not queryable: ${JSON.stringify({ rendering, pageErrors, consoleErrors, failedResponses })}`);
