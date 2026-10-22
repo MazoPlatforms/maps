@@ -3,7 +3,9 @@
 import argparse
 import hashlib
 import json
+import re
 import subprocess
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -64,6 +66,40 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
+def verify_archive(archive):
+    """Correct only PMTiles zoom-header fields when verify identifies a mismatch.
+
+    The official Overture builder can leave minzoom at the profile default even
+    when a regional extract has no tiles at that zoom. go-pmtiles verifies that
+    header values match the actual tile directory, so normalize that metadata
+    without changing any tile data, then require verification to pass.
+    """
+    adjustments = []
+    for _ in range(2):
+        result = subprocess.run(["pmtiles", "verify", str(archive)], text=True, capture_output=True)
+        if result.returncode == 0:
+            return adjustments
+        diagnostic = result.stdout + result.stderr
+        match = re.search(r"header (MinZoom|MaxZoom)=(\d+) does not match (?:min|max) tile z (\d+)", diagnostic)
+        if not match:
+            raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
+        field, header_value, actual_value = match.groups()
+        header = command_json("pmtiles", "show", str(archive), "--header-json")
+        key = "min_zoom" if field == "MinZoom" else "max_zoom"
+        aliases = (key, "minZoom" if key == "min_zoom" else "maxZoom", "minzoom" if key == "min_zoom" else "maxzoom")
+        present_key = next((candidate for candidate in aliases if candidate in header), None)
+        if present_key is None or int(header[present_key]) != int(header_value):
+            raise ValueError(f"cannot safely normalize {field} for {archive.name}: header JSON did not match verifier diagnostic")
+        header[present_key] = int(actual_value)
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", encoding="utf-8") as stream:
+            json.dump(header, stream)
+            stream.flush()
+            subprocess.run(["pmtiles", "edit", str(archive), f"--header-json={stream.name}"], check=True)
+        adjustments.append({"field": field, "from": int(header_value), "to": int(actual_value)})
+    subprocess.run(["pmtiles", "verify", str(archive)], check=True)
+    return adjustments
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", required=True, type=Path)
@@ -79,11 +115,12 @@ def main():
 
     archives = {}
     input_counts = {}
+    header_adjustments = {}
     for theme in EXPECTED_LAYERS:
         archive = args.data_dir / f"{theme}.pmtiles"
         if not archive.is_file() or archive.stat().st_size == 0:
             raise ValueError(f"missing or empty PMTiles archive: {theme}")
-        subprocess.run(["pmtiles", "verify", str(archive)], check=True)
+        header_adjustments[theme] = verify_archive(archive)
         header = command_json("pmtiles", "show", str(archive), "--header-json")
         metadata = command_json("pmtiles", "show", str(archive), "--metadata")
         layers = {item.get("id", item.get("name")) for item in metadata.get("vector_layers", [])}
@@ -135,6 +172,7 @@ def main():
         "builtAt": datetime.now(timezone.utc).isoformat(),
         "overtureTilesImage": args.image_digest,
         "archives": archives,
+        "pmtilesHeaderNormalizations": header_adjustments,
         "bboxFilteredSourceFeatureCounts": input_counts,
         "sourceTypesWithoutFeaturesInBbox": {
             theme: sorted(name for name, item in counts.items() if item["rows"] == 0)
