@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import re
+import stat
 import subprocess
 import tempfile
 from datetime import datetime, timezone
@@ -94,6 +95,7 @@ def verify_archive(archive):
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", encoding="utf-8") as stream:
             json.dump(header, stream)
             stream.flush()
+            archive.chmod(archive.stat().st_mode | stat.S_IWUSR)
             subprocess.run(["pmtiles", "edit", str(archive), f"--header-json={stream.name}"], check=True)
         adjustments.append({"field": field, "from": int(header_value), "to": int(actual_value)})
     subprocess.run(["pmtiles", "verify", str(archive)], check=True)
