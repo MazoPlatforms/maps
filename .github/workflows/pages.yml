@@ -18,7 +18,9 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Overture publishes its official builder as linux/arm64; use a native
+    # GitHub-hosted ARM runner instead of relying on emulation.
+    runs-on: ubuntu-24.04-arm
     outputs:
       deploy_allowed: ${{ steps.size.outputs.deploy_allowed }}
       site_bytes: ${{ steps.size.outputs.site_bytes }}
