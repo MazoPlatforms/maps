@@ -65,6 +65,9 @@ jobs:
               --env OUTPUT=unused \
               --entrypoint /bin/bash "$OVERTURE_TILE_IMAGE" /build-theme.sh
           done
+          # The official builder writes as root inside the container; hand the
+          # outputs back to the runner so validation can safely edit PMTiles headers.
+          sudo chown -R "$(id -u):$(id -g)" data/batticaloa counts
 
       - name: Install PMTiles verifier
         run: |
