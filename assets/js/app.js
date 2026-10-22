@@ -58,11 +58,10 @@ async function loadDataManifest() {
 async function initializeMap() {
   if (!mapNode) return;
   try {
-    const [maplibre] = await Promise.all([
+    const [maplibre, pmtiles] = await Promise.all([
       import('https://unpkg.com/maplibre-gl@6.15.0/dist/maplibre-gl.mjs'),
-      import('https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js')
+      import('https://unpkg.com/pmtiles@4.5.0/dist/esm/index.js?module')
     ]);
-    const pmtiles = globalThis.pmtiles;
     if (!pmtiles?.Protocol) throw new Error('PMTiles protocol library did not load.');
     maplibre.addProtocol('pmtiles', new pmtiles.Protocol({ metadata: true }).tile);
     const style = await loadStyle(root.dataset.theme);
