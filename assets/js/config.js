@@ -1,17 +1,14 @@
-/** Map and data-provider configuration. Keep credentials out of this public file. */
+/** Batticaloa extract configuration. All data endpoints are same-origin Pages assets. */
 export const mapConfig = Object.freeze({
-  center: [79.8612, 6.9271],
-  zoom: 11.6,
+  center: [81.695, 7.71],
+  zoom: 8.35,
   minZoom: 2,
-  maxZoom: 19,
+  maxZoom: 16,
+  bounds: [81.45, 7.35, 81.9, 8.35],
   styles: Object.freeze({
-    light: 'https://tiles.openfreemap.org/styles/positron',
-    dark: 'https://tiles.openfreemap.org/styles/dark'
+    light: './assets/styles/batticaloa-light.json',
+    dark: './assets/styles/batticaloa-dark.json'
   })
 });
 
-/** Future data providers are registered here after source and license review. */
-export const dataSources = Object.freeze({
-  overture: { status: 'planned', url: null, layers: [] },
-  pointsOfInterest: { status: 'planned', url: null, layers: [] }
-});
+export const archiveThemes = Object.freeze(['base', 'transportation', 'buildings', 'places']);

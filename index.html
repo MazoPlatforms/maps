@@ -10,7 +10,7 @@
     <title>Mazo Maps — Open mapping, built to grow</title>
     <link rel="icon" type="image/svg+xml" href="./assets/mazo-mark.svg">
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
-    <link rel="preconnect" href="https://tiles.openfreemap.org">
+    <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.15.0/dist/maplibre-gl.css">
     <link rel="stylesheet" href="./assets/css/site.css">
     <script type="module" src="./assets/js/app.js"></script>
@@ -50,7 +50,7 @@
           <span class="aside-index">01 / THE FOUNDATION</span>
           <p>Useful today.<br><em>Ready for tomorrow.</em></p>
           <span class="aside-rule" aria-hidden="true"></span>
-          <span class="aside-caption">Sri Lanka view · OpenStreetMap data</span>
+          <span class="aside-caption">Batticaloa, Sri Lanka · Open map data</span>
         </div>
       </section>
 
@@ -61,17 +61,17 @@
             <h2 id="map-title">Explore the map<span class="period">.</span></h2>
           </div>
           <div class="map-tools">
-            <span class="map-location"><span class="location-dot" aria-hidden="true"></span> Colombo, Sri Lanka</span>
-            <button class="map-reset" id="map-reset" type="button" aria-label="Reset map view to Colombo">Reset view <span aria-hidden="true">↗</span></button>
+            <span class="map-location"><span class="location-dot" aria-hidden="true"></span> Batticaloa, Sri Lanka</span>
+            <button class="map-reset" id="map-reset" type="button" aria-label="Reset map view to Batticaloa">Reset view <span aria-hidden="true">↗</span></button>
           </div>
         </div>
         <div class="map-frame">
-          <div id="map" role="region" aria-label="Interactive map centered on Colombo, Sri Lanka"></div>
+          <div id="map" role="region" aria-label="Interactive map of Batticaloa, Sri Lanka"></div>
           <div class="map-loading" id="map-status" role="status" aria-live="polite"><span class="loading-pulse" aria-hidden="true"></span><span>Loading open map…</span></div>
-          <div class="map-overlay-label"><span class="map-label-kicker">MAZO MAPS / 01</span><span>Colombo metropolitan area</span></div>
-          <div class="map-legend"><span class="legend-line" aria-hidden="true"></span> Open street data</div>
+          <div class="map-overlay-label"><span class="map-label-kicker">MAZO MAPS / BATTICALOA</span><span>Regional vector basemap</span></div>
+          <div class="map-legend"><span class="legend-line" aria-hidden="true"></span> Overture Maps vector tiles</div>
         </div>
-        <div class="map-caption"><span>Pan, zoom and explore.</span><span>Map tiles by OpenFreeMap · Data © OpenStreetMap contributors</span></div>
+        <div class="map-caption"><span>Pan, zoom and explore · Regional extract: 81.45, 7.35 to 81.90, 8.35</span><span><span id="release-status">Overture Maps · Data © OpenStreetMap contributors</span> · <a href="./ATTRIBUTION.md">Attribution</a></span></div>
       </section>
 
       <section class="project-section section-shell" id="project" aria-labelledby="project-title">
@@ -93,9 +93,9 @@
         <div class="section-shell roadmap-inner">
           <div class="roadmap-heading"><p class="eyebrow">Built in layers</p><h2 id="roadmap-title">A foundation,<br>then more.</h2><p class="roadmap-intro">The project is structured to grow without treating planned data as if it already exists.</p></div>
           <div class="roadmap-list">
-            <article class="roadmap-item roadmap-current"><div class="roadmap-marker" aria-hidden="true"><span></span></div><div class="roadmap-content"><div class="roadmap-meta"><span>Available now</span><span class="tag tag-live">Live</span></div><h3>Interactive vector map</h3><p>MapLibre GL JS with OpenFreeMap styles and OpenStreetMap data attribution.</p></div></article>
-            <article class="roadmap-item"><div class="roadmap-marker" aria-hidden="true"><span></span></div><div class="roadmap-content"><div class="roadmap-meta"><span>Planned</span><span class="tag">Future layer</span></div><h3>Overture Maps data</h3><p>A separate source adapter for licensed Overture datasets, after ingestion, provenance and update workflows are defined.</p></div></article>
-            <article class="roadmap-item"><div class="roadmap-marker" aria-hidden="true"><span></span></div><div class="roadmap-content"><div class="roadmap-meta"><span>Planned</span><span class="tag">Future layer</span></div><h3>Points of interest</h3><p>POI layers will be added when a source, schema, coverage and refresh policy are selected. No project POI dataset is published yet.</p></div></article>
+            <article class="roadmap-item roadmap-current"><div class="roadmap-marker" aria-hidden="true"><span></span></div><div class="roadmap-content"><div class="roadmap-meta"><span>Available now</span><span class="tag tag-live">Live</span></div><h3>Batticaloa vector basemap</h3><p>Self-hosted PMTiles built from the latest Overture Maps release, with source attribution and a regional coverage manifest.</p></div></article>
+            <article class="roadmap-item"><div class="roadmap-marker" aria-hidden="true"><span></span></div><div class="roadmap-content"><div class="roadmap-meta"><span>Available now</span><span class="tag tag-live">Live</span></div><h3>Roads, land, water & places</h3><p>Regional transportation, connectors, building footprints, place names, land and water layers with attribution retained.</p></div></article>
+            <article class="roadmap-item"><div class="roadmap-marker" aria-hidden="true"><span></span></div><div class="roadmap-content"><div class="roadmap-meta"><span>Planned</span><span class="tag">Future layer</span></div><h3>Additional points of interest</h3><p>Future POI sources will be added after their license, coverage, provenance and refresh policy are reviewed.</p></div></article>
           </div>
         </div>
       </section>
@@ -103,7 +103,7 @@
       <section class="docs-section section-shell" aria-labelledby="docs-title">
         <div class="docs-card">
           <div class="docs-copy"><p class="eyebrow">Open source, open direction</p><h2 id="docs-title">Come build<br>what’s next.</h2><p>Read the project notes, inspect the source and help shape a dependable, open mapping foundation.</p><a class="button button-yellow" href="https://github.com/MazoPlatforms/maps" target="_blank" rel="noopener noreferrer">Visit Mazo Maps on GitHub <span aria-hidden="true">↗</span></a></div>
-          <div class="docs-graphic" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div><span class="graphic-cross cross-one">+</span><span class="graphic-cross cross-two">+</span><span class="graphic-center"><img src="./assets/mazo-mark.svg" alt="" width="70" height="70"></span><span class="graphic-coordinate">06°55′N<br>79°51′E</span></div>
+          <div class="docs-graphic" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div><span class="graphic-cross cross-one">+</span><span class="graphic-cross cross-two">+</span><span class="graphic-center"><img src="./assets/mazo-mark.svg" alt="" width="70" height="70"></span><span class="graphic-coordinate">07°43′N<br>81°42′E</span></div>
         </div>
       </section>
     </main>
@@ -111,7 +111,7 @@
     <footer class="site-footer section-shell">
       <div class="footer-main"><a class="brand footer-brand" href="#top"><img src="./assets/mazo-mark.svg" width="34" height="34" alt=""><span>Mazo <strong>Maps</strong></span></a><p>An open mapping project<br>by Mazo Platforms, Inc.</p></div>
       <div class="footer-links"><a href="https://github.com/MazoPlatforms/maps" target="_blank" rel="noopener noreferrer">Source code <span aria-hidden="true">↗</span></a><a href="./docs/">Documentation</a><a href="./ATTRIBUTION.md">Attribution</a><a href="./LICENSE">License</a></div>
-      <div class="footer-bottom"><span>© 2026 Mazo Platforms, Inc. · Project code under MIT License</span><span>Map data © OpenStreetMap contributors · ODbL</span></div>
+      <div class="footer-bottom"><span>© 2026 Mazo Platforms, Inc. · Project code under MIT License</span><span>© OpenStreetMap contributors, Overture Maps Foundation</span></div>
     </footer>
   </body>
 </html>

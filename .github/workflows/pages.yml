@@ -1,4 +1,4 @@
-name: Deploy Mazo Maps to GitHub Pages
+name: Build and publish Batticaloa basemap
 
 on:
   push:
@@ -7,32 +7,166 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: mazo-maps-pages
   cancel-in-progress: true
 
+env:
+  BBOX: 81.45,7.35,81.90,8.35
+  OVERTURE_TILE_IMAGE: ghcr.io/overturemaps/overture-tiles:latest
+
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_allowed: ${{ steps.size.outputs.deploy_allowed }}
+      site_bytes: ${{ steps.size.outputs.site_bytes }}
+      release: ${{ steps.release.outputs.release }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Resolve latest official Overture release
+        id: release
+        run: |
+          release="$(curl --fail --silent --show-error --location https://stac.overturemaps.org/catalog.json | jq --raw-output '.latest')"
+          [[ "$release" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}\.[0-9]+$ ]] || { echo "Unexpected Overture release identifier" >&2; exit 1; }
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "Building official Overture release $release for $BBOX"
+
+      - name: Pull official Overture tile builder
+        run: |
+          docker pull "$OVERTURE_TILE_IMAGE"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$OVERTURE_TILE_IMAGE")"
+          echo "Official builder image: $digest"
+          echo "OVERTURE_IMAGE_DIGEST=$digest" >> "$GITHUB_ENV"
+
+      - name: Set up PMTiles verifier
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+          cache: false
+
+      - name: Build four regional PMTiles archives
+        env:
+          RELEASE: ${{ steps.release.outputs.release }}
+        run: |
+          mkdir -p data/batticaloa counts
+          for theme in base transportation buildings places; do
+            : > "counts/$theme.tsv"
+            docker run --rm \
+              --mount "type=bind,source=$GITHUB_WORKSPACE/data/batticaloa,target=/data" \
+              --mount "type=bind,source=$GITHUB_WORKSPACE/counts,target=/counts" \
+              --mount "type=bind,source=$GITHUB_WORKSPACE/scripts/build-overture-theme.sh,target=/build-theme.sh,readonly" \
+              --env RELEASE --env THEME="$theme" --env BBOX --env SKIP_UPLOAD=true \
+              --env OUTPUT=unused \
+              --entrypoint /bin/bash "$OVERTURE_TILE_IMAGE" /build-theme.sh
+          done
+
+      - name: Install PMTiles verifier
+        run: |
+          go install github.com/protomaps/go-pmtiles/cmd/pmtiles@v1.31.2
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Verify archives and record provenance
+        env:
+          RELEASE: ${{ steps.release.outputs.release }}
+        run: |
+          python3 scripts/validate-tiles.py \
+            --data-dir data/batticaloa --counts-dir counts \
+            --release "$RELEASE" --image-digest "$OVERTURE_IMAGE_DIGEST" \
+            --bbox "$BBOX" --manifest data/batticaloa/manifest.json
+          cat data/batticaloa/manifest.json
+
+      - name: Assemble site and enforce Pages size limit
+        id: size
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='.git/' --exclude='.github/' --exclude='_site/' --exclude='counts/' ./ _site/
+          site_bytes="$(du -sb _site | cut -f1)"
+          # Keep headroom below GitHub Pages' published-site 1 GB hard limit.
+          if (( site_bytes <= 943718400 )); then deploy_allowed=true; else deploy_allowed=false; fi
+          echo "site_bytes=$site_bytes" >> "$GITHUB_OUTPUT"
+          echo "deploy_allowed=$deploy_allowed" >> "$GITHUB_OUTPUT"
+          echo "Site payload: $site_bytes bytes; Pages deploy permitted: $deploy_allowed"
+          if [[ "$deploy_allowed" != true ]]; then
+            echo "Built data exceeds the safe GitHub Pages payload limit; retain it as an Actions artifact instead." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload reproducible site build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazo-maps-batticaloa-${{ steps.release.outputs.release }}
+          path: _site/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+      - name: Summarize tile build
+        run: |
+          python3 - <<'PY'
+          import json, os
+          path = '_site/data/batticaloa/manifest.json'
+          manifest = json.load(open(path))
+          total = sum(item['bytes'] for item in manifest['archives'].values())
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write(f"## Batticaloa tile build\n\n- Overture release: `{manifest['release']}`\n- Bbox: `{manifest['bbox']}`\n- Archive bytes: **{total:,}**\n- Site bytes: **${{ steps.size.outputs.site_bytes }}**\n- Source counts are bbox-filtered Parquet rows, not rendered-tile totals.\n- Attribution: {manifest['attribution']}\n")
+          PY
+
   deploy:
+    needs: build
+    if: needs.build.outputs.deploy_allowed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Download verified site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mazo-maps-batticaloa-${{ needs.build.outputs.release }}
+          path: _site
       - name: Configure Pages
         uses: actions/configure-pages@v5
-      - name: Prepare static site artifact
-        run: |
-          mkdir _site
-          rsync -a --exclude='.git/' --exclude='.github/' --exclude='_site/' ./ _site/
-      - name: Upload site artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-      - name: Deploy
+      - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  live-smoke:
+    needs: [build, deploy]
+    if: needs.build.outputs.deploy_allowed == 'true' && needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout verification script
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser verifier in runner temp
+        run: |
+          npm install --prefix "$RUNNER_TEMP/mazo-playwright" --no-save playwright@1.55.0
+          "$RUNNER_TEMP/mazo-playwright/node_modules/.bin/playwright" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/mazo-playwright/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+      - name: Verify deployed archive ranges and map rendering
+        run: node scripts/verify-live-map.mjs
+      - name: Upload rendering evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazo-maps-live-verification
+          path: |
+            mazo-batticaloa-*.png
+            verification/map-smoke.json
+          if-no-files-found: warn
+          retention-days: 7

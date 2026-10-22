@@ -1,17 +1,32 @@
 # Mazo Maps architecture
 
-Mazo Maps is a static GitHub Pages site. The initial release keeps the site and its map configuration in plain HTML, CSS and JavaScript modules; there is no application server, account system, build step or secret-bearing client configuration.
+Mazo Maps is a static MapLibre site. GitHub Actions resolves the current official Overture release, filters source features by bbox, runs the published Overture PMTiles profiles, validates the archives, and publishes the site through GitHub Pages. No map-data build or local dependency installation is required.
 
-## Current map path
+## Regional data pipeline
 
-`assets/js/app.js` initializes MapLibre GL JS from a pinned CDN version. `assets/js/config.js` owns the initial center, zoom limits and style URLs. OpenFreeMap supplies the public vector map styles/tiles; the style controls their actual source composition and attribution. The map opens at Colombo as a viewport choice, not as a claim of service coverage. No project-owned POI data is currently loaded.
+The configured bbox is `[81.45, 7.35, 81.90, 8.35]` (min longitude, min latitude, max longitude, max latitude). The workflow builds four separate PMTiles archives using the official Overture tile-builder image and its bbox filter:
 
-The map renderer, style provider and project data layers are separate concerns. The theme switch chooses OpenFreeMap Positron or Dark styles while keeping the same camera state. MapLibre's attribution control remains enabled.
+- `base.pmtiles`: land, land cover, land use, water, and any other base-theme feature layers present in the extract.
+- `transportation.pmtiles`: road/rail segments and connectors.
+- `buildings.pmtiles`: buildings and building parts where present.
+- `places.pmtiles`: place features, including primary names where source names are available.
 
-## Future source integration
+The official bbox operation selects features whose bounding boxes intersect the region. Geometries are not clipped to the bbox. It does not create or infer missing features. Tile profiles define zoom ranges; the coverage manifest records the actual release, input row counts, named-row counts, builder image digest, archive sizes, hashes, metadata and available layer names. Counts are source Parquet rows before tile deduplication, not visible-map feature totals. The manifest is not a completeness guarantee.
 
-Overture and POI entries in `assets/js/config.js` are explicitly marked `planned`, with no endpoints or layer data. Future adapters should be added only after selecting a dataset release, license, attribution text, geographic coverage, refresh policy and schema. Keep source-specific identifiers and provenance in each feature; never blend datasets in a way that obscures ownership or license obligations. `data/overture/README.md` records the intended extension point.
+The build fails if required source types are empty, a non-empty source type has no corresponding output layer, the PMTiles archive is invalid, or named place records are absent. Other feature types that are present are reported rather than silently discarded. GitHub Pages deployment is skipped above a 900 MiB safety threshold; the assembled site is still uploaded as a short-lived Actions artifact. The hard published-site limit is 1 GB.
 
-## Hosting
+## Browser map
 
-`.github/workflows/pages.yml` deploys the repository root to GitHub Pages after a push to `main`. No credentials are required for the static site. MapLibre GL JS is loaded from UNPKG and map styles/tiles from OpenFreeMap, so map availability depends on those third parties and internet access. A self-hosted or otherwise contracted map source can later be configured by changing the provider adapter without adding secrets to public files.
+`assets/js/config.js` owns map bounds and style URLs. Light and dark MapLibre styles reference same-origin PMTiles archives through the PMTiles protocol and retain source attribution. MapLibre GL JS and the PMTiles browser adapter are loaded from version-pinned CDN URLs. Label glyphs are served by the public OpenFreeMap font endpoint; this is an external dependency and is not part of the self-hosted geographic archive.
+
+The map camera is centered on Batticaloa and bounded to the requested region. Roads and place names use Overture's primary-name property where it exists. MapLibre's attribution control remains enabled alongside the page-level notice.
+
+## Verification and publication
+
+Before deploy, `scripts/validate-tiles.py` verifies archive structure, geographic bounds, zoom metadata, required vector layers, input feature counts and SHA-256 hashes. It writes `data/batticaloa/manifest.json`. After deploy, an Actions browser job checks HTTP byte-range responses for each archive, waits for the map to load, queries representative rendered/source layers, captures a screenshot and uploads the verification evidence as an Actions artifact.
+
+The Pages deployment and live browser test are skipped if the site exceeds the safe size threshold. This avoids claiming a deployed map when GitHub Pages cannot host the payload; the build artifact remains available from the Actions run.
+
+## Scope and future data
+
+This is a regional Overture extract, not Google Maps-equivalent coverage, a routing service, a live traffic product, or an operational service boundary. No project-owned POIs are added. New sources must document release, license, attribution, geographic coverage, provenance and refresh policy before they are integrated. See [Data sources](DATA_SOURCES.md) and [Attribution](../ATTRIBUTION.md).

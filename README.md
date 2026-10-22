@@ -1,8 +1,8 @@
 # Mazo Maps
 
-**Mazo Maps** is an open-source mapping project by Mazo Platforms, Inc. It begins with an interactive MapLibre map and a clear, extensible structure for future vector-tile and points-of-interest work.
+**Mazo Maps** is an open-source mapping project by Mazo Platforms, Inc. It publishes a regional Batticaloa vector basemap built from official Overture Maps data and displayed with MapLibre.
 
-The current map is a public demonstration centered on Colombo. It uses OpenFreeMap styles and OpenStreetMap data; it does not imply RideNow or Mazo service coverage, and it does not yet publish project-owned POIs or Overture data.
+GitHub Actions resolves the latest official Overture release, extracts features intersecting `[81.45, 7.35, 81.90, 8.35]`, builds four PMTiles archives, validates their feature layers and byte-range delivery, and deploys when the site payload fits GitHub Pages. The release manifest records source counts and archive hashes. This is a regional extract, not a completeness guarantee or a service-coverage claim. The map does not publish project-owned POIs.
 
 ## Project structure
 
@@ -10,11 +10,13 @@ The current map is a public demonstration centered on Colombo. It uses OpenFreeM
 index.html                 GitHub Pages site
 assets/css/site.css        Responsive presentation and light/dark themes
 assets/js/app.js           Theme controls and MapLibre initialization
-assets/js/config.js        Map provider settings and future source registry
+assets/js/config.js        Batticaloa bounds and style configuration
 assets/mazo-mark.svg       Project mark
-data/overture/             Documented future data extension point
-docs/                      Architecture and data-source notes
-.github/workflows/         GitHub Pages deployment
+assets/styles/             Light and dark MapLibre styles
+data/batticaloa/           Actions-generated PMTiles and provenance manifest
+scripts/                   Tile validation and live range/render smoke checks
+docs/                      Architecture, data-source and attribution notes
+.github/workflows/         Overture tile build, verification and Pages deployment
 ```
 
 ## Run locally
@@ -25,18 +27,18 @@ Serve this directory with any static HTTP server, then open its local URL. For e
 python3 -m http.server 8000
 ```
 
-The map requires an internet connection to load MapLibre GL JS and OpenFreeMap tiles. The rest of the page remains readable if those services are unavailable. No API key or secret is required.
+The map requires an internet connection for MapLibre GL JS and label glyphs. Regional vector archives are served from this GitHub Pages site. No API key or secret is required.
 
 ## Map attribution and licensing
 
-The map displays **OpenFreeMap © OpenMapTiles · Data from OpenStreetMap contributors** using MapLibre's attribution control and a page-level notice. OpenStreetMap data is licensed under ODbL. OpenFreeMap states that commercial usage is allowed, attribution is required, and its public service has no SLA. See [Attribution](ATTRIBUTION.md) before changing map sources.
+The map retains Overture Maps and OpenStreetMap attribution in the MapLibre style and visible page notice. Review [Attribution](ATTRIBUTION.md) and [Data sources](docs/DATA_SOURCES.md) before changing sources.
 
 Project source is licensed under MIT; see [LICENSE](LICENSE). Third-party software and data retain their own licenses.
 
 ## GitHub Pages
 
-The workflow deploys the repository root to GitHub Pages on updates to `main`. In repository settings, set **Build and deployment → Source** to **GitHub Actions** if Pages has not already been enabled. The expected project URL is `https://mazoplatforms.github.io/maps/` once Pages is enabled and the workflow completes.
+The workflow downloads and processes data only on GitHub-hosted runners. A verified site artifact is retained for seven days. If the assembled site exceeds a 900 MiB safety threshold, Pages deployment is skipped and the artifact remains available from the run. GitHub Pages has a 1 GB published-site limit. In repository settings, set **Build and deployment → Source** to **GitHub Actions**. The project URL is `https://mazoplatforms.github.io/maps/`.
 
 ## Roadmap boundary
 
-Overture Maps and POI sources are planned extension points, not live features. No geographic data is invented or bundled as a placeholder. Before adding a source, record its release, license, attribution, coverage, provenance and refresh policy.
+Only the listed Overture regional extract is included. Coverage depends on the selected release and source data; no Google Maps equivalence or complete local POI coverage is claimed. Label glyphs remain a public external dependency. No geographic data is invented or bundled as a placeholder.

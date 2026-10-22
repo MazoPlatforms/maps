@@ -1,19 +1,22 @@
 # Attribution and third-party notices
 
-## Map display
+## Geographic data
 
-The interactive map uses the OpenFreeMap public service and displays attribution through MapLibre's built-in control. Required source attribution:
+The regional vector basemap is generated from official Overture Maps data and includes OpenStreetMap-derived content. The map credits:
 
-**OpenFreeMap © OpenMapTiles · Data from OpenStreetMap contributors**
+**© OpenStreetMap contributors, Overture Maps Foundation**
 
-OpenStreetMap data is made available under the Open Database License (ODbL). See <https://www.openstreetmap.org/copyright>.
+Keep the MapLibre attribution control and visible page-level attribution enabled. See the [Overture Maps attribution guidance](https://docs.overturemaps.org/attribution/) and [OpenStreetMap copyright and license](https://www.openstreetmap.org/copyright). OpenStreetMap data is available under the Open Database License (ODbL). Dataset-specific licensing and attribution remain with the source data.
 
-OpenFreeMap describes its service as free for commercial use, requires attribution, and provides it as-is without an SLA. See <https://openfreemap.org/> and <https://openfreemap.org/tos/>. The site also includes a visible text attribution below the map.
+## Map rendering and label glyphs
 
-## Software
+- **MapLibre GL JS 6.15.0**, loaded from UNPKG, under the BSD 3-Clause License: <https://github.com/maplibre/maplibre-gl-js/blob/main/LICENSE.txt>.
+- **PMTiles JavaScript 4.5.0**, loaded from UNPKG, under the BSD 3-Clause License: <https://github.com/protomaps/PMTiles/blob/main/LICENSE>.
+- **Label glyphs:** requested from the public OpenFreeMap font endpoint. This is a third-party availability dependency; it does not provide the basemap vector archives.
+- **Tile generation:** the GitHub Actions build uses the official Overture `overture-tiles` container and its published profiles and records the resolved container digest in the build manifest.
 
-- **MapLibre GL JS 6.15.0**, loaded from UNPKG at runtime, under the BSD 3-Clause License: <https://github.com/maplibre/maplibre-gl-js/blob/main/LICENSE.txt>.
-- **Mazo Maps project source**, excluding separately identified third-party data and software, is licensed under the MIT License in `LICENSE`.
-- **Fonts:** Manrope and DM Mono are requested from Google Fonts. Their respective open font licenses are available from the font projects; no font files are redistributed in this repository.
+## Project software and fonts
 
-Do not remove map attribution when changing the style provider or renderer. Reassess and update this notice when adding data or assets.
+Mazo Maps source code is licensed under MIT; see `LICENSE`. Manrope and DM Mono are requested from Google Fonts and are not bundled. Third-party data, software and fonts retain their respective licenses.
+
+Do not remove or obscure map data attribution when changing rendering, style or source configuration.

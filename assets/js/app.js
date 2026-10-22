@@ -5,6 +5,7 @@ const themeButton = document.querySelector('#theme-toggle');
 const mapStatus = document.querySelector('#map-status');
 const mapNode = document.querySelector('#map');
 let map;
+const siteRoot = new URL('../../', import.meta.url).href;
 
 function preferredTheme() {
   try {
@@ -22,41 +23,67 @@ function applyTheme(theme, persist = true) {
   if (persist) {
     try { localStorage.setItem('mazo-maps-theme', theme); } catch { /* Theme remains active for this page view. */ }
   }
-  if (map) map.setStyle(mapConfig.styles[theme]);
+  if (map) loadStyle(theme).then(style => map?.setStyle(style)).catch(showMapError);
 }
 
 applyTheme(preferredTheme(), false);
 themeButton?.addEventListener('click', () => applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
 
+async function loadStyle(theme) {
+  const response = await fetch(new URL(mapConfig.styles[theme], siteRoot), { cache: 'no-cache' });
+  if (!response.ok) throw new Error('Map style could not be loaded.');
+  const template = await response.json();
+  return JSON.parse(JSON.stringify(template).replaceAll('__MAZO_SITE_ROOT__', siteRoot.replace(/\/$/, '')));
+}
+
+function showMapError() {
+  if (!mapStatus) return;
+  mapStatus.classList.remove('is-hidden');
+  mapStatus.innerHTML = '<span class="map-error-mark" aria-hidden="true">!</span><span>Map data could not load. The rest of the project page remains available.</span>';
+}
+
+async function loadDataManifest() {
+  try {
+    const response = await fetch(new URL('./data/batticaloa/manifest.json', siteRoot), { cache: 'no-cache' });
+    if (!response.ok) return;
+    const manifest = await response.json();
+    const status = document.querySelector('#release-status');
+    if (status) status.textContent = `Overture ${manifest.release} · ${manifest.bbox.join(', ')}`;
+  } catch { /* The hosted map remains usable if its small build manifest is unavailable. */ }
+}
+
 async function initializeMap() {
   if (!mapNode) return;
   try {
-    const maplibre = await import('https://unpkg.com/maplibre-gl@6.15.0/dist/maplibre-gl.mjs');
+    const [maplibre] = await Promise.all([
+      import('https://unpkg.com/maplibre-gl@6.15.0/dist/maplibre-gl.mjs'),
+      import('https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js')
+    ]);
+    const pmtiles = globalThis.pmtiles;
+    if (!pmtiles?.Protocol) throw new Error('PMTiles protocol library did not load.');
+    maplibre.addProtocol('pmtiles', new pmtiles.Protocol({ metadata: true }).tile);
+    const style = await loadStyle(root.dataset.theme);
     map = new maplibre.Map({
       container: mapNode,
-      style: mapConfig.styles[root.dataset.theme],
+      style,
       center: mapConfig.center,
       zoom: mapConfig.zoom,
       minZoom: mapConfig.minZoom,
       maxZoom: mapConfig.maxZoom,
       attributionControl: true,
-      cooperativeGestures: true
+      cooperativeGestures: true,
+      maxBounds: mapConfig.bounds
     });
     map.addControl(new maplibre.NavigationControl({ visualizePitch: true }), 'top-right');
     map.on('load', () => mapStatus?.classList.add('is-hidden'));
-    map.on('error', () => {
-      if (mapStatus) {
-        mapStatus.classList.remove('is-hidden');
-        mapStatus.innerHTML = '<span class="map-error-mark" aria-hidden="true">!</span><span>Map tiles could not load. Check your connection or try again.</span>';
-      }
-    });
+    map.on('error', showMapError);
+    if (new URLSearchParams(location.search).has('maptest')) globalThis.__mazoMap = map;
     document.querySelector('#map-reset')?.addEventListener('click', () => {
       map?.flyTo({ center: mapConfig.center, zoom: mapConfig.zoom, bearing: 0, pitch: 0, duration: 650 });
     });
+    loadDataManifest();
   } catch {
-    if (mapStatus) {
-      mapStatus.innerHTML = '<span class="map-error-mark" aria-hidden="true">!</span><span>The interactive map could not start. The rest of the project page remains available.</span>';
-    }
+    showMapError();
   }
 }
 

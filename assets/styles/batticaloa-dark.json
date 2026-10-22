@@ -1,0 +1,571 @@
+{
+  "version": 8,
+  "name": "Mazo Maps Batticaloa Dark",
+  "metadata": {
+    "mazo:project": "Mazo Maps",
+    "mazo:area": "Batticaloa bounding box",
+    "mazo:theme": "dark",
+    "mazo:release": "See data/batticaloa/manifest.json"
+  },
+  "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+  "sources": {
+    "base": {
+      "type": "vector",
+      "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/base.pmtiles",
+      "attribution": "© <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> · © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+    },
+    "transportation": {
+      "type": "vector",
+      "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/transportation.pmtiles",
+      "attribution": "© <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> · © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+    },
+    "buildings": {
+      "type": "vector",
+      "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/buildings.pmtiles",
+      "attribution": "© <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> · © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+    },
+    "places": {
+      "type": "vector",
+      "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/places.pmtiles",
+      "attribution": "© <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> · © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#151e21"
+      }
+    },
+    {
+      "id": "land-cover",
+      "type": "fill",
+      "source": "base",
+      "source-layer": "land_cover",
+      "paint": {
+        "fill-color": "#24352c",
+        "fill-opacity": 0.72
+      },
+      "minzoom": 3,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "land",
+      "type": "fill",
+      "source": "base",
+      "source-layer": "land",
+      "paint": {
+        "fill-color": "#202c2a"
+      },
+      "minzoom": 2,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "land-use",
+      "type": "fill",
+      "source": "base",
+      "source-layer": "land_use",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "subtype"
+          ],
+          "residential",
+          "#29332c",
+          "commercial",
+          "#29332c",
+          "industrial",
+          "#29332c",
+          "park",
+          "#24352c",
+          "forest",
+          "#24352c",
+          "#29332c"
+        ],
+        "fill-opacity": 0.65
+      },
+      "minzoom": 6,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "water-fill",
+      "type": "fill",
+      "source": "base",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": "#173741"
+      },
+      "minzoom": 2,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "water-lines",
+      "type": "line",
+      "source": "base",
+      "source-layer": "water",
+      "paint": {
+        "line-color": "#2c6875",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          5,
+          0.5,
+          13,
+          2.2
+        ]
+      },
+      "minzoom": 5,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "LineString"
+      ]
+    },
+    {
+      "id": "base-infrastructure",
+      "type": "line",
+      "source": "base",
+      "source-layer": "infrastructure",
+      "paint": {
+        "line-color": "#65746d",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          0.5,
+          14,
+          1.5
+        ]
+      },
+      "minzoom": 8,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "LineString"
+      ]
+    },
+    {
+      "id": "rail-lines",
+      "type": "line",
+      "source": "transportation",
+      "source-layer": "segment",
+      "paint": {
+        "line-color": "#968773",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          7,
+          0.7,
+          14,
+          2.2
+        ],
+        "line-dasharray": [
+          2,
+          1.5
+        ]
+      },
+      "minzoom": 7,
+      "filter": [
+        "==",
+        [
+          "get",
+          "subtype"
+        ],
+        "rail"
+      ]
+    },
+    {
+      "id": "transport-water-lines",
+      "type": "line",
+      "source": "transportation",
+      "source-layer": "segment",
+      "paint": {
+        "line-color": "#2c6875",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          7,
+          0.7,
+          14,
+          2.0
+        ]
+      },
+      "minzoom": 7,
+      "filter": [
+        "==",
+        [
+          "get",
+          "subtype"
+        ],
+        "water"
+      ]
+    },
+    {
+      "id": "road-casing",
+      "type": "line",
+      "source": "transportation",
+      "source-layer": "segment",
+      "paint": {
+        "line-color": "#11191b",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          6,
+          1.6,
+          10,
+          2.8,
+          14,
+          5.2,
+          16,
+          8.2
+        ],
+        "line-opacity": 0.88
+      },
+      "minzoom": 5,
+      "filter": [
+        "==",
+        [
+          "get",
+          "subtype"
+        ],
+        "road"
+      ]
+    },
+    {
+      "id": "road-lines",
+      "type": "line",
+      "source": "transportation",
+      "source-layer": "segment",
+      "paint": {
+        "line-color": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "motorway",
+          "#c99538",
+          "trunk",
+          "#c99538",
+          "primary",
+          "#c99538",
+          "secondary",
+          "#65706c",
+          "tertiary",
+          "#4e5b57",
+          "#3c4747"
+        ],
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          6,
+          0.6,
+          10,
+          1.1,
+          14,
+          3.1,
+          16,
+          5.2
+        ]
+      },
+      "minzoom": 5,
+      "filter": [
+        "==",
+        [
+          "get",
+          "subtype"
+        ],
+        "road"
+      ]
+    },
+    {
+      "id": "road-names",
+      "type": "symbol",
+      "source": "transportation",
+      "source-layer": "segment",
+      "paint": {
+        "text-color": "#e2e9e6",
+        "text-halo-color": "#182124",
+        "text-halo-width": 1.5
+      },
+      "minzoom": 12,
+      "filter": [
+        "all",
+        [
+          "==",
+          [
+            "get",
+            "subtype"
+          ],
+          "road"
+        ],
+        [
+          "has",
+          "@name"
+        ]
+      ],
+      "layout": {
+        "symbol-placement": "line",
+        "text-field": [
+          "get",
+          "@name"
+        ],
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          12,
+          9,
+          16,
+          12
+        ],
+        "text-max-angle": 35,
+        "symbol-spacing": 300
+      }
+    },
+    {
+      "id": "connectors",
+      "type": "circle",
+      "source": "transportation",
+      "source-layer": "connector",
+      "paint": {
+        "circle-color": "#e6b741",
+        "circle-radius": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          12,
+          1,
+          15,
+          2.2
+        ],
+        "circle-stroke-color": "#11191b",
+        "circle-stroke-width": 0.75
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "building-fills",
+      "type": "fill",
+      "source": "buildings",
+      "source-layer": "building",
+      "paint": {
+        "fill-color": "#37403e",
+        "fill-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          12,
+          0.2,
+          15,
+          0.92
+        ]
+      },
+      "minzoom": 12,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "building-parts",
+      "type": "fill",
+      "source": "buildings",
+      "source-layer": "building_part",
+      "paint": {
+        "fill-color": "#37403e",
+        "fill-opacity": 0.72
+      },
+      "minzoom": 14,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "building-outlines",
+      "type": "line",
+      "source": "buildings",
+      "source-layer": "building",
+      "paint": {
+        "line-color": "#46504d",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          13,
+          0.2,
+          16,
+          0.7
+        ]
+      },
+      "minzoom": 13,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "place-points",
+      "type": "circle",
+      "source": "places",
+      "source-layer": "place",
+      "paint": {
+        "circle-color": "#f0c96a",
+        "circle-radius": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          12,
+          1.5,
+          15,
+          3
+        ],
+        "circle-stroke-color": "#182124",
+        "circle-stroke-width": 1
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "place-names",
+      "type": "symbol",
+      "source": "places",
+      "source-layer": "place",
+      "paint": {
+        "text-color": "#e2e9e6",
+        "text-halo-color": "#182124",
+        "text-halo-width": 2
+      },
+      "minzoom": 12,
+      "layout": {
+        "text-field": [
+          "get",
+          "@name"
+        ],
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          12,
+          10,
+          16,
+          14
+        ],
+        "text-offset": [
+          0,
+          0.8
+        ],
+        "text-anchor": "top",
+        "text-max-width": 10,
+        "symbol-sort-key": [
+          "coalesce",
+          [
+            "get",
+            "rank"
+          ],
+          99
+        ]
+      }
+    }
+  ]
+}
