@@ -76,28 +76,42 @@ def verify_archive(archive):
     without changing any tile data, then require verification to pass.
     """
     adjustments = []
-    for _ in range(2):
+    for _ in range(4):
         result = subprocess.run(["pmtiles", "verify", str(archive)], text=True, capture_output=True)
         if result.returncode == 0:
             return adjustments
         diagnostic = result.stdout + result.stderr
         match = re.search(r"header (MinZoom|MaxZoom)=(\d+) does not match (?:min|max) tile z (\d+)", diagnostic)
-        if not match:
-            raise RuntimeError(f"PMTiles verification failed for {archive.name}: {diagnostic.strip()}")
-        field, header_value, actual_value = match.groups()
         header = command_json("pmtiles", "show", str(archive), "--header-json")
-        key = "min_zoom" if field == "MinZoom" else "max_zoom"
-        aliases = (key, "minZoom" if key == "min_zoom" else "maxZoom", "minzoom" if key == "min_zoom" else "maxzoom")
-        present_key = next((candidate for candidate in aliases if candidate in header), None)
-        if present_key is None or int(header[present_key]) != int(header_value):
-            raise ValueError(f"cannot safely normalize {field} for {archive.name}: header JSON did not match verifier diagnostic")
-        header[present_key] = int(actual_value)
+        adjustment = None
+        if match:
+            field, header_value, actual_value = match.groups()
+            key = "min_zoom" if field == "MinZoom" else "max_zoom"
+            aliases = (key, "minZoom" if key == "min_zoom" else "maxZoom", "minzoom" if key == "min_zoom" else "maxzoom")
+            present_key = next((candidate for candidate in aliases if candidate in header), None)
+            if present_key is None or int(header[present_key]) != int(header_value):
+                raise ValueError(f"cannot safely normalize {field} for {archive.name}: header JSON did not match verifier diagnostic")
+            header[present_key] = int(actual_value)
+            adjustment = {"field": field, "from": int(header_value), "to": int(actual_value)}
+        else:
+            match = re.search(r"header CenterZoom=(\d+) not within MinZoom/MaxZoom", diagnostic)
+            if match:
+                center = header.get("center")
+                min_zoom = first(header, "min_zoom", "minZoom", "minzoom")
+                max_zoom = first(header, "max_zoom", "maxZoom", "maxzoom")
+                if not isinstance(center, list) or len(center) != 3 or min_zoom is None or max_zoom is None or int(center[2]) != int(match.group(1)):
+                    raise ValueError(f"cannot safely normalize CenterZoom for {archive.name}: header JSON did not match verifier diagnostic")
+                corrected = min(max(int(center[2]), int(min_zoom)), int(max_zoom))
+                center[2] = corrected
+                adjustment = {"field": "CenterZoom", "from": int(match.group(1)), "to": corrected}
+            else:
+                raise RuntimeError(f"PMTiles verification failed for {archive.name}: {diagnostic.strip()}")
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", encoding="utf-8") as stream:
             json.dump(header, stream)
             stream.flush()
             archive.chmod(archive.stat().st_mode | stat.S_IWUSR)
             subprocess.run(["pmtiles", "edit", str(archive), f"--header-json={stream.name}"], check=True)
-        adjustments.append({"field": field, "from": int(header_value), "to": int(actual_value)})
+        adjustments.append(adjustment)
     subprocess.run(["pmtiles", "verify", str(archive)], check=True)
     return adjustments
 
