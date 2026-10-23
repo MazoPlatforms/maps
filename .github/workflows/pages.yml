@@ -3,22 +3,12 @@ name: Build and publish Sri Lanka basemap
 on:
   push:
     branches: [main]
-    paths:
-      - 'index.html'
-      - 'assets/**'
-      - 'docs/**'
-      - 'data/overture/**'
-      - 'scripts/build-overture-theme.sh'
-      - 'scripts/finalize-styles.py'
-      - 'scripts/validate-tiles.py'
-      - 'scripts/verify-live-map.mjs'
-      - '.github/workflows/pages.yml'
-      - 'tests/**'
-      - 'README.md'
-      - 'ATTRIBUTION.md'
-      - 'LICENSE'
-      - '.nojekyll'
   workflow_dispatch:
+    inputs:
+      refresh_basemap:
+        type: boolean
+        default: false
+        description: Refresh nationwide Overture archives
 
 permissions:
   contents: read
@@ -29,7 +19,7 @@ concurrency:
 
 env:
   BBOX: 79.3,5.8,82.1,10.1
-  OVERTURE_TILE_IMAGE: ghcr.io/overturemaps/overture-tiles:latest
+  OVERTURE_TILE_IMAGE: ghcr.io/overturemaps/overture-tiles@sha256:b1cf28ea7903497020f0677ec514b1f4d1f7a8bcfa748163dd445c2bc842ddf5
 
 jobs:
   test:
@@ -39,22 +29,50 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/map.test.mjs
+      - run: node --test tests/*.test.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-geodata.txt
+      - run: python -m unittest discover -s tests -p 'test_*.py' -v
 
   build:
     needs: test
-    # Overture publishes its official builder as linux/arm64; use a native
-    # GitHub-hosted ARM runner instead of relying on emulation.
     runs-on: ubuntu-24.04-arm
     outputs:
       deploy_allowed: ${{ steps.size.outputs.deploy_allowed }}
       site_bytes: ${{ steps.size.outputs.site_bytes }}
-      release: ${{ steps.release.outputs.release }}
+      release: ${{ steps.publication.outputs.release }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-geodata.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Select basemap build
+        id: mode
+        env:
+          BEFORE: ${{ github.event.before }}
+          REFRESH: ${{ inputs.refresh_basemap }}
+        run: |
+          rebuild=false
+          if [[ "$REFRESH" == true ]]; then rebuild=true; fi
+          if [[ -n "$BEFORE" && "$BEFORE" != 0000000000000000000000000000000000000000 ]]; then
+            if git diff --name-only "$BEFORE" HEAD | rg '^(scripts/(build-overture-theme.sh|validate-tiles.py)|data/overture/)'; then rebuild=true; fi
+          fi
+          echo "rebuild=$rebuild" >> "$GITHUB_OUTPUT"
+      - name: Reuse verified nationwide archives
+        if: steps.mode.outputs.rebuild != 'true'
+        run: python scripts/reuse-basemap.py --output data/sri-lanka
 
       - name: Resolve latest official Overture release
+        if: steps.mode.outputs.rebuild == 'true'
         id: release
         run: |
           release="$(curl --fail --silent --show-error --location https://stac.overturemaps.org/catalog.json | jq --raw-output '.latest')"
@@ -63,6 +81,7 @@ jobs:
           echo "Building official Overture release $release for $BBOX"
 
       - name: Pull official Overture tile builder
+        if: steps.mode.outputs.rebuild == 'true'
         run: |
           docker pull "$OVERTURE_TILE_IMAGE"
           digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$OVERTURE_TILE_IMAGE")"
@@ -70,12 +89,14 @@ jobs:
           echo "OVERTURE_IMAGE_DIGEST=$digest" >> "$GITHUB_ENV"
 
       - name: Set up PMTiles verifier
+        if: steps.mode.outputs.rebuild == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
           cache: false
 
       - name: Build four Sri Lanka PMTiles archives
+        if: steps.mode.outputs.rebuild == 'true'
         env:
           RELEASE: ${{ steps.release.outputs.release }}
         run: |
@@ -90,17 +111,17 @@ jobs:
               --env OUTPUT=unused \
               --entrypoint /bin/bash "$OVERTURE_TILE_IMAGE" /build-theme.sh
           done
-          # The official builder writes as root inside the container; hand the
-          # outputs back to the runner so validation can safely edit PMTiles headers.
           sudo chown -R "$(id -u):$(id -g)" data/sri-lanka counts
 
       - name: Install PMTiles verifier
+        if: steps.mode.outputs.rebuild == 'true'
         run: |
           go install github.com/protomaps/go-pmtiles@v1.31.2
           ln -sf go-pmtiles "$(go env GOPATH)/bin/pmtiles"
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Verify archives and record provenance
+        if: steps.mode.outputs.rebuild == 'true'
         env:
           RELEASE: ${{ steps.release.outputs.release }}
         run: |
@@ -108,16 +129,32 @@ jobs:
             --data-dir data/sri-lanka --counts-dir counts \
             --release "$RELEASE" --image-digest "$OVERTURE_IMAGE_DIGEST" \
             --bbox "$BBOX" --manifest data/sri-lanka/manifest.json
+          node scripts/verify-source-identities.mjs data/sri-lanka
           cat data/sri-lanka/manifest.json
+
+      - name: Build contribution layers
+        id: publication
+        env:
+          BASE_REF: ${{ github.event.before }}
+        run: |
+          release="$(jq -r .release data/sri-lanka/manifest.json)"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          python scripts/fetch-upstream.py --records data/sri-lanka --release "$release" --output "$RUNNER_TEMP/upstream.json"
+          options=()
+          if [[ -n "$BASE_REF" && "$BASE_REF" != 0000000000000000000000000000000000000000 ]]; then options=(--base-ref "$BASE_REF"); fi
+          python scripts/contributions.py build --basemap data/sri-lanka/manifest.json --upstream "$RUNNER_TEMP/upstream.json" --output "$RUNNER_TEMP/contributions" "${options[@]}"
 
       - name: Assemble site and enforce Pages size limit
         id: size
         run: |
           mkdir -p _site
-          rsync -a --exclude='.git/' --exclude='.github/' --exclude='_site/' --exclude='counts/' ./ _site/
+          cp index.html .nojekyll LICENSE ATTRIBUTION.md _site/
+          cp -r assets docs _site/
+          mkdir -p _site/data/sri-lanka
+          cp data/sri-lanka/*.pmtiles data/sri-lanka/manifest.json _site/data/sri-lanka/
+          cp -r "$RUNNER_TEMP/contributions" _site/data/contributions
           python3 scripts/finalize-styles.py _site
           site_bytes="$(du -sb _site | cut -f1)"
-          # Keep headroom below GitHub Pages' published-site 1 GB hard limit.
           if (( site_bytes <= 943718400 )); then deploy_allowed=true; else deploy_allowed=false; fi
           echo "site_bytes=$site_bytes" >> "$GITHUB_OUTPUT"
           echo "deploy_allowed=$deploy_allowed" >> "$GITHUB_OUTPUT"
@@ -129,7 +166,7 @@ jobs:
       - name: Upload reproducible site build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mazo-maps-sri-lanka-${{ steps.release.outputs.release }}
+          name: mazo-maps-sri-lanka-${{ steps.publication.outputs.release }}
           path: _site/
           if-no-files-found: error
           retention-days: 7
@@ -148,7 +185,7 @@ jobs:
 
   deploy:
     needs: build
-    if: needs.build.outputs.deploy_allowed == 'true'
+    if: needs.build.outputs.deploy_allowed == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write

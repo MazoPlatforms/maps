@@ -31,29 +31,3 @@ jobs:
             verification/map-smoke*.json
           if-no-files-found: warn
           retention-days: 14
-  boundaries:
-    if: github.ref == 'refs/heads/feat/geographic-contributions'
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Import pinned Survey Department boundaries
-        run: |
-          pip install -r requirements-geodata.txt
-          curl --fail --location --retry 3 'https://data.humdata.org/dataset/0bedcaf3-88cd-4591-b9d5-5d3220e26abf/resource/ac173fa4-dd42-4be4-aaed-a2e445525865/download/lka_admin_boundaries.geojson.zip' -o "$RUNNER_TEMP/lka-boundaries.zip"
-          python scripts/import-boundaries.py "$RUNNER_TEMP/lka-boundaries.zip" --output data/boundaries/sri-lanka
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/boundaries/sri-lanka
-          git diff --cached --quiet || git commit -m 'Pin Sri Lanka boundaries'
-          git push origin HEAD:feat/geographic-contributions 2> "$RUNNER_TEMP/push-error"
-      - name: Report import failure
-        if: failure()
-        run: |
-          if test -f "$RUNNER_TEMP/push-error"; then
-            while IFS= read -r line; do echo "::notice title=push::$line"; done < "$RUNNER_TEMP/push-error"
-          fi

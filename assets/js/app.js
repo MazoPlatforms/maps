@@ -1,5 +1,6 @@
 import { mapConfig, cityViews } from './config.js';
 import { createArchiveSource } from './archive-source.js';
+import { fetchContributions, prepareContributions } from './contributions.js';
 
 const root = document.documentElement;
 const themeButton = document.querySelector('#theme-toggle');
@@ -15,6 +16,7 @@ const reducedMotion = window.matchMedia(
 const mapTest = new URLSearchParams(location.search).has('maptest');
 let map;
 let firstFrame = false;
+let contributionBundle = null;
 
 function preferredTheme() {
   try {
@@ -63,11 +65,14 @@ async function loadStyle(theme) {
     styleCache.set(theme, request);
   }
   const template = await styleCache.get(theme);
-  return JSON.parse(
-    JSON.stringify(template).replaceAll(
-      '__MAZO_SITE_ROOT__',
-      siteRoot.replace(/\/$/, ''),
+  return prepareContributions(
+    JSON.parse(
+      JSON.stringify(template).replaceAll(
+        '__MAZO_SITE_ROOT__',
+        siteRoot.replace(/\/$/, ''),
+      ),
     ),
+    contributionBundle,
   );
 }
 
@@ -127,6 +132,16 @@ function revealMap() {
   if (mapTest) globalThis.__mazoMapTimings.firstRender = performance.now();
   map.off('render', revealMap);
   loadDataManifest();
+  fetchContributions(siteRoot)
+    .then((bundle) => {
+      if (!bundle) return;
+      contributionBundle = bundle;
+      if (bundle.manifest.records) applyTheme(root.dataset.theme, false);
+    })
+    .catch((error) => {
+      if (mapTest) globalThis.__mazoContributionError = error.message;
+      showNotice('Community changes are temporarily unavailable.');
+    });
 }
 
 function updateCoordinates() {

@@ -42,3 +42,9 @@ The workflow downloads and processes data only on GitHub-hosted runners. A verif
 ## Roadmap boundary
 
 Only the listed Overture regional extract is included. Coverage depends on the selected release and source data; no Google Maps equivalence or complete local POI coverage is claimed. Label glyphs remain a public external dependency. No geographic data is invented or bundled as a placeholder.
+
+## Geographic contributions
+
+The existing Overture PMTiles remain the unchanged baseline. Sparse contributions live at `data/sri-lanka/{province}/{district}/{ds-division}/{feature-type}/{feature-id}.json`; directory components include authoritative administrative codes. UUID records carry source references, geometry, schema version, revision history and add/modify/remove status. Cross-division features have one canonical record and all intersected divisions in their classification.
+
+The pinned Survey Department/OCHA boundary dataset and contribution JSON Schema accompany the Python validation/build pipeline. Published community layers are content addressed, checked against the active basemap and loaded by the existing viewer after its first frame. Small contribution changes reuse checksum-verified nationwide archives. [The repository audit](docs/architecture-audit.md) records provenance, architecture, verification and deployment limits.

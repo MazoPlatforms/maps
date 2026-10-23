@@ -154,6 +154,8 @@ def validate_records(root, admin, upstream, baseline=None):
             continue
         if path.is_symlink():
             raise ValueError('symlink contribution')
+        if path.stat().st_size > 2 * 1024 * 1024:
+            raise ValueError('record exceeds 2 MiB')
         r = load(path)
         validator.validate(r)
         if r['id'] in seen:
@@ -183,7 +185,7 @@ def validate_records(root, admin, upstream, baseline=None):
             if old and digest(old) != digest(r):
                 if r['revision'] != old['revision'] + 1 or r['previous'] != digest(old):
                     raise ValueError('revision conflict')
-                if old['status'] == 'removed' or r.get('upstream') != old.get('upstream') or r['featureType'] != old['featureType']:
+                if old['status'] == 'removed' or any(r.get('upstream', {}).get(k) != old.get('upstream', {}).get(k) for k in ('id', 'featureType')) or r['featureType'] != old['featureType']:
                     raise ValueError('immutable identity or tombstone changed')
             elif not old and (r['revision'] != 1 or r['previous'] is not None):
                 raise ValueError('new record requires revision one')
@@ -245,7 +247,7 @@ def build(records, admin, upstream, basemap, output):
                 'layer': {'file': filename, 'sha256': sha, 'bytes': len(body)},
                 'suppressions': {t: {l: sorted(ids) for l, ids in sorted(layers.items())} for t, layers in sorted(deletions.items())},
                 'administrativeIndex': {key: sorted(r['id'] for r in records if any(a['dsDivision'] == key for a in r['administration']['intersections'])) for key in sorted({a['dsDivision'] for r in records for a in r['administration']['intersections']})},
-                'attribution': sorted({s['license'] + ' · ' + s['provider'] for r in records for s in r['sources']})}
+                'attribution': sorted({'Survey Department of Sri Lanka / OCHA · CC BY 3.0 IGO'} | {s['license'] + ' · ' + s['provider'] for r in records for s in r['sources']})}
     (output / 'manifest.json').write_bytes(encoded(manifest))
     (output / 'checksums.json').write_bytes(encoded({p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.iterdir()) if p.is_file() and p.name != 'checksums.json'}))
     return manifest
