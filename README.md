@@ -2,7 +2,7 @@
 
 **Mazo Maps** is an open-source mapping project by Mazo Platforms, Inc. It publishes a Sri Lanka vector basemap built from official Overture Maps data and displayed with MapLibre.
 
-GitHub Actions resolves the latest official Overture release, extracts features intersecting `[79.3, 5.8, 82.1, 10.1]`, builds four PMTiles archives, validates their feature layers and byte-range delivery, and deploys when the site payload fits GitHub Pages. The release manifest records source counts and archive hashes. This is a regional extract, not a completeness guarantee or a service-coverage claim. The map does not publish project-owned POIs.
+A nationwide refresh resolves the latest official Overture release, extracts features intersecting `[79.3, 5.8, 82.1, 10.1]`, builds four PMTiles archives, validates their feature layers and byte-range delivery, and deploys when the site payload fits GitHub Pages. The release manifest records source counts and archive hashes. This is a regional extract, not a completeness guarantee or a service-coverage claim. The map does not publish project-owned POIs.
 
 ## Project structure
 
@@ -13,7 +13,8 @@ assets/js/app.js           Theme controls and MapLibre initialization
 assets/js/config.js        Sri Lanka bounds and style configuration
 assets/mazo-mark.svg       Project mark
 assets/styles/             Light and dark MapLibre styles
-data/sri-lanka/            Actions-generated PMTiles and provenance manifest
+data/sri-lanka/            Sparse records; generated PMTiles remain ignored
+data/boundaries/           Versioned Survey Department/OCHA hierarchy
 scripts/                   Tile validation and live range/render smoke checks
 docs/                      Architecture, data-source and attribution notes
 .github/workflows/         Overture tile build, verification and Pages deployment
@@ -37,7 +38,7 @@ Project source is licensed under MIT; see [LICENSE](LICENSE). Third-party softwa
 
 ## GitHub Pages
 
-The workflow downloads and processes data only on GitHub-hosted runners. A verified site artifact is retained for seven days. If the assembled site exceeds a 900 MiB safety threshold, Pages deployment is skipped and the artifact remains available from the run. GitHub Pages has a 1 GB published-site limit. In repository settings, set **Build and deployment → Source** to **GitHub Actions**. The project URL is `https://mazoplatforms.github.io/maps/`.
+Nationwide processing runs on native ARM64 GitHub-hosted runners; ordinary changes reuse fully checksum-verified published archives. A verified site artifact is retained for seven days. If the assembled site exceeds a 990,000,000-byte safety threshold, Pages deployment is skipped and the artifact remains available from the run. GitHub Pages has a 1 GB published-site limit. Pages uses the GitHub Actions deployment source and deploys only from `main`. The project URL is `https://mazoplatforms.github.io/maps/`.
 
 ## Roadmap boundary
 
