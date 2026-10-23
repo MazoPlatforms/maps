@@ -38,25 +38,22 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Pin Survey Department boundary source
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Import pinned Survey Department boundaries
         run: |
-          mkdir -p data/boundaries/source
-          curl --fail --location --retry 3 'https://data.humdata.org/dataset/0bedcaf3-88cd-4591-b9d5-5d3220e26abf/resource/ac173fa4-dd42-4be4-aaed-a2e445525865/download/lka_admin_boundaries.geojson.zip' -o data/boundaries/source/lka-2026-01-26.geojson.zip
-          curl --fail --location 'https://data.humdata.org/api/3/action/package_show?id=cod-ab-lka' -o data/boundaries/source/hdx-metadata.json
-          python3 - <<'PYCODE'
-          import hashlib, json, zipfile
-          from pathlib import Path
-          p = Path('data/boundaries/source/lka-2026-01-26.geojson.zip')
-          print('::notice title=boundary-checksum::' + hashlib.sha256(p.read_bytes()).hexdigest())
-          z = zipfile.ZipFile(p)
-          print('::notice title=boundary-files::' + json.dumps(z.namelist()))
-          for n in z.namelist():
-              if n.endswith('.geojson'):
-                  j = json.loads(z.read(n))
-                  print('::notice title=boundary-fields::' + json.dumps([n, len(j['features']), j['features'][0]['properties']]))
-          PYCODE
+          pip install -r requirements-geodata.txt
+          curl --fail --location --retry 3 'https://data.humdata.org/dataset/0bedcaf3-88cd-4591-b9d5-5d3220e26abf/resource/ac173fa4-dd42-4be4-aaed-a2e445525865/download/lka_admin_boundaries.geojson.zip' -o "$RUNNER_TEMP/lka-boundaries.zip"
+          python scripts/import-boundaries.py "$RUNNER_TEMP/lka-boundaries.zip" --output data/boundaries/sri-lanka
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/boundaries/source
+          git add data/boundaries/sri-lanka
           git diff --cached --quiet || git commit -m 'Pin Sri Lanka boundaries'
-          git push origin HEAD:feat/geographic-contributions
+          git push origin HEAD:feat/geographic-contributions 2> "$RUNNER_TEMP/push-error"
+      - name: Report import failure
+        if: failure()
+        run: |
+          if test -f "$RUNNER_TEMP/push-error"; then
+            while IFS= read -r line; do echo "::notice title=push::$line"; done < "$RUNNER_TEMP/push-error"
+          fi
