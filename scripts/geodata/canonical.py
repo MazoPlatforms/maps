@@ -147,6 +147,13 @@ class FileStore:
             raise ValueError('identity fields are immutable')
         record = copy.deepcopy(old)
         record.update(patch or {})
+        # Overture has per-provider IDs/licenses inside properties.sources.
+        # Keep those original references even when replacing display properties.
+        references = old['properties'].get('sources')
+        if references:
+            record['properties'].setdefault('sources', copy.deepcopy(references))
+            if any(ref not in record['properties']['sources'] for ref in references):
+                raise ValueError('original per-provider source references must be retained')
         if any(s not in record['sources'] for s in old['sources']):
             raise ValueError('source provenance and licensing must be retained')
         record.update(status='removed' if remove else 'active',
@@ -192,6 +199,10 @@ def build(records, admin, output, tippecanoe=None, maxzoom=14):
                 memberships.setdefault(a['dsDivision'], []).append(key)
             attribution.update(s['provider'] + ' · ' + s['license'] + ' · ' + s['url']
                                for s in record['sources'])
+            for reference in record['properties'].get('sources') or []:
+                if reference.get('dataset'):
+                    attribution.add(reference['dataset'] + ' · ' +
+                                    (reference.get('license') or 'See original source license notices'))
             if record['status'] == 'removed':
                 continue
             kind = record['featureType']

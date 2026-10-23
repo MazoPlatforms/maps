@@ -46,6 +46,10 @@ def check_revision(record, old):
     if record.get("schemaVersion") == 2:
         if any(source not in record["sources"] for source in old["sources"]):
             raise ValueError("source provenance and licensing must be retained")
+        original_references = old.get("properties", {}).get("sources") or []
+        current_references = record.get("properties", {}).get("sources") or []
+        if any(reference not in current_references for reference in original_references):
+            raise ValueError("original per-provider source references must be retained")
         if old.get("schemaVersion") == 2 and record.get("origin") != old.get("origin"):
             raise ValueError("original import provenance is immutable")
 

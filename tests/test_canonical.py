@@ -61,6 +61,21 @@ class Canonical(unittest.TestCase):
             with self.assertRaises(ValueError):
                 check_revision(changed | {field: value}, self.record)
 
+    def test_original_provider_ids_and_licenses_survive_property_replacement(self):
+        record = copy.deepcopy(self.record)
+        references = [{'dataset': 'Foursquare', 'record_id': 'original-provider-id', 'license': 'Apache-2.0'}]
+        record['properties']['sources'] = references
+        self.store.write(record)
+        changed = self.store.edit(record['id'], digest(record), {'properties': {'name': 'Edited'}})
+        self.assertEqual(changed['properties']['sources'], references)
+        altered = copy.deepcopy(changed)
+        altered['properties'].pop('sources')
+        altered.update(revision=3, previous=digest(changed))
+        with self.assertRaisesRegex(ValueError, 'per-provider'):
+            check_revision(altered, changed)
+        manifest = build(self.store.scan(), self.admin, self.directory / 'provider-notices')
+        self.assertIn('Foursquare · Apache-2.0', manifest['attribution'])
+
     def test_all_required_types_and_single_cross_boundary_record(self):
         for kind, geom in [('place', self.feature['geometry']), ('connector', self.feature['geometry']),
                            ('road', {'type': 'LineString', 'coordinates': [[79.005, 7.005], [79.015, 7.005]]}),
