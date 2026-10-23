@@ -31,3 +31,22 @@ jobs:
             verification/map-smoke*.json
           if-no-files-found: warn
           retention-days: 14
+  boundaries:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Retrieve pinned boundary evidence
+        run: |
+          mkdir -p boundaries
+          for level in ADM1 ADM2 ADM3; do
+            for suffix in -metaData.json .geojson; do
+              file="geoBoundaries-LKA-$level$suffix"
+              curl --fail --location --retry 3 "https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/5c25134028196d43ce97b5071934fd0cfc92f09f/releaseData/gbOpen/LKA/$level/$file" -o "boundaries/$file"
+            done
+          done
+          sha256sum boundaries/*
+          cat boundaries/*metaData.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sri-lanka-boundary-evidence
+          path: boundaries/
+          retention-days: 7
