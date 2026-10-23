@@ -383,6 +383,13 @@ h1,h2,h3,p {
   pointer-events:none;
   transition:opacity .25s ease
 }
+.map-loading.is-warning {
+  inset:auto 12px 42px;
+  padding:10px 14px;
+  border:1px solid var(--muted);
+  border-radius:5px;
+  text-align:center
+}
 .map-loading.is-hidden {
   opacity:0
 }

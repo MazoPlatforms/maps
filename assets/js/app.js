@@ -36,13 +36,15 @@ async function loadStyle(theme) {
   return JSON.parse(JSON.stringify(template).replaceAll('__MAZO_SITE_ROOT__', siteRoot.replace(/\/$/, '')));
 }
 
-function showMapError(error) {
+function showMapError(error, blocking = true) {
   if (new URLSearchParams(location.search).has('maptest')) {
     globalThis.__mazoMapError = error instanceof Error ? error.message : String(error ?? 'Map error');
   }
   if (!mapStatus) return;
   mapStatus.classList.remove('is-hidden');
-  mapStatus.innerHTML = '<span class="map-error-mark" aria-hidden="true">!</span><span>Map data could not load. The rest of the project page remains available.</span>';
+  mapStatus.classList.toggle('is-warning', !blocking);
+  const message = blocking ? 'Map data could not load. The rest of the project page remains available.' : 'Some map data or labels could not load.';
+  mapStatus.innerHTML = `<span class="map-error-mark" aria-hidden="true">!</span><span>${message}</span>`;
 }
 
 async function loadDataManifest() {
@@ -77,7 +79,7 @@ async function initializeMap() {
     });
     map.addControl(new maplibre.NavigationControl({ visualizePitch: true }), 'top-right');
     map.on('load', () => mapStatus?.classList.add('is-hidden'));
-    map.on('error', event => showMapError(event.error ?? event.message));
+    map.on('error', event => showMapError(event.error ?? event.message, false));
     if (new URLSearchParams(location.search).has('maptest')) globalThis.__mazoMap = map;
     document.querySelector('#map-reset')?.addEventListener('click', () => {
       map?.fitBounds(mapConfig.bounds, { padding: 24, bearing: 0, pitch: 0, duration: 650 });

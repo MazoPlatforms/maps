@@ -30,19 +30,20 @@ test('initial and reset views fit the island and theme changes retain the view',
   const nodes = new Map();
   const node = selector => {
     if (!nodes.has(selector)) nodes.set(selector, {
-      attributes: {}, listeners: {}, classList: { add() {}, remove() {} },
+      attributes: {}, listeners: {}, classList: { add() {}, remove() {}, toggle(key, value) { this[key] = value; } },
       setAttribute(key, value) { this.attributes[key] = value; },
       addEventListener(event, callback) { this.listeners[event] = callback; }
     });
     return nodes.get(selector);
   };
   const fits = [];
+  const handlers = {};
   let options;
   let style;
   class TestMap {
     constructor(value) { options = value; }
     addControl() {}
-    on() {}
+    on(event, callback) { handlers[event] = callback; }
     fitBounds(bounds, value) { fits.push({ bounds, ...value }); }
     setStyle(value) { style = value; }
   }
@@ -76,4 +77,7 @@ test('initial and reset views fit the island and theme changes retain the view',
   await new Promise(resolve => setImmediate(resolve));
   assert.match(style.name, /sri-lanka-dark.json$/);
   assert.equal(fits.length, 1);
+  handlers.error({ error: new Error('Missing glyph range') });
+  assert.equal(node('#map-status').classList['is-warning'], true);
+  assert.match(node('#map-status').innerHTML, /Some map data or labels/);
 });

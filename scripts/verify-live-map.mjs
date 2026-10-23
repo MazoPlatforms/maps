@@ -40,6 +40,7 @@ try {
   if (!await page.evaluate(() => Boolean(window.__mazoMap))) {
     throw new Error(`Map initialization failed: ${await page.evaluate(() => window.__mazoMapError)}; browser errors: ${pageErrors.slice(0, 5).join(' | ')}`);
   }
+  await page.locator('#map').scrollIntoViewIfNeeded();
   try {
     await page.waitForFunction(() => Boolean(window.__mazoMap?.isStyleLoaded()), null, { timeout: 60_000 });
   } catch {
@@ -47,22 +48,42 @@ try {
     throw new Error(`Map style did not load: ${JSON.stringify({ ...state, browserErrors: pageErrors.slice(0, 10) })}`);
   }
   await mkdir('verification', { recursive: true });
+  function readRendering({ name, readyOnly }) {
+    const map = window.__mazoMap;
+    const features = map.queryRenderedFeatures();
+    const sourceLayerCounts = Object.fromEntries(['land', 'water', 'segment', 'connector', 'building', 'place'].map(sourceLayer => [sourceLayer, features.filter(feature => feature.sourceLayer === sourceLayer).length]));
+    const status = document.querySelector('#map-status');
+    const blockingOverlay = Boolean(status && !status.classList.contains('is-hidden') && !status.classList.contains('is-warning'));
+    const placeLabels = features.filter(feature => feature.layer.type === 'symbol' && feature.sourceLayer === 'place');
+    const layerCounts = Object.fromEntries(['land', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => [layer, map.getStyle().layers.some(item => item.id === layer) ? map.queryRenderedFeatures({ layers: [layer] }).length : null]));
+    const rendering = { blockingOverlay, styleLoaded: map.isStyleLoaded(), styleName: map.getStyle().name, zoom: map.getZoom(), sourceLayerCounts, layerCounts, placeLabels: placeLabels.length };
+    const ready = !blockingOverlay && rendering.styleLoaded && map.areTilesLoaded() && rendering.styleName === name && ['land', 'road-lines', 'building-fills', 'place-names'].every(layer => Number.isInteger(layerCounts[layer]) && layerCounts[layer] > 0);
+    return !readyOnly || ready ? rendering : null;
+  }
+
   async function inspectTheme(theme, location) {
-    await page.evaluate(center => window.__mazoMap.jumpTo({ center, zoom: 15 }), location.center);
-    await page.waitForFunction(name => {
+    await page.waitForFunction(() => window.__mazoMap.loaded(), null, { timeout: 90_000 });
+    await page.evaluate(center => new Promise((resolve, reject) => {
       const map = window.__mazoMap;
-      return Boolean(map?.isStyleLoaded() && map.areTilesLoaded() && map.getStyle().name === name);
-    }, `Mazo Maps Sri Lanka ${theme[0].toUpperCase()}${theme.slice(1)}`, { timeout: 90_000 });
-    const rendering = await page.evaluate(() => {
-      const map = window.__mazoMap;
-      const features = map.queryRenderedFeatures();
-      const sourceLayerCounts = Object.fromEntries(['land', 'water', 'segment', 'connector', 'building', 'place'].map(sourceLayer => [sourceLayer, features.filter(feature => feature.sourceLayer === sourceLayer).length]));
-      const placeLabels = features.filter(feature => feature.layer.type === 'symbol' && feature.sourceLayer === 'place');
-      const layerCounts = Object.fromEntries(['land', 'water-fill', 'road-lines', 'building-fills', 'place-names'].map(layer => [layer, map.getStyle().layers.some(item => item.id === layer) ? map.queryRenderedFeatures({ layers: [layer] }).length : null]));
-      return { styleLoaded: map.isStyleLoaded(), styleName: map.getStyle().name, zoom: map.getZoom(), sourceLayerCounts, layerCounts, placeLabels: placeLabels.length };
-    });
-    const visibleLayerCounts = ['land', 'road-lines', 'building-fills'].map(layer => rendering.layerCounts[layer]);
-    if (!rendering.styleLoaded || visibleLayerCounts.some(count => !Number.isInteger(count) || count < 1) || rendering.sourceLayerCounts.place < 1) {
+      const timeout = setTimeout(() => {
+        map.off('idle', ready);
+        reject(new Error('Map did not become idle'));
+      }, 90_000);
+      function ready() {
+        clearTimeout(timeout);
+        resolve();
+      }
+      map.once('idle', ready);
+      map.jumpTo({ center, zoom: 15 });
+    }), location.center);
+    const name = `Mazo Maps Sri Lanka ${theme[0].toUpperCase()}${theme.slice(1)}`;
+    let rendering;
+    try {
+      const snapshot = await page.waitForFunction(readRendering, { name, readyOnly: true }, { timeout: 90_000 });
+      rendering = await snapshot.jsonValue();
+      await snapshot.dispose();
+    } catch {
+      rendering = await page.evaluate(readRendering, { name, readyOnly: false });
       await page.locator('#map').screenshot({ path: `mazo-sri-lanka-${location.name}-${theme}-diagnostic.png` });
       await writeFile('verification/map-smoke-diagnostic.json', JSON.stringify({ theme, location, rendering, pageErrors, consoleErrors, failedResponses }, null, 2) + '\n');
       throw new Error(`${location.name} ${theme} Overture layers were not queryable: ${JSON.stringify({ rendering, pageErrors, consoleErrors, failedResponses })}`);
