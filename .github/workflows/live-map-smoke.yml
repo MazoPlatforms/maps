@@ -32,50 +32,31 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
   boundaries:
+    if: github.ref == 'refs/heads/feat/geographic-contributions'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
-      - name: Retrieve pinned boundary evidence
+      - uses: actions/checkout@v4
+      - name: Pin Survey Department boundary source
         run: |
-          mkdir -p boundaries
-          curl --fail --location 'https://data.humdata.org/api/3/action/package_show?id=cod-ab-lka' -o boundaries/hdx.json
-          python3 - <<'HDX'
-          import json
-          j = json.load(open('boundaries/hdx.json'))
-          if not j['success']:
-              raise ValueError(j)
-          r = j['result']
-          print('::notice title=hdx-source::' + json.dumps({k: r.get(k) for k in ['name','license_title','organization','dataset_source','last_modified']}))
-          for a in r['resources']:
-              print('::notice title=hdx-resource::' + json.dumps({k: a.get(k) for k in ['id','name','url','format','last_modified']}))
-          HDX
-          for level in ADM1 ADM2 ADM3; do
-            for suffix in -metaData.json .geojson; do
-              file="geoBoundaries-LKA-$level$suffix"
-              curl --fail --location --retry 3 "https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/5c25134028196d43ce97b5071934fd0cfc92f09f/releaseData/gbOpen/LKA/$level/$file" -o "boundaries/$file"
-            done
-          done
-          sha256sum boundaries/*
-          curl --fail --location 'https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/5c25134028196d43ce97b5071934fd0cfc92f09f/sourceData/gbOpen/LKA_ADM3.zip' -o boundaries/source.zip
-          pip install pyshp==2.3.1
+          mkdir -p data/boundaries/source
+          curl --fail --location --retry 3 'https://data.humdata.org/dataset/0bedcaf3-88cd-4591-b9d5-5d3220e26abf/resource/ac173fa4-dd42-4be4-aaed-a2e445525865/download/lka_admin_boundaries.geojson.zip' -o data/boundaries/source/lka-2026-01-26.geojson.zip
+          curl --fail --location 'https://data.humdata.org/api/3/action/package_show?id=cod-ab-lka' -o data/boundaries/source/hdx-metadata.json
           python3 - <<'PYCODE'
-          import json, zipfile, shapefile, io
+          import hashlib, json, zipfile
           from pathlib import Path
-          z = zipfile.ZipFile('boundaries/source.zip')
-          print('::notice title=source-files::' + json.dumps(z.namelist()))
-          sf = shapefile.Reader(shp=io.BytesIO(z.read('LKA_ADM3.shp')), dbf=io.BytesIO(z.read('LKA_ADM3.dbf')), shx=io.BytesIO(z.read('LKA_ADM3.shx')))
-          print('::notice title=source-fields::' + json.dumps(sf.fields))
-          print('::notice title=source-record::' + json.dumps(sf.record(0).as_dict()))
-          for name in z.namelist():
-              if name.endswith('.geojson'):
-                  j = json.loads(z.read(name))
-                  print('::notice title=source-fields::' + json.dumps(j['features'][0]['properties']))
-              if name == 'meta.txt':
-                  print('::notice title=source-metadata::' + z.read(name).decode().replace('\n', '%0A'))
-          for path in Path('boundaries').glob('*metaData.json'):
-              print('::notice title=' + path.name + '::' + json.dumps(json.loads(path.read_text())))
+          p = Path('data/boundaries/source/lka-2026-01-26.geojson.zip')
+          print('::notice title=boundary-checksum::' + hashlib.sha256(p.read_bytes()).hexdigest())
+          z = zipfile.ZipFile(p)
+          print('::notice title=boundary-files::' + json.dumps(z.namelist()))
+          for n in z.namelist():
+              if n.endswith('.geojson'):
+                  j = json.loads(z.read(n))
+                  print('::notice title=boundary-fields::' + json.dumps([n, len(j['features']), j['features'][0]['properties']]))
           PYCODE
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sri-lanka-boundary-evidence
-          path: boundaries/
-          retention-days: 7
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/boundaries/source
+          git diff --cached --quiet || git commit -m 'Pin Sri Lanka boundaries'
+          git push origin HEAD:feat/geographic-contributions
