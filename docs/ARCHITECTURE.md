@@ -17,7 +17,7 @@ The build fails if required source types are empty, a non-empty source type has 
 
 ## Browser map
 
-`assets/js/config.js` owns map bounds and style URLs. Light and dark MapLibre styles reference same-origin PMTiles archives through the PMTiles protocol and retain source attribution. MapLibre GL JS and the PMTiles browser adapter are loaded from version-pinned CDN URLs. Label glyphs are served by the public OpenFreeMap font endpoint; this is an external dependency and is not part of the self-hosted geographic archive.
+`assets/js/config.js` owns map bounds and style URLs. Light and dark MapLibre styles reference same-origin PMTiles archives through the PMTiles protocol and retain source attribution. MapLibre GL JS and the bundled PMTiles browser adapter are served from this site. Published archive filenames contain their verified SHA-256 digest; the PMTiles cache uses that immutable content identity instead of CDN modification timestamps. The map becomes visible on its first geographic frame while remaining resources continue loading. Label glyphs are served by the public OpenFreeMap font endpoint; this is an external dependency and is not part of the self-hosted geographic archive.
 
 The initial and reset camera fit the full Sri Lanka extent with padding on desktop and mobile. Roads and place names use Overture's primary-name property where it exists. MapLibre's attribution control remains enabled alongside the page-level notice.
 

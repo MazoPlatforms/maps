@@ -11,9 +11,16 @@ const locations = [
   { name: 'galle', center: [80.217, 6.0329] }
 ];
 const rangeChecks = [];
+const manifestResponse = await fetch(`${baseUrl}data/sri-lanka/manifest.json`);
+if (!manifestResponse.ok) throw new Error(`Manifest returned ${manifestResponse.status}`);
+const manifest = await manifestResponse.json();
 
 for (const theme of themes) {
-  const response = await fetch(`${baseUrl}data/sri-lanka/${theme}.pmtiles`, {
+  const archive = manifest.archives[theme];
+  if (!/^[a-f0-9]{64}$/.test(archive.sha256) || archive.file !== `${theme}.${archive.sha256}.pmtiles`) {
+    throw new Error(`Invalid content-addressed archive: ${theme}`);
+  }
+  const response = await fetch(`${baseUrl}data/sri-lanka/${archive.file}`, {
     headers: { Range: 'bytes=0-63' }
   });
   const contentRange = response.headers.get('content-range');
@@ -41,6 +48,9 @@ try {
     throw new Error(`Map initialization failed: ${await page.evaluate(() => window.__mazoMapError)}; browser errors: ${pageErrors.slice(0, 5).join(' | ')}`);
   }
   await page.locator('#map').scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => window.__mazoMapTimings?.firstRender !== null && document.querySelector('#map-frame')?.dataset.state === 'ready', null, { timeout: 60_000 });
+  const startup = await page.evaluate(() => ({ firstFrameMs: Math.round(window.__mazoMapTimings.firstRender), statusHidden: document.querySelector('#map-status').classList.contains('is-hidden') }));
+  if (!startup.statusHidden) throw new Error('The initial map remained behind a loading indicator');
   try {
     await page.waitForFunction(() => Boolean(window.__mazoMap?.isStyleLoaded()), null, { timeout: 60_000 });
   } catch {
@@ -103,10 +113,17 @@ try {
     const bounds = map.getBounds();
     return !map.isMoving() && bounds.contains([79.3, 5.8]) && bounds.contains([82.1, 10.1]);
   }, null, { timeout: 10_000 });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
+  await page.screenshot({ path: 'mazo-sri-lanka-mobile.png', fullPage: true });
+  await page.selectOption('#city-select', 'colombo');
+  await page.waitForFunction(() => !window.__mazoMap.isMoving() && window.__mazoMap.getZoom() >= 13.9, null, { timeout: 15_000 });
+  await page.locator('#map-reset').click();
+  await page.waitForFunction(() => !window.__mazoMap.isMoving() && window.__mazoMap.getBounds().contains([79.3, 5.8]) && window.__mazoMap.getBounds().contains([82.1, 10.1]), null, { timeout: 15_000 });
   const sameOriginFailures = failedResponses.filter(item => item.url.startsWith(baseUrl));
   if (pageErrors.length || sameOriginFailures.length) throw new Error(`Browser issues: ${JSON.stringify({ pageErrors: pageErrors.slice(0, 5), failedResponses: sameOriginFailures.slice(0, 10) })}`);
-  await writeFile('verification/map-smoke.json', JSON.stringify({ url: baseUrl, rangeChecks, themes: results, pageErrors, consoleErrors, failedResponses }, null, 2) + '\n');
-  console.log(`Light and dark maps rendered in six Sri Lankan cities; four PMTiles range requests returned 206. External resource failures: ${failedResponses.filter(item => !item.url.startsWith(baseUrl)).length}.`);
+  await writeFile('verification/map-smoke.json', JSON.stringify({ url: baseUrl, rangeChecks, themes: results, startup, pageErrors, consoleErrors, failedResponses }, null, 2) + '\n');
+  console.log(`Light and dark maps rendered in six Sri Lankan cities; four PMTiles range requests returned 206. First map frame: ${startup.firstFrameMs} ms. External resource failures: ${failedResponses.filter(item => !item.url.startsWith(baseUrl)).length}.`);
 } finally {
   await browser.close();
 }

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Drop style rules only for source layers absent in this release's extract."""
+import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -15,7 +16,24 @@ archive_layers = {
     name: set(info["layers"])
     for name, info in manifest["archives"].items()
 }
-omitted = []
+version = hashlib.sha256(
+    f"{manifest['release']}:{manifest['builtAt']}:{manifest['overtureTilesImage']}".encode()
+).hexdigest()[:16]
+for theme, archive in manifest["archives"].items():
+    name = f"{theme}.{archive['sha256']}.pmtiles"
+    current = site / "data/sri-lanka" / archive["file"]
+    target = current.with_name(name)
+    if not current.is_file():
+        raise SystemExit(f"Missing archive: {current.name}")
+    with current.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    if digest != archive["sha256"]:
+        raise SystemExit(f"Archive checksum mismatch: {current.name}")
+    if current != target:
+        current.rename(target)
+    archive["file"] = name
+
+omitted = manifest.get("styleLayersOmittedForAbsentSourceLayers", [])
 referenced = {name: set() for name in archive_layers}
 
 for theme, path in styles.items():
@@ -30,6 +48,10 @@ for theme, path in styles.items():
                 continue
             referenced[source].add(source_layer)
         kept.append(layer)
+    for name, source in style["sources"].items():
+        base = source["url"].split("?", 1)[0].rsplit("/", 1)[0]
+        source["url"] = base + "/" + manifest["archives"][name]["file"]
+    style["metadata"]["mazo:release"] = manifest["release"]
     style["layers"] = kept
     path.write_text(json.dumps(style, indent=2) + "\n")
 
@@ -41,6 +63,23 @@ unstyled = {
 if unstyled:
     raise SystemExit(f"PMTiles source layers have no matching light/dark style rules: {unstyled}")
 
+for page in (site / "index.html", site / "docs/index.html"):
+    if page.is_file():
+        content = re.sub(
+            r"(assets/(?:js/app\.js|css/site\.css))(?:\?v=[a-f0-9]+)?",
+            rf"\1?v={version}",
+            page.read_text(),
+        )
+        page.write_text(content)
+
+app = site / "assets/js/app.js"
+if app.is_file():
+    app.write_text(re.sub(r"(\./(?:config|archive-source)\.js)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", app.read_text()))
+config = site / "assets/js/config.js"
+if config.is_file():
+    config.write_text(re.sub(r"(sri-lanka-(?:light|dark)\.json)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", config.read_text()))
+
+manifest["siteVersion"] = version
 manifest["styleLayersOmittedForAbsentSourceLayers"] = omitted
 manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
 print(f"Styles retain every available vector layer; omitted {len(omitted)} rules for absent source layers.")

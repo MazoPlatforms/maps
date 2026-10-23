@@ -12,22 +12,54 @@
     "base": {
       "type": "vector",
       "url": "pmtiles://__MAZO_SITE_ROOT__/data/sri-lanka/base.pmtiles",
-      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+      "bounds": [
+        79.3,
+        5.8,
+        82.1,
+        10.1
+      ],
+      "minzoom": 0,
+      "maxzoom": 13
     },
     "transportation": {
       "type": "vector",
       "url": "pmtiles://__MAZO_SITE_ROOT__/data/sri-lanka/transportation.pmtiles",
-      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+      "bounds": [
+        79.3,
+        5.8,
+        82.1,
+        10.1
+      ],
+      "minzoom": 4,
+      "maxzoom": 14
     },
     "buildings": {
       "type": "vector",
       "url": "pmtiles://__MAZO_SITE_ROOT__/data/sri-lanka/buildings.pmtiles",
-      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+      "bounds": [
+        79.3,
+        5.8,
+        82.1,
+        10.1
+      ],
+      "minzoom": 12,
+      "maxzoom": 14
     },
     "places": {
       "type": "vector",
       "url": "pmtiles://__MAZO_SITE_ROOT__/data/sri-lanka/places.pmtiles",
-      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
+      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+      "bounds": [
+        79.3,
+        5.8,
+        82.1,
+        10.1
+      ],
+      "minzoom": 14,
+      "maxzoom": 14
     }
   },
   "layers": [
@@ -35,7 +67,7 @@
       "id": "background",
       "type": "background",
       "paint": {
-        "background-color": "#151e21"
+        "background-color": "#173741"
       }
     },
     {
@@ -62,7 +94,7 @@
       "source": "base",
       "source-layer": "land",
       "paint": {
-        "fill-color": "#202c2a"
+        "fill-color": "#304139"
       },
       "minzoom": 2,
       "filter": [
