@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 const dataset = resolve(process.argv[2] || '');
 if (!process.argv[2]) throw new Error('Canonical build directory required');
+const view = process.argv[3]?.split(',').map(Number);
+if (view && (view.length !== 2 || !view.every(Number.isFinite))) throw new Error('Expected lon,lat');
 const root = resolve(fileURLToPath(new URL('../', import.meta.url)));
 const manifest = JSON.parse(await readFile(resolve(dataset, 'manifest.json')));
 assert.equal(manifest.schemaVersion, 2);
@@ -51,7 +53,7 @@ try {
   page.on('request', (request) => network.push(request.url()));
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
-  const evidence = await page.evaluate(async () => {
+  const evidence = await page.evaluate(async (view) => {
     const maplibregl = await import('/assets/vendor/maplibre-gl.mjs');
     const { PMTiles, Protocol } = await import('/assets/vendor/pmtiles.mjs');
     const { prepareCanonicalStyle, fetchCanonicalRecord, prepareCanonicalEdit } = await import('/assets/js/canonical-records.js');
@@ -62,7 +64,7 @@ try {
     const archive = new PMTiles(new URL(manifest.tiles.file, dataRoot).href);
     const metadata = await archive.getHeader();
     const map = new maplibregl.Map({ container: 'map', style: { version: 8, sources: {}, layers: [] },
-      center: [metadata.centerLon, metadata.centerLat], zoom: Math.min(metadata.maxZoom, 14) });
+      center: view || [metadata.centerLon, metadata.centerLat], zoom: Math.min(metadata.maxZoom, 14) });
     const results = [];
     for (const theme of ['light', 'dark']) {
       const style = prepareCanonicalStyle(await (await fetch(new URL(`${theme}.json`, dataRoot))).json(), dataRoot);
@@ -79,11 +81,11 @@ try {
       const selected = features[0].properties.id;
       const snapshot = await fetchCanonicalRecord(dataRoot, selected);
       const edit = prepareCanonicalEdit(snapshot, { properties: snapshot.record.properties });
-      results.push({ theme, rendered: features.length, selected, expected: edit.expected });
+      results.push({ theme, rendered: features.length, types: [...new Set(features.map((f) => f.properties._mazoType))], selected, expected: edit.expected });
     }
     map.remove();
     return results;
-  });
+  }, view);
   assert.equal(errors.length, 0, errors.join('\n'));
   assert.ok(requests.some((path) => path.endsWith('.pmtiles')));
   assert.ok(requests.every((path) => !/overture|contributions/.test(path)));

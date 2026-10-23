@@ -1,5 +1,7 @@
 # Data sources and provenance
 
+The existing publication pipeline below remains in service during migration. [The canonical v2 pilot](canonical-data.md) imports full source records once and edits/builds them offline. Its provenance fingerprints describe the imported snapshot; upstream is not a continuing validation authority for canonical records.
+
 ## Sri Lanka basemap
 
 - **Geographic data:** official Overture Maps release recorded in the active manifest; nationwide refreshes resolve the latest release from Overture STAC.

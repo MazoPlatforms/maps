@@ -1,0 +1,53 @@
+{
+  "bbox": [
+    79.8,
+    6.8,
+    80.0,
+    7.1
+  ],
+  "selection": "Bounded LIMIT on full-resolution features wholly within bbox; not a nationwide statistical sample",
+  "samples": [
+    {
+      "file": "buildings.json",
+      "sha256": "2b9ddbf1490fb735b282516e9f6af8917d812e4175e01ab573bb6322fbbba696",
+      "features": 10000,
+      "source": {
+        "license": "ODbL-1.0",
+        "provider": "overture",
+        "release": "2026-10-21.0",
+        "url": "s3://overturemaps-us-west-2/release/2026-10-21.0/theme=buildings/type=building/*"
+      },
+      "sampleFiles": [
+        "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=buildings/type=building/part-00270-1ea699ed-6a39-56bc-9f5a-bfc48af95d61-c000.zstd.parquet"
+      ]
+    },
+    {
+      "file": "places.json",
+      "sha256": "dff0434df85e9cfefe19250a496cb64757569eedfd4ee42c6f3fc53c6da333aa",
+      "features": 2000,
+      "source": {
+        "license": "CDLA-Permissive-2.0",
+        "provider": "overture",
+        "release": "2026-10-21.0",
+        "url": "s3://overturemaps-us-west-2/release/2026-10-21.0/theme=places/type=place/*"
+      },
+      "sampleFiles": [
+        "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00012-8cf9bdfe-d946-56f8-84c0-19493d0fbb9c-c000.zstd.parquet"
+      ]
+    },
+    {
+      "file": "transportation.json",
+      "sha256": "7a4901470d40efb19b55feebce674e59b589971c805659af0189a64e4fe61a93",
+      "features": 2000,
+      "source": {
+        "license": "ODbL-1.0",
+        "provider": "overture",
+        "release": "2026-10-21.0",
+        "url": "s3://overturemaps-us-west-2/release/2026-10-21.0/theme=transportation/type=segment/*"
+      },
+      "sampleFiles": [
+        "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=transportation/type=segment/part-00098-8e21e460-dd13-515c-84a3-e50b930c95d5-c000.zstd.parquet"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Mazo Maps architecture
 
+**Recovery status:** the sections below describe the retained legacy viewer and overlay pipeline. The target is an independently maintained canonical database, not permanent Overture overrides. See [canonical records and migration](canonical-data.md) and [scale evidence](canonical-benchmark.md). The canonical pilot is implemented; nationwide migration and production cutover remain gated.
+
 Mazo Maps is a static MapLibre site. GitHub Actions resolves the current official Overture release, filters source features by bbox, runs the published Overture PMTiles profiles, validates the archives, and publishes the site through GitHub Pages. The viewer has no application build step. Contribution validation uses pinned Python dependencies; ordinary publication reuses verified immutable archives.
 
 ## Regional data pipeline

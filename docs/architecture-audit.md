@@ -1,5 +1,7 @@
 # Architecture audit
 
+Historical audit of the earlier sparse-overlay implementation. Its permanent upstream-overlay decision is superseded by [independent canonical records](canonical-data.md); its reported publication sizes are historical, not assertions about the current live site. Recovery and scalability evidence are documented separately.
+
 Audit baseline: `69fb1f3af178d170cc9e13df7f53df5d89ebb340` on 23 October 2026. Every tracked file at that baseline was read; the table records complete-file SHA-256 fingerprints. Minified vendored software was also scanned for module/worker/resource references and dynamic execution surfaces; this is an architectural review, not a formal dependency vulnerability assessment.
 
 ## Verified existing architecture

@@ -1,6 +1,6 @@
 # Mazo Maps
 
-**Mazo Maps** is an open-source mapping project by Mazo Platforms, Inc. It publishes a Sri Lanka vector basemap built from official Overture Maps data and displayed with MapLibre.
+**Mazo Maps** is an open-source mapping project by Mazo Platforms, Inc. Its target is an independently maintained geographic database with permanent Mazo feature IDs. The current production viewer displays a Sri Lanka Overture-derived basemap with MapLibre; an offline canonical-record pilot is available on the development branch.
 
 A nationwide refresh resolves the latest official Overture release, extracts features intersecting `[79.3, 5.8, 82.1, 10.1]`, builds four PMTiles archives, validates their feature layers and byte-range delivery, and deploys when the site payload fits GitHub Pages. The release manifest records source counts and archive hashes. This is a regional extract, not a completeness guarantee or a service-coverage claim. The map does not publish project-owned POIs.
 
@@ -49,3 +49,7 @@ Only the listed Overture regional extract is included. Coverage depends on the s
 The existing Overture PMTiles remain the unchanged baseline. Sparse contributions live at `data/sri-lanka/{province}/{district}/{ds-division}/{feature-type}/{feature-id}.json`; directory components include authoritative administrative codes. UUID records carry source references, geometry, schema version, revision history and add/modify/remove status. Cross-division features have one canonical record and all intersected divisions in their classification.
 
 The pinned Survey Department/OCHA boundary dataset and contribution JSON Schema accompany the Python validation/build pipeline. Published community layers are content addressed, checked against the active basemap and loaded by the existing viewer after its first frame. Small contribution changes reuse checksum-verified nationwide archives. [The repository audit](docs/architecture-audit.md) records provenance, architecture, verification and deployment limits.
+
+## Independent canonical dataset
+
+The v2 pilot supports full imported records, offline updates/tombstones, stable IDs, provenance, the requested administrative JSON paths, and canonical API/index/PMTiles generation. Nationwide expansion is capped pending the measured storage decision. See [verified recovery and migration requirements](docs/canonical-data.md) and [real-data scalability evidence](docs/canonical-benchmark.md). Existing overlays remain a compatibility path while production cutover is incomplete.
