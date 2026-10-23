@@ -37,6 +37,17 @@ jobs:
       - name: Retrieve pinned boundary evidence
         run: |
           mkdir -p boundaries
+          curl --fail --location 'https://data.humdata.org/api/3/action/package_show?id=cod-ab-lka' -o boundaries/hdx.json
+          python3 - <<'HDX'
+          import json
+          j = json.load(open('boundaries/hdx.json'))
+          if not j['success']:
+              raise ValueError(j)
+          r = j['result']
+          print('::notice title=hdx-source::' + json.dumps({k: r.get(k) for k in ['name','license_title','organization','dataset_source','last_modified']}))
+          for a in r['resources']:
+              print('::notice title=hdx-resource::' + json.dumps({k: a.get(k) for k in ['id','name','url','format','last_modified']}))
+          HDX
           for level in ADM1 ADM2 ADM3; do
             for suffix in -metaData.json .geojson; do
               file="geoBoundaries-LKA-$level$suffix"
