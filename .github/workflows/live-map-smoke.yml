@@ -45,16 +45,20 @@ jobs:
           done
           sha256sum boundaries/*
           curl --fail --location 'https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/5c25134028196d43ce97b5071934fd0cfc92f09f/sourceData/gbOpen/LKA_ADM3.zip' -o boundaries/source.zip
+          pip install pyshp==2.3.1
           python3 - <<'PYCODE'
-          import json, zipfile
+          import json, zipfile, shapefile, io
           from pathlib import Path
           z = zipfile.ZipFile('boundaries/source.zip')
           print('::notice title=source-files::' + json.dumps(z.namelist()))
+          sf = shapefile.Reader(shp=io.BytesIO(z.read('LKA_ADM3.shp')), dbf=io.BytesIO(z.read('LKA_ADM3.dbf')), shx=io.BytesIO(z.read('LKA_ADM3.shx')))
+          print('::notice title=source-fields::' + json.dumps(sf.fields))
+          print('::notice title=source-record::' + json.dumps(sf.record(0).as_dict()))
           for name in z.namelist():
               if name.endswith('.geojson'):
                   j = json.loads(z.read(name))
                   print('::notice title=source-fields::' + json.dumps(j['features'][0]['properties']))
-              if name.endswith('.txt'):
+              if name == 'meta.txt':
                   print('::notice title=source-metadata::' + z.read(name).decode().replace('\n', '%0A'))
           for path in Path('boundaries').glob('*metaData.json'):
               print('::notice title=' + path.name + '::' + json.dumps(json.loads(path.read_text())))
