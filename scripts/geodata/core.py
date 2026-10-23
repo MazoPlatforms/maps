@@ -183,15 +183,9 @@ def validate_records(root, admin, upstream, baseline=None):
             if current['release'] != upstream['release'] or not any(s['provider'] == 'overture' and s['id'] == u['id'] and s['release'] == u['release'] for s in r['sources']):
                 raise ValueError('unverified upstream reference')
         if baseline is not None:
-            old = baseline.get(r['id'])
-            if old and digest(old) != digest(r):
-                if r['revision'] != old['revision'] + 1 or r['previous'] != digest(old):
-                    raise ValueError('revision conflict')
-                if (old['status'] == 'removed' and any(r[k] != old[k] for k in ('status', 'geometry', 'properties'))) or any(r.get('upstream', {}).get(k) != old.get('upstream', {}).get(k) for k in ('id', 'featureType')) or r['featureType'] != old['featureType']:
-                    raise ValueError('immutable identity or tombstone changed')
-            elif not old and (r['revision'] != 1 or r['previous'] is not None):
-                raise ValueError('new record requires revision one')
-        elif r['revision'] == 1 and r['previous'] is not None or r['revision'] > 1 and r['previous'] is None:
+            from .history import check_revision
+            check_revision(r, baseline.get(r['id']))
+        elif (r['revision'] == 1 and r['previous'] is not None) or (r['revision'] > 1 and r['previous'] is None):
             raise ValueError('invalid revision history')
         records.append(r)
     if baseline is not None and set(baseline) - seen:

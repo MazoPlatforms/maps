@@ -2,7 +2,6 @@ import argparse
 import json
 import os
 import shutil
-import subprocess
 import tempfile
 import uuid
 from pathlib import Path
@@ -53,15 +52,8 @@ def main():
         if args.baseline:
             baseline = {r['id']: r for p in args.baseline.rglob('*.json') if len(p.relative_to(args.baseline).parts) == 5 for r in [load(p)]}
         if args.base_ref:
-            commit = subprocess.check_output(['git', 'rev-parse', '--verify', args.base_ref + '^{commit}'], cwd=ROOT, text=True).strip()
-            paths = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', commit, 'data/sri-lanka'], cwd=ROOT, text=True).splitlines()
-            baseline = {}
-            for name in paths:
-                if name.endswith('.json') and len(Path(name).parts) == 7:
-                    r = json.loads(subprocess.check_output(['git', 'show', commit + ':' + name], cwd=ROOT))
-                    if r['id'] in baseline:
-                        raise ValueError('duplicate baseline ID')
-                    baseline[r['id']] = r
+            from geodata.history import validate_history
+            baseline = validate_history(ROOT, args.base_ref)
         records = validate_records(args.root, admin, upstream, baseline)
         if args.command == 'build':
             if args.output.resolve() == args.root.resolve() or args.root.resolve() in args.output.resolve().parents:
@@ -78,6 +70,13 @@ def main():
                     shutil.rmtree(temporary)
         print(f'{len(records)} contribution records validated')
         return
+    def revision(previous):
+        if args.root.resolve() == (ROOT / 'data/sri-lanka').resolve():
+            from geodata.history import records_at
+            committed = records_at(ROOT, 'HEAD').get(previous['id'])
+            return {'revision': committed['revision'] + 1, 'previous': digest(committed)} if committed else {'revision': 1, 'previous': None}
+        return {'revision': previous['revision'] + 1, 'previous': digest(previous)}
+
     existing = {}
     if args.root.is_symlink() or any(p.is_symlink() for p in args.root.rglob('*')):
         raise ValueError('symlink contribution path')
@@ -97,7 +96,7 @@ def main():
                 raise ValueError('unsupported schema migration')
             new_admin = admin.classify(r['geometry'])
             if new_admin != r['administration']:
-                r = r | {'administration': new_admin, 'revision': r['revision'] + 1, 'previous': digest(r)}
+                r = r | {'administration': new_admin} | revision(r)
             staged.append((admin.path(r), r))
         for path, r in staged:
             destination = args.output / path
@@ -145,7 +144,7 @@ def main():
             r['sources'] = old['sources'] + ([reference] if reference not in old['sources'] else [])
         else:
             r['status'] = 'removed'
-        r.update(revision=old['revision'] + 1, previous=digest(old))
+        r.update(revision(old))
     geometry(r['geometry'], r['featureType'])
     r['administration'] = admin.classify(r['geometry'])
     from jsonschema import Draft202012Validator, FormatChecker

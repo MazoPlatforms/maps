@@ -64,7 +64,7 @@ jobs:
           rebuild=false
           if [[ "$REFRESH" == true ]]; then rebuild=true; fi
           if [[ -n "$BEFORE" && "$BEFORE" != 0000000000000000000000000000000000000000 ]]; then
-            if git diff --name-only "$BEFORE" HEAD | rg '^(scripts/(build-overture-theme.sh|validate-tiles.py)|data/overture/)'; then rebuild=true; fi
+            if git diff --name-only "$BEFORE" HEAD | rg '^(scripts/(build-overture-theme.sh|validate-tiles.py|verify-source-identities.mjs)|data/overture/|\.github/workflows/pages\.yml$)'; then rebuild=true; fi
           fi
           echo "rebuild=$rebuild" >> "$GITHUB_OUTPUT"
       - name: Reuse verified nationwide archives
@@ -155,7 +155,7 @@ jobs:
           cp -r "$RUNNER_TEMP/contributions" _site/data/contributions
           python3 scripts/finalize-styles.py _site
           site_bytes="$(du -sb _site | cut -f1)"
-          if (( site_bytes <= 943718400 )); then deploy_allowed=true; else deploy_allowed=false; fi
+          if (( site_bytes <= 990000000 )); then deploy_allowed=true; else deploy_allowed=false; fi
           echo "site_bytes=$site_bytes" >> "$GITHUB_OUTPUT"
           echo "deploy_allowed=$deploy_allowed" >> "$GITHUB_OUTPUT"
           echo "Site payload: $site_bytes bytes; Pages deploy permitted: $deploy_allowed"

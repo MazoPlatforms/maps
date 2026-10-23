@@ -1,8 +1,6 @@
 import json
 import tempfile
-import gzip
-import re
-import urllib.request
+from importlib.metadata import distribution
 from pathlib import Path
 
 import duckdb
@@ -15,23 +13,19 @@ def connect():
 
 
 def install_extensions(db, extensions):
-    platform = db.execute('PRAGMA platform').fetchone()[0]
-    version = duckdb.__version__
-    if not re.fullmatch(r'[a-z0-9_]+', platform) or not re.fullmatch(r'\d+\.\d+\.\d+', version):
-        raise ValueError('unsupported DuckDB extension platform')
+    if db.execute("SELECT current_setting('allow_unsigned_extensions')").fetchone()[0]:
+        raise ValueError('unsigned DuckDB extensions are prohibited')
     for extension in extensions:
         if extension not in ('httpfs', 'spatial'):
             raise ValueError('unsupported extension')
-        installed = db.execute('SELECT installed FROM duckdb_extensions() WHERE extension_name = ?', [extension]).fetchone()
-        if not installed or not installed[0]:
-            url = f'https://extensions.duckdb.org/v{version}/{platform}/{extension}.duckdb_extension.gz'
-            with urllib.request.urlopen(url, timeout=120) as response:
-                binary = gzip.decompress(response.read())
-            with tempfile.TemporaryDirectory(prefix='mazo-extension-') as temporary:
-                path = Path(temporary) / (extension + '.duckdb_extension')
-                path.write_bytes(binary)
-                escaped = str(path).replace("'", "''")
-                db.execute("INSTALL '" + escaped + "'")
+        package = distribution('duckdb-extension-' + extension)
+        if package.version != duckdb.__version__:
+            raise ValueError('DuckDB extension version mismatch')
+        candidates = [package.locate_file(path) for path in package.files if str(path).endswith('/' + extension + '.duckdb_extension')]
+        if len(candidates) != 1:
+            raise ValueError('ambiguous packaged extension')
+        escaped = str(candidates[0]).replace("'", "''")
+        db.execute("INSTALL '" + escaped + "'")
         db.execute('LOAD ' + extension)
 
 
