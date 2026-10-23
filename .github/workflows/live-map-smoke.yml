@@ -1,4 +1,4 @@
-name: Verify deployed Batticaloa map
+name: Verify deployed Sri Lanka map
 
 on:
   workflow_dispatch:
@@ -25,9 +25,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: mazo-batticaloa-live-verification
+          name: mazo-sri-lanka-live-verification
           path: |
-            mazo-batticaloa-*.png
+            mazo-sri-lanka-*.png
             verification/map-smoke*.json
           if-no-files-found: warn
           retention-days: 14

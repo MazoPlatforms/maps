@@ -1,4 +1,4 @@
-name: Build and publish Batticaloa basemap
+name: Build and publish Sri Lanka basemap
 
 on:
   push:
@@ -11,6 +11,9 @@ on:
       - 'scripts/build-overture-theme.sh'
       - 'scripts/finalize-styles.py'
       - 'scripts/validate-tiles.py'
+      - 'scripts/verify-live-map.mjs'
+      - '.github/workflows/pages.yml'
+      - 'tests/**'
       - 'README.md'
       - 'ATTRIBUTION.md'
       - 'LICENSE'
@@ -25,11 +28,21 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BBOX: 81.45,7.35,81.90,8.35
+  BBOX: 79.3,5.8,82.1,10.1
   OVERTURE_TILE_IMAGE: ghcr.io/overturemaps/overture-tiles:latest
 
 jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/map.test.mjs
+
   build:
+    needs: test
     # Overture publishes its official builder as linux/arm64; use a native
     # GitHub-hosted ARM runner instead of relying on emulation.
     runs-on: ubuntu-24.04-arm
@@ -62,15 +75,15 @@ jobs:
           go-version: '1.23.x'
           cache: false
 
-      - name: Build four regional PMTiles archives
+      - name: Build four Sri Lanka PMTiles archives
         env:
           RELEASE: ${{ steps.release.outputs.release }}
         run: |
-          mkdir -p data/batticaloa counts
+          mkdir -p data/sri-lanka counts
           for theme in base transportation buildings places; do
             : > "counts/$theme.tsv"
             docker run --rm \
-              --mount "type=bind,source=$GITHUB_WORKSPACE/data/batticaloa,target=/data" \
+              --mount "type=bind,source=$GITHUB_WORKSPACE/data/sri-lanka,target=/data" \
               --mount "type=bind,source=$GITHUB_WORKSPACE/counts,target=/counts" \
               --mount "type=bind,source=$GITHUB_WORKSPACE/scripts/build-overture-theme.sh,target=/build-theme.sh,readonly" \
               --env RELEASE --env THEME="$theme" --env BBOX --env SKIP_UPLOAD=true \
@@ -79,7 +92,7 @@ jobs:
           done
           # The official builder writes as root inside the container; hand the
           # outputs back to the runner so validation can safely edit PMTiles headers.
-          sudo chown -R "$(id -u):$(id -g)" data/batticaloa counts
+          sudo chown -R "$(id -u):$(id -g)" data/sri-lanka counts
 
       - name: Install PMTiles verifier
         run: |
@@ -92,10 +105,10 @@ jobs:
           RELEASE: ${{ steps.release.outputs.release }}
         run: |
           python3 scripts/validate-tiles.py \
-            --data-dir data/batticaloa --counts-dir counts \
+            --data-dir data/sri-lanka --counts-dir counts \
             --release "$RELEASE" --image-digest "$OVERTURE_IMAGE_DIGEST" \
-            --bbox "$BBOX" --manifest data/batticaloa/manifest.json
-          cat data/batticaloa/manifest.json
+            --bbox "$BBOX" --manifest data/sri-lanka/manifest.json
+          cat data/sri-lanka/manifest.json
 
       - name: Assemble site and enforce Pages size limit
         id: size
@@ -116,7 +129,7 @@ jobs:
       - name: Upload reproducible site build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mazo-maps-batticaloa-${{ steps.release.outputs.release }}
+          name: mazo-maps-sri-lanka-${{ steps.release.outputs.release }}
           path: _site/
           if-no-files-found: error
           retention-days: 7
@@ -126,11 +139,11 @@ jobs:
         run: |
           python3 - <<'PY'
           import json, os
-          path = '_site/data/batticaloa/manifest.json'
+          path = '_site/data/sri-lanka/manifest.json'
           manifest = json.load(open(path))
           total = sum(item['bytes'] for item in manifest['archives'].values())
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
-              out.write(f"## Batticaloa tile build\n\n- Overture release: `{manifest['release']}`\n- Bbox: `{manifest['bbox']}`\n- Archive bytes: **{total:,}**\n- Site bytes: **${{ steps.size.outputs.site_bytes }}**\n- Source counts are bbox-filtered Parquet rows, not rendered-tile totals.\n- Attribution: {manifest['attribution']}\n")
+              out.write(f"## Sri Lanka tile build\n\n- Overture release: `{manifest['release']}`\n- Bbox: `{manifest['bbox']}`\n- Archive bytes: **{total:,}**\n- Site bytes: **${{ steps.size.outputs.site_bytes }}**\n- Source counts are bbox-filtered Parquet rows, not rendered-tile totals.\n- Attribution: {manifest['attribution']}\n")
           PY
 
   deploy:
@@ -147,7 +160,7 @@ jobs:
       - name: Download verified site artifact
         uses: actions/download-artifact@v4
         with:
-          name: mazo-maps-batticaloa-${{ needs.build.outputs.release }}
+          name: mazo-maps-sri-lanka-${{ needs.build.outputs.release }}
           path: _site
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -185,7 +198,7 @@ jobs:
         with:
           name: mazo-maps-live-verification
           path: |
-            mazo-batticaloa-*.png
+            mazo-sri-lanka-*.png
             verification/map-smoke.json
           if-no-files-found: warn
           retention-days: 7

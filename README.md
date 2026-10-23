@@ -1,8 +1,8 @@
 # Mazo Maps
 
-**Mazo Maps** is an open-source mapping project by Mazo Platforms, Inc. It publishes a regional Batticaloa vector basemap built from official Overture Maps data and displayed with MapLibre.
+**Mazo Maps** is an open-source mapping project by Mazo Platforms, Inc. It publishes a Sri Lanka vector basemap built from official Overture Maps data and displayed with MapLibre.
 
-GitHub Actions resolves the latest official Overture release, extracts features intersecting `[81.45, 7.35, 81.90, 8.35]`, builds four PMTiles archives, validates their feature layers and byte-range delivery, and deploys when the site payload fits GitHub Pages. The release manifest records source counts and archive hashes. This is a regional extract, not a completeness guarantee or a service-coverage claim. The map does not publish project-owned POIs.
+GitHub Actions resolves the latest official Overture release, extracts features intersecting `[79.3, 5.8, 82.1, 10.1]`, builds four PMTiles archives, validates their feature layers and byte-range delivery, and deploys when the site payload fits GitHub Pages. The release manifest records source counts and archive hashes. This is a regional extract, not a completeness guarantee or a service-coverage claim. The map does not publish project-owned POIs.
 
 ## Project structure
 
@@ -10,10 +10,10 @@ GitHub Actions resolves the latest official Overture release, extracts features 
 index.html                 GitHub Pages site
 assets/css/site.css        Responsive presentation and light/dark themes
 assets/js/app.js           Theme controls and MapLibre initialization
-assets/js/config.js        Batticaloa bounds and style configuration
+assets/js/config.js        Sri Lanka bounds and style configuration
 assets/mazo-mark.svg       Project mark
 assets/styles/             Light and dark MapLibre styles
-data/batticaloa/           Actions-generated PMTiles and provenance manifest
+data/sri-lanka/            Actions-generated PMTiles and provenance manifest
 scripts/                   Tile validation and live range/render smoke checks
 docs/                      Architecture, data-source and attribution notes
 .github/workflows/         Overture tile build, verification and Pages deployment

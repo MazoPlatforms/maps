@@ -1,32 +1,32 @@
 {
   "version": 8,
-  "name": "Mazo Maps Batticaloa Light",
+  "name": "Mazo Maps Sri Lanka Light",
   "metadata": {
     "mazo:project": "Mazo Maps",
-    "mazo:area": "Batticaloa bounding box",
+    "mazo:area": "Sri Lanka bounding box",
     "mazo:theme": "light",
-    "mazo:release": "See data/batticaloa/manifest.json"
+    "mazo:release": "See data/sri-lanka/manifest.json"
   },
   "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
   "sources": {
     "base": {
       "type": "vector",
-      "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/base.pmtiles",
+      "url": "pmtiles://__MAZO_SITE_ROOT__/data/sri-lanka/base.pmtiles",
       "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
     },
     "transportation": {
       "type": "vector",
-      "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/transportation.pmtiles",
+      "url": "pmtiles://__MAZO_SITE_ROOT__/data/sri-lanka/transportation.pmtiles",
       "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
     },
     "buildings": {
       "type": "vector",
-      "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/buildings.pmtiles",
+      "url": "pmtiles://__MAZO_SITE_ROOT__/data/sri-lanka/buildings.pmtiles",
       "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
     },
     "places": {
       "type": "vector",
-      "url": "pmtiles://__MAZO_SITE_ROOT__/data/batticaloa/places.pmtiles",
+      "url": "pmtiles://__MAZO_SITE_ROOT__/data/sri-lanka/places.pmtiles",
       "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
     }
   },

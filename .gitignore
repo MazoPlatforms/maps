@@ -1,9 +1,9 @@
 # Generated Overture regional tile data is produced in GitHub Actions only.
-/data/batticaloa/*.pmtiles
-/data/batticaloa/manifest.json
+/data/sri-lanka/*.pmtiles
+/data/sri-lanka/manifest.json
 /counts/
 /_site/
 /verification/
 __pycache__/
 scripts/__pycache__/
-mazo-batticaloa-map.png
+mazo-sri-lanka-*.png

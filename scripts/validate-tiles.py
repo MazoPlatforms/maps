@@ -182,7 +182,7 @@ def main():
 
     manifest = {
         "project": "Mazo Maps",
-        "area": "Batticaloa, Sri Lanka",
+        "area": "Sri Lanka",
         "bbox": bbox,
         "release": args.release,
         "builtAt": datetime.now(timezone.utc).isoformat(),

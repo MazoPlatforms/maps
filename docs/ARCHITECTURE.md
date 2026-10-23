@@ -4,7 +4,7 @@ Mazo Maps is a static MapLibre site. GitHub Actions resolves the current officia
 
 ## Regional data pipeline
 
-The configured bbox is `[81.45, 7.35, 81.90, 8.35]` (min longitude, min latitude, max longitude, max latitude). The workflow builds four separate PMTiles archives using the official Overture tile-builder image and its bbox filter:
+The configured bbox is `[79.3, 5.8, 82.1, 10.1]` (min longitude, min latitude, max longitude, max latitude). The workflow builds four separate PMTiles archives using the official Overture tile-builder image and its bbox filter:
 
 - `base.pmtiles`: land, land cover, land use, water, and any other base-theme feature layers present in the extract.
 - `transportation.pmtiles`: road/rail segments and connectors.
@@ -19,11 +19,11 @@ The build fails if required source types are empty, a non-empty source type has 
 
 `assets/js/config.js` owns map bounds and style URLs. Light and dark MapLibre styles reference same-origin PMTiles archives through the PMTiles protocol and retain source attribution. MapLibre GL JS and the PMTiles browser adapter are loaded from version-pinned CDN URLs. Label glyphs are served by the public OpenFreeMap font endpoint; this is an external dependency and is not part of the self-hosted geographic archive.
 
-The map camera is centered on Batticaloa and bounded to the requested region. Roads and place names use Overture's primary-name property where it exists. MapLibre's attribution control remains enabled alongside the page-level notice.
+The initial and reset camera fit the full Sri Lanka extent with padding on desktop and mobile. Roads and place names use Overture's primary-name property where it exists. MapLibre's attribution control remains enabled alongside the page-level notice.
 
 ## Verification and publication
 
-Before deploy, `scripts/validate-tiles.py` verifies archive structure, geographic bounds, zoom metadata, required vector layers, input feature counts and SHA-256 hashes. It writes `data/batticaloa/manifest.json`. After deploy, an Actions browser job checks HTTP byte-range responses for each archive, waits for the map to load, queries representative rendered/source layers, captures a screenshot and uploads the verification evidence as an Actions artifact.
+Before deploy, `scripts/validate-tiles.py` verifies archive structure, geographic bounds, zoom metadata, required vector layers, input feature counts and SHA-256 hashes. It writes `data/sri-lanka/manifest.json`. After deploy, an Actions browser job checks HTTP byte-range responses for each archive, waits for the map to load, queries rendered road, building and place layers in Colombo, Jaffna, Trincomalee, Batticaloa, Kandy and Galle in both themes, captures a screenshot and uploads the verification evidence as an Actions artifact.
 
 The Pages deployment and live browser test are skipped if the site exceeds the safe size threshold. This avoids claiming a deployed map when GitHub Pages cannot host the payload; the build artifact remains available from the Actions run.
 

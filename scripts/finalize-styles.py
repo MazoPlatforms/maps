@@ -5,11 +5,11 @@ import sys
 from pathlib import Path
 
 site = Path(sys.argv[1])
-manifest_path = site / "data/batticaloa/manifest.json"
+manifest_path = site / "data/sri-lanka/manifest.json"
 manifest = json.loads(manifest_path.read_text())
 styles = {
-    "light": site / "assets/styles/batticaloa-light.json",
-    "dark": site / "assets/styles/batticaloa-dark.json",
+    "light": site / "assets/styles/sri-lanka-light.json",
+    "dark": site / "assets/styles/sri-lanka-dark.json",
 }
 archive_layers = {
     name: set(info["layers"])

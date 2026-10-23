@@ -11,7 +11,7 @@ function preferredTheme() {
   try {
     const saved = localStorage.getItem('mazo-maps-theme');
     if (saved === 'light' || saved === 'dark') return saved;
-  } catch { /* Storage may be disabled; follow the system preference. */ }
+  } catch {}
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
@@ -21,7 +21,7 @@ function applyTheme(theme, persist = true) {
   themeButton?.setAttribute('aria-pressed', String(theme === 'dark'));
   themeButton?.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`);
   if (persist) {
-    try { localStorage.setItem('mazo-maps-theme', theme); } catch { /* Theme remains active for this page view. */ }
+    try { localStorage.setItem('mazo-maps-theme', theme); } catch {}
   }
   if (map) loadStyle(theme).then(style => map?.setStyle(style)).catch(showMapError);
 }
@@ -47,12 +47,12 @@ function showMapError(error) {
 
 async function loadDataManifest() {
   try {
-    const response = await fetch(new URL('./data/batticaloa/manifest.json', siteRoot), { cache: 'no-cache' });
+    const response = await fetch(new URL('./data/sri-lanka/manifest.json', siteRoot), { cache: 'no-cache' });
     if (!response.ok) return;
     const manifest = await response.json();
     const status = document.querySelector('#release-status');
     if (status) status.textContent = `Overture ${manifest.release} · ${manifest.bbox.join(', ')}`;
-  } catch { /* The hosted map remains usable if its small build manifest is unavailable. */ }
+  } catch {}
 }
 
 async function initializeMap() {
@@ -68,20 +68,19 @@ async function initializeMap() {
     map = new maplibre.Map({
       container: mapNode,
       style,
-      center: mapConfig.center,
-      zoom: mapConfig.zoom,
+      bounds: mapConfig.bounds,
+      fitBoundsOptions: { padding: 24 },
       minZoom: mapConfig.minZoom,
       maxZoom: mapConfig.maxZoom,
       attributionControl: true,
-      cooperativeGestures: true,
-      maxBounds: mapConfig.bounds
+      cooperativeGestures: true
     });
     map.addControl(new maplibre.NavigationControl({ visualizePitch: true }), 'top-right');
     map.on('load', () => mapStatus?.classList.add('is-hidden'));
     map.on('error', event => showMapError(event.error ?? event.message));
     if (new URLSearchParams(location.search).has('maptest')) globalThis.__mazoMap = map;
     document.querySelector('#map-reset')?.addEventListener('click', () => {
-      map?.flyTo({ center: mapConfig.center, zoom: mapConfig.zoom, bearing: 0, pitch: 0, duration: 650 });
+      map?.fitBounds(mapConfig.bounds, { padding: 24, bearing: 0, pitch: 0, duration: 650 });
     });
     loadDataManifest();
   } catch (error) {
