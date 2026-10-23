@@ -4,11 +4,11 @@ from pathlib import Path
 from shapely.geometry import Point
 
 from geodata.core import digest
-from geodata.upstream import connect, query_source
+from geodata.upstream import connect, install_extensions, query_source
 
 with tempfile.TemporaryDirectory() as directory:
     db = connect()
-    db.execute('INSTALL spatial; LOAD spatial;')
+    install_extensions(db, ('spatial',))
     db.execute('CREATE TABLE fixture(id VARCHAR, geometry BLOB, names STRUCT(primary_name VARCHAR), version INTEGER)')
     db.execute('INSERT INTO fixture VALUES (?, ?, ?, ?)', ['stable-id', Point(80.7, 7.95).wkb, {'primary_name': 'Fixture'}, 1])
     path = Path(directory) / 'fixture.parquet'

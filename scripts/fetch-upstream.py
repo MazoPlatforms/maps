@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 from geodata.core import LAYER, encoded, load
-from geodata.upstream import connect, query_source
+from geodata.upstream import connect, install_extensions, query_source
 
 
 def main():
@@ -29,7 +29,7 @@ def main():
     features = []
     if targets:
         db = connect()
-        db.execute('INSTALL spatial; LOAD spatial; INSTALL httpfs; LOAD httpfs;')
+        install_extensions(db, ('httpfs', 'spatial'))
         db.execute("SET s3_region='us-west-2'")
         for kind in sorted(set(targets.values())):
             theme, layer = LAYER[kind]

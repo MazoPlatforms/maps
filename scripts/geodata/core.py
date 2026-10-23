@@ -246,6 +246,7 @@ def build(records, admin, upstream, basemap, output):
     manifest = {'schemaVersion': 1, 'boundaryVersion': admin.version, 'release': upstream['release'],
                 'basemap': {t: a['sha256'] for t, a in sorted(basemap['archives'].items())},
                 'recordsSha256': digest(records), 'records': len(records), 'features': len(features),
+                'recordIndex': [{'id': r['id'], 'path': str(admin.path(r)), 'status': r['status'], 'revision': r['revision'], 'sources': r['sources'], 'administration': r['administration'], **({'upstream': r['upstream']} if 'upstream' in r else {})} for r in records],
                 'layer': {'file': filename, 'sha256': sha, 'bytes': len(body)},
                 'suppressions': {t: {l: sorted(ids) for l, ids in sorted(layers.items())} for t, layers in sorted(deletions.items())},
                 'administrativeIndex': {key: sorted(r['id'] for r in records if any(a['dsDivision'] == key for a in r['administration']['intersections'])) for key in sorted({a['dsDivision'] for r in records for a in r['administration']['intersections']})},
