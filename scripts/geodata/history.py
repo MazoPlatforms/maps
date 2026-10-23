@@ -37,11 +37,17 @@ def check_revision(record, old):
         record[key] != old[key] for key in ("status", "geometry", "properties")
     ):
         raise ValueError("tombstone content changed")
-    if record["featureType"] != old["featureType"] or any(
-        record.get("upstream", {}).get(key) != old.get("upstream", {}).get(key)
+    if record["id"] != old["id"] or record["featureType"] != old["featureType"] or any(
+        record.get("origin", record.get("upstream", {})).get(key) != old.get("origin", old.get("upstream", {})).get(key)
         for key in ("id", "featureType")
     ):
         raise ValueError("permanent source identity changed")
+
+    if record.get("schemaVersion") == 2:
+        if any(source not in record["sources"] for source in old["sources"]):
+            raise ValueError("source provenance and licensing must be retained")
+        if old.get("schemaVersion") == 2 and record.get("origin") != old.get("origin"):
+            raise ValueError("original import provenance is immutable")
 
 
 def validate_history(repo, base, head="HEAD"):

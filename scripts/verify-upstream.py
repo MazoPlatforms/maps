@@ -26,6 +26,13 @@ with tempfile.TemporaryDirectory() as directory:
         {k: present[k] for k in ("id", "featureType", "geometry", "properties")}
     )
     assert next(f for f in records if f["id"] == "missing-id")["status"] == "missing"
+    # Real GeoParquet metadata triggers DuckDB automatic geometry conversion.
+    geo = Path(directory) / "geoparquet.parquet"
+    db.execute("CREATE TABLE geo AS SELECT id, ST_GeomFromWKB(geometry) AS geometry, names, version FROM fixture")
+    db.execute("SET enable_geoparquet_conversion=true")
+    db.execute("COPY geo TO ? (FORMAT PARQUET)", [str(geo)])
+    db.execute("SET enable_geoparquet_conversion=true")
+    assert query_source(db, geo, ["stable-id"], "place")[0]["geometry"] == present["geometry"]
     db.execute("INSERT INTO fixture SELECT * FROM fixture")
     path.unlink()
     db.execute("COPY fixture TO ? (FORMAT PARQUET)", [str(path)])

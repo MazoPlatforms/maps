@@ -10,6 +10,22 @@ permissions:
   contents: read
 
 jobs:
+  canonical-pilot:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-geodata.txt
+      - name: Build pinned pilot tile compiler
+        run: |
+          git clone --depth 1 --branch 2.79.0 https://github.com/felt/tippecanoe.git "$RUNNER_TEMP/tippecanoe"
+          test "$(git -C "$RUNNER_TEMP/tippecanoe" rev-parse HEAD)" = 68ab8dcc229f95b8b25877697d5e8d66783af503
+          make -C "$RUNNER_TEMP/tippecanoe" -j2 tippecanoe tippecanoe-decode
+      - name: Verify canonical records and real offline PMTiles output
+        run: |
+          TIPPECANOE="$RUNNER_TEMP/tippecanoe/tippecanoe" python -m unittest discover -s tests -p 'test_canonical.py' -v
   validate:
     runs-on: ubuntu-24.04
     steps:

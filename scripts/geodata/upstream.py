@@ -40,6 +40,9 @@ def install_extensions(db, extensions):
 
 
 def query_source(db, url, ids, kind):
+    # DuckDB spatial auto-converts GeoParquet WKB to GEOMETRY by default.
+    # Keep the same lossless WKB path for GeoParquet and plain Parquet snapshots.
+    db.execute("SET enable_geoparquet_conversion=false")
     rows = db.execute(
         "SELECT ST_AsGeoJSON(ST_GeomFromWKB(geometry)), to_json(t) FROM read_parquet(?, hive_partitioning=true) t WHERE id IN (SELECT unnest(?))",
         [str(url), ids],
