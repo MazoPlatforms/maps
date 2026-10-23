@@ -44,7 +44,12 @@ jobs:
             done
           done
           sha256sum boundaries/*
-          cat boundaries/*metaData.json
+          python3 - <<'PYCODE'
+          import json
+          from pathlib import Path
+          for path in Path('boundaries').glob('*metaData.json'):
+              print('::notice title=' + path.name + '::' + json.dumps(json.loads(path.read_text())))
+          PYCODE
       - uses: actions/upload-artifact@v4
         with:
           name: sri-lanka-boundary-evidence
