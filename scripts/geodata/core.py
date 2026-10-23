@@ -147,9 +147,11 @@ def validate_records(root, admin, upstream, baseline=None):
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     records, seen, targets = [], set(), set()
     root = Path(root)
+    if root.is_symlink() or any(p.is_symlink() for p in root.rglob('*')):
+        raise ValueError('symlink contribution path')
     for path in sorted(root.rglob('*.json')) if root.exists() else []:
         if len(path.relative_to(root).parts) != 5:
-            if len(path.relative_to(root).parts) > 1:
+            if path.relative_to(root).parts != ('manifest.json',):
                 raise ValueError(f'invalid record path: {path}')
             continue
         if path.is_symlink():
@@ -185,7 +187,7 @@ def validate_records(root, admin, upstream, baseline=None):
             if old and digest(old) != digest(r):
                 if r['revision'] != old['revision'] + 1 or r['previous'] != digest(old):
                     raise ValueError('revision conflict')
-                if old['status'] == 'removed' or any(r.get('upstream', {}).get(k) != old.get('upstream', {}).get(k) for k in ('id', 'featureType')) or r['featureType'] != old['featureType']:
+                if (old['status'] == 'removed' and any(r[k] != old[k] for k in ('status', 'geometry', 'properties'))) or any(r.get('upstream', {}).get(k) != old.get('upstream', {}).get(k) for k in ('id', 'featureType')) or r['featureType'] != old['featureType']:
                     raise ValueError('immutable identity or tombstone changed')
             elif not old and (r['revision'] != 1 or r['previous'] is not None):
                 raise ValueError('new record requires revision one')

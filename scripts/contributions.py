@@ -78,7 +78,16 @@ def main():
                     shutil.rmtree(temporary)
         print(f'{len(records)} contribution records validated')
         return
-    existing = {load(p)['id']: (p, load(p)) for p in args.root.rglob('*.json') if len(p.relative_to(args.root).parts) == 5}
+    existing = {}
+    if args.root.is_symlink() or any(p.is_symlink() for p in args.root.rglob('*')):
+        raise ValueError('symlink contribution path')
+    for path in args.root.rglob('*.json'):
+        if len(path.relative_to(args.root).parts) != 5:
+            continue
+        record = load(path)
+        if record['id'] in existing:
+            raise ValueError('duplicate permanent ID')
+        existing[record['id']] = (path, record)
     if args.command == 'migrate':
         if args.output.exists() or args.output.resolve() == args.root.resolve() or args.root.resolve() in args.output.resolve().parents:
             raise ValueError('migration requires a new destination')
@@ -115,7 +124,7 @@ def main():
         if args.id not in existing:
             raise ValueError('unknown permanent ID')
         previous_path, old = existing[args.id]
-        if old['status'] == 'removed':
+        if old['status'] == 'removed' and args.command != 'rebase':
             raise ValueError('tombstones are immutable')
         r = dict(old)
         if args.command == 'update':
@@ -132,7 +141,8 @@ def main():
                 raise ValueError('upstream target missing or changed type')
             r['upstream'] = {k: current[k] for k in ('id', 'release', 'sha256', 'featureType')}
             source = next(s for s in old['sources'] if s['provider'] == 'overture' and s['id'] == current['id'])
-            r['sources'] = old['sources'] + [source | {'release': current['release']}]
+            reference = source | {'release': current['release']}
+            r['sources'] = old['sources'] + ([reference] if reference not in old['sources'] else [])
         else:
             r['status'] = 'removed'
         r.update(revision=old['revision'] + 1, previous=digest(old))

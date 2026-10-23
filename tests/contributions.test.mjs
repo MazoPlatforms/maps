@@ -114,3 +114,29 @@ test('contribution fetch checks content integrity, release and basemap identity'
     /another basemap/,
   );
 });
+
+test('point land and water records remain visible when base styles only draw polygons', () => {
+  const polygons = {
+    version: 8,
+    sources: { base: { type: 'vector' } },
+    layers: [
+      {
+        id: 'water',
+        source: 'base',
+        'source-layer': 'water',
+        type: 'fill',
+        filter: ['==', ['geometry-type'], 'Polygon'],
+        paint: { 'fill-color': '#fff' },
+      },
+    ],
+  };
+  const water = structuredClone(data);
+  water.features[0].properties._mazoType = 'water';
+  const result = prepareContributions(polygons, {
+    manifest: { ...manifest, suppressions: {} },
+    data: water,
+  });
+  assert.ok(
+    result.layers.some((layer) => layer.id === 'contribution-water-circle'),
+  );
+});

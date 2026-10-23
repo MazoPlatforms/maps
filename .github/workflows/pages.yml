@@ -148,8 +148,8 @@ jobs:
         id: size
         run: |
           mkdir -p _site
-          cp index.html .nojekyll LICENSE ATTRIBUTION.md _site/
-          cp -r assets docs _site/
+          cp index.html .nojekyll LICENSE ATTRIBUTION.md README.md _site/
+          cp -r assets docs schemas _site/
           mkdir -p _site/data/sri-lanka
           cp data/sri-lanka/*.pmtiles data/sri-lanka/manifest.json _site/data/sri-lanka/
           cp -r "$RUNNER_TEMP/contributions" _site/data/contributions

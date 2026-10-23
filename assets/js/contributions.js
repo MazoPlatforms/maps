@@ -127,12 +127,11 @@ export function prepareContributions(style, bundle) {
       const filter = ['==', ['get', '_mazoType'], type];
       copy.filter = original.filter ? ['all', filter, original.filter] : filter;
       layers.push(copy);
-      covered.add(type);
+      covered.add(`${type}:${original.type}`);
     }
   }
   const dark = result.metadata?.['mazo:theme'] === 'dark';
   for (const type of active) {
-    if (covered.has(type)) continue;
     for (const [kind, geometry, paint] of [
       [
         'fill',
@@ -150,6 +149,7 @@ export function prepareContributions(style, bundle) {
         { 'circle-color': dark ? '#f0c96a' : '#26423f', 'circle-radius': 4 },
       ],
     ]) {
+      if (covered.has(`${type}:${kind}`)) continue;
       layers.push({
         id: `contribution-${type}-${kind}`,
         type: kind,

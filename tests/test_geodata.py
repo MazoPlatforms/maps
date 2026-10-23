@@ -184,3 +184,75 @@ class AuthoritativeBoundaries(unittest.TestCase):
         result = admin.classify(line)
         self.assertGreater(len({p['district'] for p in result['intersections']}), 1)
         self.assertEqual(line['type'], 'LineString')
+
+class CommandLifecycle(unittest.TestCase):
+    setUp = Contributions.setUp
+    tearDown = Contributions.tearDown
+    validate = Contributions.validate
+
+    def command(self, *arguments):
+        import subprocess
+        return subprocess.check_output([sys.executable, str(Path(__file__).resolve().parents[1] / 'scripts/contributions.py'), '--root', str(self.root), '--boundaries', str(self.directory), *map(str, arguments)], text=True)
+
+    def test_add_update_delete_and_migration(self):
+        source = self.directory / 'input.json'
+        source.write_bytes(encoded({k: self.record[k] for k in ('featureType', 'geometry', 'properties', 'sources')}))
+        relative = self.command('add', source).strip()
+        path = self.root / relative
+        first = json.loads(path.read_text())
+        source.write_bytes(encoded({'properties': {'names': {'primary': 'Changed'}}}))
+        self.command('update', first['id'], source)
+        updated = json.loads(path.read_text())
+        self.assertEqual(updated['previous'], digest(first))
+        self.assertEqual(updated['revision'], 2)
+        self.command('migrate', '--output', self.directory / 'migration')
+        self.assertEqual(json.loads((self.directory / 'migration' / relative).read_text()), updated)
+        self.command('delete', first['id'])
+        self.assertEqual(json.loads(path.read_text())['status'], 'removed')
+        self.validate()
+
+    def test_override_and_explicit_rebase(self):
+        base = {'id': 'upstream-test', 'featureType': 'place', 'geometry': self.record['geometry'], 'properties': {'name': 'Original'}}
+        snapshot = self.directory / 'snapshot.json'
+        snapshot.write_bytes(encoded({'schemaVersion': 1, 'release': self.upstream['release'], 'features': [base | {'sha256': digest(base), 'status': 'present'}]}))
+        source = self.directory / 'input.json'
+        source.write_bytes(encoded({'sources': [{'provider': 'overture', 'id': base['id'], 'release': self.upstream['release'], 'url': 'https://docs.overturemaps.org', 'license': 'ODbL-1.0'}]}))
+        relative = self.command('override', source, '--snapshot', snapshot, '--source-id', base['id']).strip()
+        old = json.loads((self.root / relative).read_text())
+        base['properties']['name'] = 'Changed upstream'
+        snapshot.write_bytes(encoded({'schemaVersion': 1, 'release': self.upstream['release'], 'features': [base | {'sha256': digest(base), 'status': 'present'}]}))
+        self.upstream = read_upstream(snapshot, self.upstream['release'])
+        with self.assertRaisesRegex(ValueError, 'upstream conflict'):
+            self.validate()
+        self.command('rebase', old['id'], '--snapshot', snapshot)
+        rebased = self.validate({old['id']: old})[0]
+        self.assertEqual(rebased['properties']['name'], 'Original')
+        self.assertEqual(rebased['upstream']['sha256'], digest(base))
+
+class RecordDiscovery(unittest.TestCase):
+    setUp = Contributions.setUp
+    tearDown = Contributions.tearDown
+    validate = Contributions.validate
+    save = Contributions.save
+
+    def test_duplicate_upstream_targets(self):
+        r = self.record
+        r['status'] = 'modified'
+        r['upstream'] = {'id': 'target', 'featureType': 'place', 'release': self.upstream['release'], 'sha256': 'f' * 64}
+        r['sources'] = [{'provider': 'overture', 'id': 'target', 'release': self.upstream['release'], 'url': 'https://docs.overturemaps.org', 'license': 'ODbL-1.0'}]
+        self.upstream['target'] = r['upstream'] | {'status': 'present'}
+        self.save()
+        second = copy.deepcopy(r)
+        second['id'] = '8763e377-ecea-4bea-aef4-5ac6ad8a978b'
+        self.save(second)
+        with self.assertRaisesRegex(ValueError, 'duplicate upstream target'):
+            self.validate()
+
+    def test_malformed_paths_and_symlinks(self):
+        path = self.save(path=Path('misplaced.json'))
+        with self.assertRaisesRegex(ValueError, 'invalid record path'):
+            self.validate()
+        path.unlink()
+        (self.root / 'linked').symlink_to(self.directory, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'symlink'):
+            self.validate()
