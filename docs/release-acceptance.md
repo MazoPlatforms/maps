@@ -1,6 +1,6 @@
 # Regional acceptance checkpoint — 24 October 2026
 
-**Production release: BLOCKED. Phases 2–6 are partially implemented, not complete.** PASS below means the stated bounded capability was exercised, not nationwide or deployed acceptance. Main and the production Pages site have not been changed. Recovery baseline: `4926e1a559992dd760759debbb6dd85d0c2e3e69`.
+**Full production release: BLOCKED.** PR #1 is merged, and Pages publishes the legacy root map plus a supplemental canonical pilot. Phases 2–6 are partially implemented, not complete. PASS below means the stated bounded capability was exercised, not nationwide acceptance.
 
 ## Scope and ownership
 
@@ -38,8 +38,8 @@ Canonical records, immutable complete-record/history shards and reviewed changes
 | 24 | Offline search | PASS | Real installed API/search data queried with browser network disabled. |
 | 25 | Client routing | PASS | Explicit connectors, directed restrictions, interior snapping/unreachable tests and real ten-segment route; offline UI passes. Partial graph only; no nationwide or turn-by-turn claim. |
 | 26 | Attribution/licenses | PASS | Source provenance, separate license texts/notices, Foursquare NOTICE, ODbL/CDLA/Apache/CC BY/IGO distinctions and contributor terms retained. Review each future source separately. |
-| 27 | Pages compatibility | PASS | PR Pages production artifact builds under the repository subpath and verifies API/tile/offline checksums; payload is below the current size gate. Actual post-merge deployment and live API smoke remain pending. |
-| 28 | Desktop/mobile compatibility | BLOCKED | Local Chromium and hosted CI desktop/touch mobile emulation pass; latest hosted run passes all six viewer/editor, light/dark, desktop/mobile Axe contexts after raising quick-place text contrast. Keyboard feature-ID loading, coordinate entry, Enter activation, Escape cancellation, and point/line/polygon creation pass. Physical Android, low-memory browsers, screen readers and other browser engines remain uncertified; run device/accessibility acceptance. |
+| 27 | Pages compatibility | PASS | Main Pages deployment [40083865521](https://github.com/MazoPlatforms/maps/actions/runs/40083865521) completed build, deploy and live Chromium smoke. Root map remains present; `/api/v1/manifest.json` and `/offline-manifest.json` return HTTP 200 and label canonical coverage incomplete (13,993 Colombo-area records).
+| 28 | Desktop/mobile compatibility | BLOCKED | Local Chromium and hosted CI desktop/touch mobile emulation pass; prior hosted PR run passed the six viewer/editor, light/dark, desktop/mobile Axe contexts; post-merge canonical workflow [40083865517](https://github.com/MazoPlatforms/maps/actions/runs/40083865517) exposed a mobile dark-theme quick-view contrast regression. A CSS fix is pending verification; physical Android, low-memory browsers, screen readers and other browser engines remain uncertified. Keyboard feature-ID loading, coordinate entry, Enter activation, Escape cancellation, and point/line/polygon creation pass. Physical Android, low-memory browsers, screen readers and other browser engines remain uncertified; run device/accessibility acceptance. |
 
 ## Verification and measurements
 
