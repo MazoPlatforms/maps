@@ -6,6 +6,7 @@ export function setupExplorer(map, maplibre, siteRoot) {
   let catalog = [], overview, popup, category = 'all';
   const hidden = new Set();
   const placeFilter = map.getFilter('place-names');
+  const destinationFilter = ['>=',['zoom'],['get','minzoom']];
   const groups = {
     roads: ['road-casing', 'road-lines', 'road-names', 'highway-names', 'rail-lines'],
     buildings: ['building-fills', 'building-parts', 'building-outlines'],
@@ -15,7 +16,7 @@ export function setupExplorer(map, maplibre, siteRoot) {
     if (!map.getLayer('place-names')) return;
     map.setFilter('place-names', category === 'all' ? placeFilter : ['all', placeFilter,
       ['==', map.getLayoutProperty('place-names', 'icon-image'), `mazo-poi-${category}`]]);
-    if (map.getLayer('destination-names')) map.setFilter('destination-names', category === 'all' ? ['has','name'] : ['==', ['get','category'], category]);
+    if (map.getLayer('destination-names')) map.setFilter('destination-names', ['all',destinationFilter,category === 'all' ? ['has','name'] : ['==', ['get','category'], category]]);
     for (const [group,layers] of Object.entries(groups)) for (const id of layers)
       if (map.getLayer(id)) map.setLayoutProperty(id,'visibility',hidden.has(group)?'none':'visible');
   }
@@ -79,12 +80,11 @@ export function setupExplorer(map, maplibre, siteRoot) {
     if(!catalog.length || map.getSource('destinations'))return;
     map.addSource('destinations',{type:'geojson',data:overview});
     map.addLayer({id:'destination-names',type:'symbol',source:'destinations',minzoom:5,maxzoom:14,
-      layout:{'text-field':['get','name'],'text-font':['Noto Sans Regular'],'text-size':['interpolate',['linear'],['zoom'],5,11,9,14,13,16],
+      filter:destinationFilter,layout:{'text-field':['get','name'],'text-font':['Noto Sans Regular'],'text-size':['interpolate',['linear'],['zoom'],5,11,9,14,13,16],
       'text-max-width':9,'text-padding':7,'text-optional':false,'text-allow-overlap':false,
-      'symbol-sort-key':['-',0,['get','population']], 'text-anchor':'center'},
+      'symbol-sort-key':['-',0,['case',['==',['get','category'],'park'],50000,['get','population']]], 'text-anchor':'center'},
       paint:{'text-color':['case',['==',['get','category'],'park'],document.documentElement.dataset.theme==='dark'?'#a7c5a2':'#48744f',document.documentElement.dataset.theme==='dark'?'#e1e7e2':'#3b514b'],
-      'text-halo-color':document.documentElement.dataset.theme==='dark'?'#263830':'#f6f8ef','text-halo-width':1.8,
-      'text-opacity':['step',['zoom'],0,5,['case',['<=',['get','minzoom'],5],1,0],6,['case',['<=',['get','minzoom'],6],1,0],7,1]}});
+      'text-halo-color':document.documentElement.dataset.theme==='dark'?'#263830':'#f6f8ef','text-halo-width':1.8}});
     apply();
   }
   map.on('style.load',addDestinations);

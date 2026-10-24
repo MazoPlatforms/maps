@@ -294,11 +294,11 @@ async function initializeMap() {
       fitBoundsOptions: { padding: 36 },
       minZoom: mapConfig.minZoom,
       maxZoom: mapConfig.maxZoom,
-      attributionControl: true,
+      attributionControl: { compact: true },
       pixelRatio: Math.min(globalThis.devicePixelRatio || 1, 2),
       crossSourceCollisions: true,
       renderWorldCopies: false,
-      maxTileCacheSize: 64,
+      maxTileCacheSize: window.matchMedia('(max-width: 600px)').matches ? 24 : 48,
       cooperativeGestures: false,
       fadeDuration: reducedMotion ? 0 : 150,
     });

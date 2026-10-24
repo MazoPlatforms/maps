@@ -75,6 +75,7 @@ try {
     try {await page.waitForFunction(()=>window.__mazoMap.getLayer('destination-names'),null,{timeout:30000});} catch(e) {console.error(await page.evaluate(()=>({error:window.__mazoMapError,timings:window.__mazoMapTimings,status:document.querySelector('#route-status').textContent,layers:window.__mazoMap.getStyle().layers.map(l=>l.id)})));throw e;}
     await page.waitForFunction(()=>window.__mazoMap.queryRenderedFeatures({layers:['destination-names']}).length>0,null,{timeout:30000});
     await page.waitForFunction(()=>window.__mazoMap.areTilesLoaded(),null,{timeout:90000});
+    assert.ok(await page.evaluate(()=>window.__mazoMap.queryRenderedFeatures({layers:['road-lines']}).length>0),'Major roads must render at the initial island zoom');
     console.error('Overview',await page.evaluate(()=>({zoom:window.__mazoMap.getZoom(),classes:[...new Set(window.__mazoMap.querySourceFeatures('transportation',{sourceLayer:'segment'}).map(f=>f.properties.class))],sample:window.__mazoMap.querySourceFeatures('transportation',{sourceLayer:'segment'})[0]?.properties})));
     await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-overview.png`});
     assert.equal(await page.evaluate(()=>Math.abs(document.querySelector('#map').getBoundingClientRect().height-innerHeight)<2),true);

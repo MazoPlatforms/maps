@@ -6,8 +6,11 @@ or external UI framework is used. One-finger panning is enabled; pinch, rotate,
 keyboard navigation, compass, location, island reset and fullscreen remain.
 Safe-area spacing and 44px controls support mobile layouts. Theme preference and
 reduced motion remain respected. Category filters operate on actual named POIs;
-these detailed POIs appear at zoom 14. Roads below zoom 10 are restricted to major
-classes to keep the national view legible.
+these detailed POIs appear at zoom 14. The source archives already prioritize roads by zoom. Below zoom 8 (before
+rail features enter the source), untagged line geometry is rendered as major
+roads: the official tile builder can omit tags for short low-zoom features.
+This preserves actual highway geometry without inventing features or changing
+the geographic archives. Native labels below zoom 13 require an actual source name.
 
 Overview labels use 79 real GeoNames point records, including cities, towns and
 national parks/nature reserves. Population and zoom prioritize labels using native
@@ -29,3 +32,10 @@ exercise desktop/mobile, both themes, low-zoom labels, full viewport sizing,
 search, directions links, category selection, layer toggles, native pan/rotate,
 zoom controls and touch gestures. The Pages workflow runs them before build and
 publication. Real-device Android/iOS verification is separate from emulation.
+
+The first hosted candidate run passed all seven regression tests and four real
+Chromium viewport/theme cases (Actions run 40096322164). Measured first geographic
+frame: 2,261 ms desktop and 758 ms mobile emulation; these are software-rendered
+runner measurements, not device guarantees. Browser verification exposed existing
+external glyph-service 404s for some decorative supplementary Unicode characters
+in imported POI names; ordinary labels and all required map layers rendered.

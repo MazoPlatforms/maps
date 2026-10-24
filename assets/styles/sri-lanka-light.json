@@ -469,14 +469,14 @@
       "filter": [
         "all",
         [
-          "all",
+          "==",
           [
-            "==",
-            [
-              "geometry-type"
-            ],
-            "LineString"
+            "geometry-type"
           ],
+          "LineString"
+        ],
+        [
+          "any",
           [
             "==",
             [
@@ -484,30 +484,21 @@
               "subtype"
             ],
             "road"
-          ]
-        ],
-        [
-          "any",
-          [
-            ">=",
-            [
-              "zoom"
-            ],
-            10
           ],
           [
-            "in",
+            "all",
             [
-              "get",
-              "class"
+              "<",
+              [
+                "zoom"
+              ],
+              8
             ],
             [
-              "literal",
+              "!",
               [
-                "motorway",
-                "trunk",
-                "primary",
-                "secondary"
+                "has",
+                "subtype"
               ]
             ]
           ]
@@ -692,14 +683,14 @@
       "filter": [
         "all",
         [
-          "all",
+          "==",
           [
-            "==",
-            [
-              "geometry-type"
-            ],
-            "LineString"
+            "geometry-type"
           ],
+          "LineString"
+        ],
+        [
+          "any",
           [
             "==",
             [
@@ -707,30 +698,21 @@
               "subtype"
             ],
             "road"
-          ]
-        ],
-        [
-          "any",
-          [
-            ">=",
-            [
-              "zoom"
-            ],
-            10
           ],
           [
-            "in",
+            "all",
             [
-              "get",
-              "class"
+              "<",
+              [
+                "zoom"
+              ],
+              8
             ],
             [
-              "literal",
+              "!",
               [
-                "motorway",
-                "trunk",
-                "primary",
-                "secondary"
+                "has",
+                "subtype"
               ]
             ]
           ]
