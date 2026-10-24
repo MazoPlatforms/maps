@@ -36,272 +36,60 @@
     <script type="module" src="./assets/js/app.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to map</a>
-    <header class="site-header section-shell" id="top">
-      <a class="brand" href="#top" aria-label="Mazo Maps home"
-        ><img src="./assets/mazo-mark.svg" width="36" height="36" alt="" /><span
-          >Mazo<span class="brand-divider">/</span><strong>Maps</strong></span
-        ></a
-      >
-      <nav class="header-nav" aria-label="Main navigation">
-        <a class="nav-active" href="#explore">Explore</a
-        ><a href="#project">About</a
-        ><a
-          href="https://github.com/MazoPlatforms/maps"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Source
-          <span aria-hidden="true"
-            ><svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 18 18 6M6 6h12v12" /></svg></span
-        ></a>
-      </nav>
-      <button
-        class="theme-toggle icon-button"
-        id="theme-toggle"
-        type="button"
-        aria-label="Switch to dark theme"
-        aria-pressed="false"
-      >
-        <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="4" />
-          <path
-            d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"
-          /></svg
-        ><svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14Z" />
-        </svg>
-      </button>
-    </header>
-    <main id="main" class="section-shell">
-      <section class="explorer" id="explore" aria-labelledby="map-title">
-        <div class="explorer-heading">
-          <div>
-            <p class="eyebrow">
-              <span class="status-dot" aria-hidden="true"></span> An open view
-              of Sri Lanka
-            </p>
-            <h1 id="map-title">
-              The whole island.<br /><span>A closer look.</span>
-            </h1>
-          </div>
-          <div class="explorer-intro">
-            <p>
-              From the coast to the hill country.<br />Every road has somewhere
-              to go.
-            </p>
-            <span class="country-tag"
-              ><svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z" />
-                <circle cx="12" cy="10" r="2.5" />
-              </svg>
-              Sri Lanka <span class="tag-divider">/</span> 7.95° N, 80.70°
-              E</span
-            >
+    <a class="skip-link" href="#map">Skip to map</a>
+    <main id="main">
+      <div class="map-frame" id="map-frame" data-state="loading">
+        <div id="map" role="region" aria-label="Interactive map of Sri Lanka" tabindex="0"></div>
+        <div class="search-dock">
+          <form id="search-form" class="search-box" role="search">
+            <a class="brand" href="./" aria-label="Mazo Maps home"><img src="./assets/mazo-mark.svg" width="32" height="32" alt=""/><strong>Mazo Maps</strong></a>
+            <label class="sr-only" for="map-search">Search Sri Lanka</label>
+            <input id="map-search" type="search" placeholder="Search Sri Lanka" autocomplete="off" aria-controls="search-results" />
+            <button type="submit" aria-label="Search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg></button>
+          </form>
+          <div id="search-results" class="panel search-results" aria-label="Search results" hidden></div>
+          <div class="categories" role="group" aria-label="Place categories">
+            <button data-category="all" aria-pressed="true">Explore</button>
+            <button data-category="food" aria-pressed="false">Food</button>
+            <button data-category="hotel" aria-pressed="false">Hotels</button>
+            <button data-category="park" aria-pressed="false">Nature</button>
+            <button data-category="health" aria-pressed="false">Health</button>
+            <button data-category="shop" aria-pressed="false">Shopping</button>
           </div>
         </div>
-        <div class="map-frame" id="map-frame" data-state="loading">
-          <div
-            id="map"
-            role="region"
-            aria-label="Interactive map of Sri Lanka"
-          ></div>
-          <div class="map-commandbar">
-            <label class="place-picker" for="city-select"
-              ><svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="10.5" cy="10.5" r="6.5" />
-                <path d="m16 16 4.5 4.5" /></svg
-              ><select id="city-select" aria-label="Choose a place">
-                <option value="island">Sri Lanka · All island</option>
-                <option value="colombo">Colombo</option>
-                <option value="jaffna">Jaffna</option>
-                <option value="kandy">Kandy</option>
-                <option value="galle">Galle</option>
-                <option value="trincomalee">Trincomalee</option>
-                <option value="batticaloa">Batticaloa</option></select
-              ><svg
-                class="picker-chevron"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="m8 10 4 4 4-4" /></svg
-            ></label>
-            <button
-              class="map-reset"
-              id="map-reset"
-              type="button"
-              aria-label="Reset map view to Sri Lanka"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 10a8 8 0 1 1 1.7 7M4 4v6h6" /></svg
-              ><span>Island view</span>
-            </button>
-          </div>
-          <div
-            class="map-loading"
-            id="map-status"
-            role="status"
-            aria-live="polite"
-          >
-            <span class="loading-pulse" aria-hidden="true"></span
-            ><span>Connecting to the map</span>
-          </div>
-          <div class="map-signature" aria-hidden="true">
-            <span class="signature-mark">M</span
-            ><span>MAZO MAPS<br /><small>THE SRI LANKA EDITION</small></span>
-          </div>
-          <div class="map-actions">
-            <button
-              class="icon-button"
-              id="map-locate"
-              type="button"
-              aria-label="Find my location"
-              title="My location"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="6" />
-                <circle cx="12" cy="12" r="2" />
-                <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
-              </svg></button
-            ><button
-              class="icon-button"
-              id="map-fullscreen"
-              type="button"
-              aria-label="Enter fullscreen"
-              aria-pressed="false"
-              title="Fullscreen"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" />
-              </svg>
-            </button>
-          </div>
+        <div class="utility-controls" aria-label="Map tools">
+          <button class="icon-button" id="directions-toggle" aria-label="Directions" aria-expanded="false" aria-controls="directions-panel" title="Directions"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 10 10-10 10L2 12ZM8 16v-5h8m-3-3 3 3-3 3"/></svg></button>
+          <button class="icon-button" id="layers-toggle" aria-label="Map layers" aria-expanded="false" aria-controls="layers-panel" title="Layers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 8 10-5 10 5-10 5ZM2 12l10 5 10-5M2 16l10 5 10-5"/></svg></button>
+          <button class="icon-button" id="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false" title="Light or dark map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10Z"/></svg></button>
         </div>
-        <div class="map-caption">
-          <div class="quick-places" aria-label="Quick views">
-            <span class="caption-label">A change of scene</span
-            ><button type="button" data-city="colombo">
-              Colombo
-              <span aria-hidden="true"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6 18 18 6M6 6h12v12" /></svg
-              ></span></button
-            ><button type="button" data-city="jaffna">
-              Jaffna
-              <span aria-hidden="true"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6 18 18 6M6 6h12v12" /></svg
-              ></span></button
-            ><button type="button" data-city="kandy">
-              Kandy
-              <span aria-hidden="true"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6 18 18 6M6 6h12v12" /></svg
-              ></span></button
-            ><button type="button" data-city="galle">
-              Galle
-              <span aria-hidden="true"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6 18 18 6M6 6h12v12" /></svg
-              ></span>
-            </button>
-          </div>
-          <output
-            class="map-coordinates"
-            id="map-coordinates"
-            aria-label="Map center"
-            >7.950° N / 80.700° E</output
-          >
+        <section class="panel tool-panel" id="layers-panel" aria-label="Map layers" hidden>
+          <h2>Map layers</h2>
+          <label><input type="checkbox" data-layer="roads" checked/> Roads</label>
+          <label><input type="checkbox" data-layer="buildings" checked/> Buildings</label>
+          <label><input type="checkbox" data-layer="places" checked/> Places</label>
+          <label><input type="checkbox" data-layer="landmarks" checked/> Cities & destinations</label>
+          <label for="city-select">Quick city view</label>
+          <select id="city-select" aria-label="Choose a place"><option value="island">Sri Lanka · All island</option><option value="colombo">Colombo</option><option value="jaffna">Jaffna</option><option value="kandy">Kandy</option><option value="galle">Galle</option><option value="trincomalee">Trincomalee</option><option value="batticaloa">Batticaloa</option></select>
+          <button id="map-fullscreen" aria-label="Enter fullscreen" aria-pressed="false">Fullscreen</button>
+        </section>
+        <section class="panel tool-panel" id="directions-panel" aria-label="Directions" hidden>
+          <h2>Directions</h2>
+          <form id="directions-form">
+            <label for="route-from">From</label><input id="route-from" list="destinations" required placeholder="City or destination"/>
+            <label for="route-to">To</label><input id="route-to" list="destinations" required placeholder="City or destination"/>
+            <datalist id="destinations"></datalist>
+            <button type="submit">Find a route</button>
+            <p id="route-status" role="status">Routes open on OpenStreetMap in a new tab.</p>
+            <a id="route-link" target="_blank" rel="noopener noreferrer" hidden>Open directions ↗</a>
+          </form>
+        </section>
+        <div class="map-loading" id="map-status" role="status" aria-live="polite"><span class="loading-pulse" aria-hidden="true"></span><span>Loading Sri Lanka</span></div>
+        <div class="map-actions">
+          <button class="icon-button" id="map-locate" aria-label="Find my location" title="My location"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg></button>
+          <button class="icon-button" id="map-reset" aria-label="Reset map view to Sri Lanka" title="Island view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 2 8M4 4v6h6"/></svg></button>
         </div>
-      </section>
-      <section
-        class="project-section"
-        id="project"
-        aria-labelledby="project-title"
-      >
-        <div class="project-copy">
-          <p class="eyebrow">Made to be explored</p>
-          <h2 id="project-title">A small island.<br />A lot to discover.</h2>
-          <p>
-            An independent, open-source map by Mazo Platforms. Built on open
-            geographic data, with the whole of Sri Lanka in view.
-          </p>
-          <a class="text-link" href="./docs/"
-            >Inside the project
-            <span aria-hidden="true"
-              ><svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 18 18 6M6 6h12v12" /></svg></span
-          ></a>
-        </div>
-        <div class="layer-grid">
-          <article class="layer-card">
-            <span class="layer-number">01</span
-            ><svg viewBox="0 0 80 48" aria-hidden="true">
-              <path d="M4 40 24 8l20 32M30 40 52 14l24 26" />
-              <path d="m16 21 8 5 7-6m12 6 9 6 9-6" />
-            </svg>
-            <h3>The landscape</h3>
-            <p>Land, water and the spaces between.</p>
-          </article>
-          <article class="layer-card">
-            <span class="layer-number">02</span
-            ><svg viewBox="0 0 80 48" aria-hidden="true">
-              <path d="M2 38h17L42 9h36M2 10h20l23 28h33" />
-              <path class="accent-line" d="m22 25 17-1m14 0h18" />
-            </svg>
-            <h3>The connections</h3>
-            <p>Roads and routes across the island.</p>
-          </article>
-          <article class="layer-card">
-            <span class="layer-number">03</span
-            ><svg viewBox="0 0 80 48" aria-hidden="true">
-              <path
-                d="M9 42V17h19v25m5 0V5h22v37m5 0V23h13v19M4 42h74M40 13h8m-8 8h8m-8 8h8"
-              />
-            </svg>
-            <h3>The everyday</h3>
-            <p>Buildings, neighbourhoods and places.</p>
-          </article>
-          <article class="layer-card layer-card-accent">
-            <span class="layer-number">04</span
-            ><span class="open-symbol" aria-hidden="true"
-              ><svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 18 18 6M6 6h12v12" /></svg
-            ></span>
-            <h3>Open by nature</h3>
-            <p>Open data. Visible sources. Room to grow.</p>
-          </article>
-        </div>
-      </section>
+        <a class="attribution-link" href="./ATTRIBUTION.md" target="_blank" rel="noopener">Mazo Maps · Sources</a>
+      </div>
     </main>
-    <footer class="site-footer section-shell">
-      <div class="footer-top">
-        <a class="brand" href="#top"
-          ><img
-            src="./assets/mazo-mark.svg"
-            width="30"
-            height="30"
-            alt=""
-          /><span
-            >Mazo<span class="brand-divider">/</span><strong>Maps</strong></span
-          ></a
-        ><span id="release-status">Open map data · Sri Lanka</span>
-        <div class="footer-links">
-          <a
-            href="https://github.com/MazoPlatforms/maps"
-            target="_blank"
-            rel="noopener noreferrer"
-            >GitHub
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 18 18 6M6 6h12v12" /></svg></a
-          ><a href="./docs/">About</a><a href="./ATTRIBUTION.md">Attribution</a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <span>© 2026 Mazo Platforms, Inc.</span
-        ><span>© OpenStreetMap contributors · Overture Maps Foundation</span
-        ><a href="./LICENSE">MIT License</a>
-      </div>
-    </footer>
   </body>
 </html>

@@ -4,6 +4,11 @@
 
 GitHub Actions resolves the latest official Overture release, extracts features intersecting `[79.3, 5.8, 82.1, 10.1]`, builds four PMTiles archives, validates their feature layers and byte-range delivery, and deploys when the site payload fits GitHub Pages. The release manifest records source counts and archive hashes. This is a regional extract, not a completeness guarantee or a service-coverage claim. The map does not publish project-owned POIs.
 
+The website opens directly into a full-screen map with floating search, category
+filters, layers, directions handoff and light/dark controls. A small licensed
+GeoNames index adds cities and nature destinations at overview zoom. See
+[Full-screen map](docs/fullscreen-map.md) for coverage and verification.
+
 ## Project structure
 
 ```text
@@ -27,7 +32,7 @@ Serve this directory with any static HTTP server, then open its local URL. For e
 python3 -m http.server 8000
 ```
 
-The map requires an internet connection for MapLibre GL JS and label glyphs. Regional vector archives are served from this GitHub Pages site. No API key or secret is required.
+MapLibre GL JS is bundled locally. The map requires an internet connection for label glyphs and map archives. Regional vector archives are served from this GitHub Pages site. No API key or secret is required.
 
 ## Map attribution and licensing
 

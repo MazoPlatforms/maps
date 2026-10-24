@@ -12,7 +12,7 @@
     "base": {
       "type": "vector",
       "url": "pmtiles://__MAZO_SITE_ROOT__/data/sri-lanka/base.pmtiles",
-      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+      "attribution": "\u00a9 <a href=\"https://docs.overturemaps.org/attribution/\">Overture Maps Foundation</a> \u00b7 \u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a> \u00b7 <a href=\"https://www.geonames.org/\">GeoNames (CC BY 4.0)</a>",
       "bounds": [
         79.3,
         5.8,
@@ -469,19 +469,48 @@
       "filter": [
         "all",
         [
-          "==",
+          "all",
           [
-            "geometry-type"
+            "==",
+            [
+              "geometry-type"
+            ],
+            "LineString"
           ],
-          "LineString"
+          [
+            "==",
+            [
+              "get",
+              "subtype"
+            ],
+            "road"
+          ]
         ],
         [
-          "==",
+          "any",
           [
-            "get",
-            "subtype"
+            ">=",
+            [
+              "zoom"
+            ],
+            10
           ],
-          "road"
+          [
+            "in",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "literal",
+              [
+                "motorway",
+                "trunk",
+                "primary",
+                "secondary"
+              ]
+            ]
+          ]
         ]
       ],
       "layout": {
@@ -663,19 +692,48 @@
       "filter": [
         "all",
         [
-          "==",
+          "all",
           [
-            "geometry-type"
+            "==",
+            [
+              "geometry-type"
+            ],
+            "LineString"
           ],
-          "LineString"
+          [
+            "==",
+            [
+              "get",
+              "subtype"
+            ],
+            "road"
+          ]
         ],
         [
-          "==",
+          "any",
           [
-            "get",
-            "subtype"
+            ">=",
+            [
+              "zoom"
+            ],
+            10
           ],
-          "road"
+          [
+            "in",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "literal",
+              [
+                "motorway",
+                "trunk",
+                "primary",
+                "secondary"
+              ]
+            ]
+          ]
         ]
       ],
       "layout": {
@@ -1965,6 +2023,72 @@
         "text-rotation-alignment": "auto",
         "text-pitch-alignment": "auto"
       }
+    },
+    {
+      "id": "highway-names",
+      "type": "symbol",
+      "source": "transportation",
+      "source-layer": "segment",
+      "paint": {
+        "text-color": "#c1ccc7",
+        "text-halo-color": "#202b2a",
+        "text-halo-width": 1.3,
+        "text-halo-blur": 0.3
+      },
+      "minzoom": 7,
+      "filter": [
+        "all",
+        [
+          "all",
+          [
+            "==",
+            [
+              "get",
+              "subtype"
+            ],
+            "road"
+          ],
+          [
+            "has",
+            "@name"
+          ]
+        ],
+        [
+          "in",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "literal",
+            [
+              "motorway",
+              "trunk",
+              "primary"
+            ]
+          ]
+        ]
+      ],
+      "layout": {
+        "symbol-placement": "line",
+        "text-field": [
+          "get",
+          "@name"
+        ],
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": 10,
+        "text-max-angle": 40,
+        "symbol-spacing": 500,
+        "text-padding": 3,
+        "text-allow-overlap": false,
+        "text-ignore-placement": false,
+        "text-keep-upright": true,
+        "text-rotation-alignment": "auto",
+        "text-pitch-alignment": "auto"
+      },
+      "maxzoom": 13
     }
   ],
   "transition": {
