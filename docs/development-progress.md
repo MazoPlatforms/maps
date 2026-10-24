@@ -1,5 +1,9 @@
 # Development progress
 
+## Main merge and deployment — 24 October 2026
+
+PR #1 merged normally through GitHub at `9e090f30f70b524bfa54a1a3e159566e68728c55`; `origin/main` matches. PR checks passed, including Python/JavaScript suites, real canonical/browser validation, Pages assembly and the explicit solo-maintainer review job. The main Pages workflow [40083865521](https://github.com/MazoPlatforms/maps/actions/runs/40083865521) completed test, build, deploy and live-smoke successfully. Public `https://mazoplatforms.github.io/maps/` returned HTTP 200; `/api/v1/manifest.json` and `/offline-manifest.json` are live, and the manifest explicitly reports `complete:false`, 13,993 Colombo-area records, and no nationwide coverage. The legacy root map remains in place. The other main push workflow [40083865517](https://github.com/MazoPlatforms/maps/actions/runs/40083865517) found an Axe color-contrast failure in mobile dark-theme quick-view buttons; follow-up fix is being prepared on `fix/mobile-dark-city-button-contrast` and must be reviewed before merging. Repository protection remains unavailable and unconfigured; no independent approval is evidenced.
+
 ## Delivery checkpoint — 24 October 2026
 
 PR #1 is open at `b86c8b3e0ec8280ecedfa89ebf3e8182a6b88a20` on `feat/geographic-contributions`. Trusted review checker bootstrap is on `main` at `57280111c9bf7faf674c37558cab257c0e52ddbd`; the checker runs from the trusted base. The explicit solo-maintainer path passed for this ordinary PR and states that no independent approval exists or is claimed. Boundary changes remain excluded from solo approval and require two configured non-author maintainers.

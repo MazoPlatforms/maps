@@ -1051,3 +1051,17 @@ body.map-expanded {
 .footer-top{flex-wrap:wrap;padding-top:16px;padding-bottom:16px}.footer-top>section,.footer-top>div:not(.footer-links){min-width:0;max-width:100%;flex:1 1 300px}.footer-top>section label{display:block;margin:7px 0}.footer-top details label{display:block}#editor-toggle{display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}#offline-open[hidden]{display:none}
 
 #offline-region{min-height:44px;max-width:100%;padding:8px;border:1px solid var(--line);border-radius:5px;background:transparent;color:inherit}#offline-open{min-height:44px;padding:8px;align-items:center}
+
+/* Keep quick-view labels readable on the translucent map caption in dark mode. */
+html[data-theme='dark'] .quick-places button,
+html[data-theme='dark'] .quick-places button:hover,
+html[data-theme='dark'] .quick-places button[aria-pressed='true'] {
+  color: #f4f7f1;
+  background-color: #17241c;
+  background-image: none;
+  border-color: #657568;
+  opacity: 1;
+}
+html[data-theme='dark'] .quick-places button > span {
+  color: #f4f7f1;
+}
