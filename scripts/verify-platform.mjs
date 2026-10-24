@@ -20,7 +20,7 @@ async function checkAccessibility(page, context) {
     results.violations.map(({ id, impact, nodes }) => ({
       id,
       impact,
-      targets: nodes.map((node) => node.target),
+      nodes: nodes.map((node) => ({ target: node.target, failureSummary: node.failureSummary })),
     })),
     [],
     `Accessibility violations in ${context}`,

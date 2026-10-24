@@ -514,7 +514,7 @@ body.map-expanded {
   border-radius: 30px;
   background: transparent;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--ink);
   transition:
     background 0.2s,
     border-color 0.2s;
@@ -525,13 +525,9 @@ body.map-expanded {
   border-color: var(--line);
   color: var(--ink);
 }
-:root[data-theme='dark'] .quick-places button,
-:root[data-theme='dark'] .quick-places button > span {
-  color: var(--ink);
-}
 .quick-places button > span {
   margin-left: 7px;
-  color: var(--muted);
+  color: var(--ink);
 }
 .map-coordinates {
   font: 10px var(--mono);

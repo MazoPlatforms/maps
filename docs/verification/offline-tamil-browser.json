@@ -1,10 +1,10 @@
 {
-  "mapInitialMs": 5251.978973,
-  "editorApplyMs": 437.74127999999837,
+  "mapInitialMs": 5516.055325,
+  "editorApplyMs": 935.0143080000016,
   "tileRequests": 7,
-  "tileMedianMs": 20,
+  "tileMedianMs": 16.5,
   "realFeature": "dd0b265b-4262-5bb6-8952-11db35dc7579",
-  "editorChangeset": "43d027b8-5636-4451-8f6d-3cccc88e4d99",
+  "editorChangeset": "7b0a6a01-1749-4bfc-a8dd-4a186ddc071d",
   "editor": true,
   "offlineGeometry": true,
   "offlineLabelledRendering": {
@@ -39,6 +39,6 @@
     "mobile editor dark theme"
   ],
   "lightAndDark": true,
-  "jsHeapBytes": 26954752,
+  "jsHeapBytes": 27330007,
   "pageErrors": []
 }
