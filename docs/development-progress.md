@@ -4,7 +4,7 @@
 
 Branch: `feat/geographic-contributions`. Recovery baseline: `7a2a1d62c619cc2c53fe8252d7056b250e86e0d7`. Main remains untouched. **Phases 2–6 and production deployment are incomplete.** Full statuses, evidence and remediation: [release acceptance](release-acceptance.md).
 
-Current subtask: add automated WCAG A/AA browser checks and fix real viewer/editor findings. The keyboard coordinate/ID workflow is implemented and pushed in `9ebabcd`; its CI passed. Next address protection bootstrap, physical-device testing, full offline fonts and affected-partition publication. Resume this application; do not recreate it or repeat the repository audit.
+Current subtask: automated WCAG A/AA browser checks and viewer/editor fixes are implemented, pushed and passed canonical CI. The keyboard coordinate/ID workflow is implemented and pushed in `9ebabcd`; its CI passed. Next address protection bootstrap, physical-device testing, full offline fonts and affected-partition publication. Resume this application; do not recreate it or repeat the repository audit.
 
 ## Commits
 
@@ -12,6 +12,8 @@ Current subtask: add automated WCAG A/AA browser checks and fix real viewer/edit
 - `dc96eefbdd4bfb23293ac8d78a8b2d06155b9b08` — canonical API, multilingual SDK and explicit-connectivity road routing.
 - `885eecb55cf6c524200cf9d0515815abb2d8f293` — integrated editor, draft handoff and offline regional tools.
 - `eefab5fdd1c5aae3a4a2ee2bb9a8da3cd16487f3` — review/history checks, security fixes, notices, offline updates, real browser verification and release matrix.
+- `9ebabcdffb851b49de6ee4a8e7348ff0ee8ccba6` — keyboard feature lookup/drawing and Escape cancellation; browser and CI pass.
+- `36972fedd67ac6cb39ea26bda274186240a6ca05` — map contrast/name/control fixes and recurring axe WCAG scans; all remote checks passed.
 - Resolve this document's checkpoint SHA with `git log -1 -- docs/development-progress.md`; it records final delivery evidence without a self-referential hash.
 
 ## Completed implementation
@@ -31,7 +33,7 @@ Read-only canonical CI builds review artifacts and validates history/proposals. 
 - Real-building browser contribution and real-road split validate through Python. Snapshot restoration/history and deterministic PMTiles/core indexes pass. Evidence: [verification](verification/).
 - Compile from validated store **12.06 s**, peak parent **649,968 KiB**; SDK initialization **35.68 ms**; real route **531.918 m / ten segments / 48.78 ms**. Browser initial render **3.83 s**, tile median **65.3 ms**, sampled heap **23.90 MB**. Local single runs, not Android/national guarantees.
 - Fixed DuckDB 1.4.1 and fflate 0.8.2 advisories. Current DuckDB/extensions 1.4.2, PMTiles 4.5.0/fflate 0.8.3. Requeries found no known issues for checked pins; broader security certification remains open.
-- GitHub contribution validation run [40052517332](https://github.com/MazoPlatforms/maps/actions/runs/40052517332) succeeded at `eefab5f`, including native pilot output and legacy browser contributions. New canonical run [40052517401](https://github.com/MazoPlatforms/maps/actions/runs/40052517401) passed snapshot-history/full-data validation and is building its artifact at this documentation checkpoint; consult its final status and the delivery report. Local success is not remote success.
+- GitHub workflows at `9ebabcd` passed [contribution validation](https://github.com/MazoPlatforms/maps/actions/runs/40068942555) and [canonical validation/build/browser](https://github.com/MazoPlatforms/maps/actions/runs/40068942606), including 42 Python tests, 21 JavaScript tests plus a separate real-data SDK test, native geometry tests and keyboard browser interactions. At `36972fe`, [contribution validation](https://github.com/MazoPlatforms/maps/actions/runs/40069428855) and [canonical validation/build/browser with Axe](https://github.com/MazoPlatforms/maps/actions/runs/40069428837) also passed. The maintainer-review job was skipped on branch pushes; no PR approval is evidenced. Axe reported zero violations in six browser/theme contexts; the full browser run had no page errors.
 
 ## Remaining work and blockers
 
@@ -42,10 +44,10 @@ Read-only canonical CI builds review artifacts and validates history/proposals. 
 5. Test physical Android, quota/low-memory failures, other engines and keyboard/screen readers. Expand complex road restrictions/topology coverage; add revision-preserving inverse changesets rather than rewriting history.
 6. Review every future source separately. Current ODbL/CDLA/Apache/CC BY/IGO notices and Foursquare NOTICE are retained; imported geography is not relabelled wholly original Mazo content.
 
-Next task: inspect remote canonical workflow logs, fix actual failures, then exercise a nonprivileged reviewed PR after trusted policy/protection configuration. Do not deploy the partial regional artifact over the national viewer.
+Next task: after verified repository protection/bootstrap and a second eligible boundary reviewer are available, exercise a nonprivileged reviewed PR; then implement affected-region release integration after national hosting and coverage gates. Do not deploy the partial regional artifact over the national viewer.
 
 ## Editor accessibility follow-up
 
 Added keyboard coordinate entry for points, roads and polygons, keyboard loading by permanent feature ID, live instructions/status, Escape cancellation, initial focus in the editor and focus return on close. Real Chromium verifies keyboard-created features and feature lookup against the actual 13,993-record published sample, with temporary drafts removed before completion. Focused 16 JavaScript model/contribution/router tests passed; full JavaScript suite passed 21 with the real static-data test skipped because no build was configured. Full Python tests were not rerun locally because this resumed environment lacks Shapely; the same Python suite passed remotely at `e5bdcb5` and the next canonical workflow reruns it.
 
-Accessibility audit found and fixed light-theme muted text contrast (4.47:1), reset-button accessible-name mismatch, attribution-toggle overlap with map controls, and low-contrast dark map signature text. The editor live instructions and coordinate fields are keyboard accessible. Added recurring Axe WCAG 2.0/2.1/2.2 A/AA scans to the real Playwright workflow for desktop/mobile, viewer/editor and light/dark contexts. Local scan returned zero violations in all six contexts. Physical Android and screen-reader acceptance remains open.
+Accessibility audit found and fixed light-theme muted text contrast (4.47:1), reset-button accessible-name mismatch, attribution-toggle overlap with map controls, and low-contrast dark map signature text. The editor live instructions and coordinate fields are keyboard accessible. Added recurring Axe WCAG 2.0/2.1/2.2 A/AA scans to the real Playwright workflow for desktop/mobile, viewer/editor and light/dark contexts. Local and GitHub CI scans returned zero violations in all six contexts. Physical Android and screen-reader acceptance remains open.
