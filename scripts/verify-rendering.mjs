@@ -65,19 +65,49 @@ try {
   for (const mobile of [false,true]) {
     const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:1000},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?3:1});
     const page=await context.newPage(); const errors=[]; const failedRequests=[];
+    page.on('response',r=>{if(r.status()>=400)console.error('HTTP',r.status(),r.url());});
     page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText}));
-    page.on('pageerror', e=>errors.push(e.message));
+    page.on('pageerror', e=>{errors.push(e.message);console.error(e.message);});
+    page.on('console',m=>{if(m.type()==='error')console.error(m.text());});
     page.on('crash',()=>console.error('Chromium page crashed')); 
     await page.goto(url);
     await page.waitForFunction(()=>window.__mazoMap?.isStyleLoaded(),null,{timeout:90000});
+    try {await page.waitForFunction(()=>window.__mazoMap.getLayer('destination-names'),null,{timeout:30000});} catch(e) {console.error(await page.evaluate(()=>({error:window.__mazoMapError,timings:window.__mazoMapTimings,status:document.querySelector('#route-status').textContent,layers:window.__mazoMap.getStyle().layers.map(l=>l.id)})));throw e;}
+    await page.waitForFunction(()=>window.__mazoMap.queryRenderedFeatures({layers:['destination-names']}).length>0,null,{timeout:30000});
+    await page.waitForFunction(()=>window.__mazoMap.areTilesLoaded(),null,{timeout:90000});
+    assert.ok(await page.evaluate(()=>window.__mazoMap.queryRenderedFeatures({layers:['road-lines']}).length>0),'Major roads must render at the initial island zoom');
+    console.error('Overview',await page.evaluate(()=>({zoom:window.__mazoMap.getZoom(),classes:[...new Set(window.__mazoMap.querySourceFeatures('transportation',{sourceLayer:'segment'}).map(f=>f.properties.class))],sample:window.__mazoMap.querySourceFeatures('transportation',{sourceLayer:'segment'})[0]?.properties})));
+    await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-overview.png`});
+    assert.equal(await page.evaluate(()=>Math.abs(document.querySelector('#map').getBoundingClientRect().height-innerHeight)<2),true);
+    assert.equal(await page.locator('footer, .explorer-heading, .project-section').count(),0);
+    await page.fill('#map-search','Kandy');
+    await page.locator('#search-results button').first().click();
+    await page.waitForFunction(()=>!window.__mazoMap.isMoving()&&window.__mazoMap.getZoom()>=14);
+    await page.click('#directions-toggle');
+    await page.fill('#route-from','Colombo'); await page.fill('#route-to','Kandy');
+    await page.locator('#directions-form button').click();
+    assert.match(await page.locator('#route-link').getAttribute('href'),/^https:\/\/www.openstreetmap.org\/directions\?/);
+    await page.click('#directions-toggle');
+    await page.click('#layers-toggle');
+    await page.locator('[data-layer="buildings"]').uncheck();
+    assert.equal(await page.evaluate(()=>window.__mazoMap.getLayoutProperty('building-fills','visibility')),'none');
+    await page.locator('[data-layer="buildings"]').check();
+    await page.click('#layers-toggle');
     for (const theme of ['light','dark']) {
       console.error(`Checking ${mobile?'mobile':'desktop'} ${theme}`);
       if (theme==='dark') await page.click('#theme-toggle');
       await page.waitForFunction(t=>window.__mazoMap.isStyleLoaded()&&window.__mazoMap.getStyle().metadata['mazo:theme']===t,theme,{timeout:90000});
+      await page.click('#layers-toggle');
       await page.selectOption('#city-select','colombo');
+      await page.click('#layers-toggle');
       await page.waitForFunction(()=>window.__mazoMap.getZoom()>13.9,null,{timeout:30000});
       await page.evaluate(()=>window.__mazoMap.jumpTo({center:[79.8612,6.9271],zoom:16}));
-      await page.waitForFunction(()=>window.__mazoMap.areTilesLoaded()&&window.__mazoMap.queryRenderedFeatures({layers:['place-names']}).length>0&&window.__mazoMap.queryRenderedFeatures({layers:['road-names']}).length>0,null,{timeout:90000});
+      try {await page.waitForFunction(()=>window.__mazoMap.areTilesLoaded()&&window.__mazoMap.queryRenderedFeatures({layers:['place-names']}).length>0&&window.__mazoMap.queryRenderedFeatures({layers:['road-names']}).length>0,null,{timeout:90000});} catch(e) {console.error(await page.evaluate(()=>({error:window.__mazoMapError,center:window.__mazoMap.getCenter(),zoom:window.__mazoMap.getZoom(),tiles:window.__mazoMap.areTilesLoaded(),counts:['road-lines','road-names','place-names'].map(id=>[id,window.__mazoMap.queryRenderedFeatures({layers:[id]}).length])})));await page.screenshot({path:output+'/failure.png'});throw e;}
+      await page.waitForTimeout(500);
+      await page.click('[data-category="food"]');
+      assert.equal(await page.locator('[data-category="food"]').getAttribute('aria-pressed'),'true');
+      assert.ok(await page.evaluate(()=>JSON.stringify(window.__mazoMap.getFilter('place-names')).includes('mazo-poi-food')));
+      await page.click('[data-category="all"]');
       await page.waitForTimeout(500);
       const detail=await page.evaluate(()=>{
         const m=window.__mazoMap;
@@ -95,7 +125,7 @@ try {
       await page.waitForFunction(()=>!window.__mazoMap.isMoving()&&window.__mazoMap.getBearing()>19);
       detail.firstRenderMs=await page.evaluate(()=>Math.round(window.__mazoMapTimings.firstRender-window.__mazoMapTimings.started));
       detail.sampledHeapBytes=await page.evaluate(()=>performance.memory?.usedJSHeapSize);
-      await page.locator('#map-frame').screenshot({path:`${output}/${mobile?'mobile':'desktop'}-${theme}.png`});
+      await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-${theme}.png`});
       await page.locator('.maplibregl-ctrl-zoom-out').click();
       await page.waitForFunction(()=>window.__mazoMap.getZoom()<15.2);
       await page.locator('.maplibregl-ctrl-zoom-in').click();
@@ -103,12 +133,15 @@ try {
       if (mobile) {
         const frame=await page.locator('#map').boundingBox();
         const cy=frame.y+frame.height*.45; const cx=frame.x+frame.width*.5;
-        const before=await page.evaluate(()=>window.__mazoMap.getCenter().lng);
         const cdp=await context.newCDPSession(page);
-        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:cx-20,y:cy,id:1},{x:cx+20,y:cy,id:2}]});
-        for(let d=10;d<=60;d+=10) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:cx-20+d,y:cy,id:1},{x:cx+20+d,y:cy,id:2}]});
+        for (const fingers of [1,2]) {
+        const before=await page.evaluate(()=>window.__mazoMap.getCenter().lng);
+        const points=d=>[{x:cx-20+d,y:cy,id:1},...(fingers===2?[{x:cx+20+d,y:cy,id:2}]:[])];
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:points(0)});
+        for(let d=10;d<=60;d+=10) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:points(d)});
         await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
         await page.waitForFunction(lng=>Math.abs(window.__mazoMap.getCenter().lng-lng)>.00001,before);
+        }
         // Context disposal releases the input session after both theme checks.
       }
       await page.evaluate(()=>window.__mazoMap.jumpTo({zoom:10}));

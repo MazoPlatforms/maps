@@ -3,6 +3,7 @@ name: Build and publish Sri Lanka basemap
 on:
   pull_request:
     paths:
+      - 'index.html'
       - 'assets/**'
       - 'scripts/verify-rendering.mjs'
       - 'scripts/finalize-styles.py'

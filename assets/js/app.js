@@ -1,5 +1,6 @@
 import { mapConfig, cityViews } from './config.js';
 import { createArchiveSource } from './archive-source.js';
+import { setupExplorer } from './explorer.js';
 
 const root = document.documentElement;
 const themeButton = document.querySelector('#theme-toggle');
@@ -293,12 +294,12 @@ async function initializeMap() {
       fitBoundsOptions: { padding: 36 },
       minZoom: mapConfig.minZoom,
       maxZoom: mapConfig.maxZoom,
-      attributionControl: true,
+      attributionControl: { compact: true },
       pixelRatio: Math.min(globalThis.devicePixelRatio || 1, 2),
       crossSourceCollisions: true,
       renderWorldCopies: false,
-      maxTileCacheSize: 64,
-      cooperativeGestures: true,
+      maxTileCacheSize: window.matchMedia('(max-width: 600px)').matches ? 24 : 48,
+      cooperativeGestures: false,
       fadeDuration: reducedMotion ? 0 : 150,
     });
     map.addControl(
@@ -311,6 +312,7 @@ async function initializeMap() {
     });
     map.on('render', revealMap);
     map.on('load', () => {
+      setupExplorer(map, maplibre, siteRoot);
       revealMap();
       if (mapTest) globalThis.__mazoMapTimings.loaded = performance.now();
     });

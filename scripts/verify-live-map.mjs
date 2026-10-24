@@ -116,7 +116,9 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
   await page.screenshot({ path: 'mazo-sri-lanka-mobile.png', fullPage: true });
+  await page.locator('#layers-toggle').click();
   await page.selectOption('#city-select', 'colombo');
+  await page.locator('#layers-toggle').click();
   await page.waitForFunction(() => !window.__mazoMap.isMoving() && window.__mazoMap.getZoom() >= 13.9, null, { timeout: 15_000 });
   await page.locator('#map-reset').click();
   await page.waitForFunction(() => !window.__mazoMap.isMoving() && window.__mazoMap.getBounds().contains([79.3, 5.8]) && window.__mazoMap.getBounds().contains([82.1, 10.1]), null, { timeout: 15_000 });

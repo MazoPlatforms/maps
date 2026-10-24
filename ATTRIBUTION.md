@@ -22,3 +22,17 @@ Keep the MapLibre attribution control and visible page-level attribution enabled
 Mazo Maps source code is licensed under MIT; see `LICENSE`. The interface uses system fonts. Third-party data, software and fonts retain their respective licenses.
 
 Do not remove or obscure map data attribution when changing rendering, style or source configuration.
+
+## Overview cities and destinations
+
+`assets/data/destinations.geojson` is a small, filtered Sri Lanka gazetteer from
+[GeoNames Sri Lanka export](https://download.geonames.org/export/dump/LK.zip),
+retrieved 2026-10-24. GeoNames data is licensed under
+[Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/).
+Credit: [GeoNames](https://www.geonames.org/). Names, alternate names, source IDs,
+population and point coordinates are retained; records are filtered to populated
+places with population >=10,000, administrative seats, selected named destinations,
+and named national parks/nature reserves. Repeated names are deduplicated. Park
+points label destinations; they do not represent legal boundaries or entrances.
+This index is not an exhaustive address or POI database. Existing Overture and
+OpenStreetMap attribution remains applicable to the underlying tiles.

@@ -180,6 +180,7 @@ async function startApp() {
   const source = (await read('assets/js/app.js'))
     .replace("import { mapConfig, cityViews } from './config.js';", '')
     .replace("import { createArchiveSource } from './archive-source.js';", '')
+    .replace("import { setupExplorer } from './explorer.js';", '')
     .replaceAll(
       'import.meta.url',
       JSON.stringify(new URL('assets/js/app.js', root).href),
@@ -395,4 +396,23 @@ test('cartography hides topology dots and collides named place pins with labels'
     assert.equal(layers['road-lines'].layout['line-join'], 'round');
     assert.match(JSON.stringify(layers['road-lines'].paint['line-width']), /motorway/);
   }
+});
+
+test('fullscreen shell and licensed overview retain bounded real Sri Lanka locations', async () => {
+  const html = await read('index.html');
+  assert.doesNotMatch(html, /<footer|class="explorer-heading"|id="project"/);
+  for (const id of ['map-search','layers-toggle','directions-toggle','map-locate','map-reset','theme-toggle'])
+    assert.ok(html.includes(`id="${id}"`));
+  const data = JSON.parse(await read('assets/data/destinations.geojson'));
+  assert.ok(data.features.length >= 50 && data.features.length <= 150);
+  assert.equal(new Set(data.features.map(f => f.id)).size, data.features.length);
+  for (const f of data.features) {
+    const [lon,lat] = f.geometry.coordinates;
+    assert.ok(lon>=79.3 && lon<=82.1 && lat>=5.8 && lat<=10.1);
+    assert.match(f.id, /^geonames-\d+$/);
+    assert.ok(f.properties.name);
+  }
+  for (const name of ['Colombo','Kandy','Jaffna','Yala National Park','Wilpattu National Park'])
+    assert.ok(data.features.some(f=>f.properties.name===name));
+  assert.match(await read('ATTRIBUTION.md'), /GeoNames[\s\S]*Creative Commons Attribution 4.0/);
 });
