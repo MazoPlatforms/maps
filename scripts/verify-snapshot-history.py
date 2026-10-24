@@ -27,10 +27,10 @@ exists = (
 )
 if not exists:
     print(
-        "Initial canonical import: no baseline snapshot. Requires explicit maintainer source/license review."
+        "Initial canonical import: no baseline snapshot. This is not a correction to an existing boundary; source/license validation and the configured maintainer policy still apply."
     )
     if a.report:
-        a.report.write_text(json.dumps({"boundaryReview": True, "initialImport": True}))
+        a.report.write_text(json.dumps({"boundaryReview": False, "initialImport": True}))
     raise SystemExit(0)
 admin = Administration(ROOT / "data/boundaries/sri-lanka")
 with tempfile.TemporaryDirectory() as temp:

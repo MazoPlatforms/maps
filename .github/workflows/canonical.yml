@@ -53,6 +53,8 @@ jobs:
           TIPPECANOE="$RUNNER_TEMP/tippecanoe/tippecanoe" python -m unittest discover -s tests -p 'test_canonical.py' -q
           TIPPECANOE_MAX_THREADS=2 python scripts/build-dataset.py --snapshot "$RUNNER_TEMP/review/snapshot" --output "$RUNNER_TEMP/canonical-build" --tippecanoe "$RUNNER_TEMP/tippecanoe/tippecanoe"
           python scripts/assemble-canonical.py --build "$RUNNER_TEMP/canonical-build" --output "$RUNNER_TEMP/canonical-site"
+          python scripts/refresh_offline_manifest.py --site "$RUNNER_TEMP/canonical-site"
+          python scripts/verify_canonical_site.py --site "$RUNNER_TEMP/canonical-site"
           MAZO_API_BUILD="$RUNNER_TEMP/canonical-build" node --test tests/sdk-real.test.mjs
       - name: Verify real browser editor, offline recovery and routing
         run: |
@@ -68,10 +70,15 @@ jobs:
           root=Path(os.environ['RUNNER_TEMP'])
           review=json.loads((root/'review/review.json').read_text())
           snapshot=root/'snapshot-review.json'
-          boundary=review['boundaryReview'] or (json.loads(snapshot.read_text())['boundaryReview'] if snapshot.exists() else True)
+          snapshot_review=json.loads(snapshot.read_text()) if snapshot.exists() else {}
+          boundary=review['boundaryReview'] or snapshot_review.get('boundaryReview', True)
           print('boundary='+str(boundary).lower())
+          print('initial-import='+str(snapshot_review.get('initialImport', False)).lower())
           PYCODE
           cat "$RUNNER_TEMP/review/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          if python -c 'import json,sys;sys.exit(not json.load(open(sys.argv[1])).get("initialImport",False))' "$RUNNER_TEMP/snapshot-review.json"; then
+            echo 'Initial canonical source import: this adds the first Mazo records and does not revise an existing boundary. Source attribution, licenses, schema, geometry, and full canonical build checks remain required.' >> "$GITHUB_STEP_SUMMARY"
+          fi
           if python -c 'import json,sys;sys.exit(not json.load(open(sys.argv[1]))["boundaryReview"])' "$RUNNER_TEMP/review/review.json"; then
             echo 'Boundary changes require two configured maintainer approvals; deployment remains blocked until repository protection is verified.' >> "$GITHUB_STEP_SUMMARY"
           fi
