@@ -22,7 +22,8 @@ export async function mountEditor(map, siteRoot) {
   panel.innerHTML = `<header><strong>Mazo geographic editor</strong><button data-action="close" aria-label="Close editor">×</button></header>
  <p>Independent Colombo-area sample · incomplete coverage</p>
  <div class="editor-row"><select aria-label="Feature type" id="edit-type">${featureTypes.map((t) => `<option>${t}</option>`).join('')}</select><select id="edit-geometry" aria-label="Drawing geometry"><option>Point</option><option>LineString</option><option>Polygon</option></select><button data-action="draw">Draw</button><button data-action="finish">Finish</button></div>
- <p id="edit-help">Select a feature on the canonical map, or draw a new geometry.</p>
+ <p id="edit-help" aria-live="polite">Select a feature on the map or load one by ID. To draw without a pointer, enter each coordinate below, choose Add coordinate, then Finish.</p>
+ <div class="editor-row"><label>Drawing longitude<input id="edit-draw-lon" type="number" step="any" inputmode="decimal" aria-describedby="edit-help"></label><label>Drawing latitude<input id="edit-draw-lat" type="number" step="any" inputmode="decimal" aria-describedby="edit-help"></label><button data-action="add-coordinate">Add coordinate</button></div>
  <label>Permanent Mazo ID<input id="edit-id" placeholder="Paste a Mazo UUID"></label><button data-action="load-feature">Load feature by ID</button><label>Selected feature<select id="edit-selection"><option value="">None</option></select></label>
  <label>English / primary name<input id="edit-en"></label><label>தமிழ்<input id="edit-ta" lang="ta"></label><label>සිංහල<input id="edit-si" lang="si"></label>
  <label>Properties (JSON)<textarea id="edit-properties" rows="4" spellcheck="false"></textarea></label>
@@ -230,6 +231,8 @@ export async function mountEditor(map, siteRoot) {
     );
     points = [];
     mode = 'select';
+    field('help').textContent =
+      'Feature added to this local draft. Preview and validate before submitting.';
     refresh();
   }
   async function click(event) {
@@ -279,6 +282,7 @@ export async function mountEditor(map, siteRoot) {
         panel.remove();
         map.off('click', click);
         map.off('style.load', refresh);
+        document.querySelector('#editor-toggle')?.focus();
         return api.onClose?.();
       case 'load-feature': {
         const snapshot = await sdk.getFeatureSnapshot(field('id').value.trim());
@@ -294,8 +298,28 @@ export async function mountEditor(map, siteRoot) {
         mode = 'draw';
         points = [];
         field('help').textContent =
-          'Tap vertices on the map. Choose Finish to complete the geometry.';
+          'Drawing. Add vertices by tapping the map or entering longitude and latitude and choosing Add coordinate. Press Escape to cancel.';
         return;
+      case 'add-coordinate': {
+        if (mode !== 'draw')
+          throw new Error('Choose Draw before adding coordinates');
+        const longitude = Number(field('draw-lon').value),
+          latitude = Number(field('draw-lat').value);
+        if (
+          !field('draw-lon').value ||
+          !field('draw-lat').value ||
+          !Number.isFinite(longitude) ||
+          !Number.isFinite(latitude)
+        )
+          throw new Error('Enter a valid longitude and latitude');
+        points.push([longitude, latitude]);
+        if (field('geometry').value === 'Point') finish();
+        else {
+          field('help').textContent = `Drawing: ${points.length} vertices added. Continue entering coordinates, then choose Finish.`;
+          refresh();
+        }
+        return;
+      }
       case 'finish':
         finish();
         return;
@@ -405,6 +429,14 @@ export async function mountEditor(map, siteRoot) {
         status(error.message),
       );
   });
+  panel.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || mode !== 'draw') return;
+    event.preventDefault();
+    mode = 'select';
+    points = [];
+    field('help').textContent = 'Drawing cancelled. No feature was created.';
+    refresh();
+  });
   const api = {
     model,
     sdk,
@@ -421,6 +453,7 @@ export async function mountEditor(map, siteRoot) {
   });
   map.setStyle(await style());
   map.flyTo({ center: [79.84533, 6.92114], zoom: 14, duration: 0 });
+  field('type').focus();
   if (new URLSearchParams(location.search).has('maptest'))
     globalThis.__mazoEditor = { model, sdk, refresh, panel, action };
   return api;

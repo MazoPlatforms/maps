@@ -359,6 +359,62 @@ try {
     );
     await page.click('[data-action="delete"]');
   }
+  await page.getByRole('button', { name: 'Draw', exact: true }).click();
+  await page.locator('#edit-type').press('Escape');
+  assert.match(await page.locator('#edit-help').textContent(), /cancelled/);
+  await page.selectOption('#edit-type', 'place');
+  await page.selectOption('#edit-geometry', 'Point');
+  await page.getByRole('button', { name: 'Draw', exact: true }).click();
+  await page.getByLabel('Drawing longitude').fill('79.8462');
+  await page.getByLabel('Drawing latitude').fill('6.9212');
+  const keyboardAdd = page.getByRole('button', { name: 'Add coordinate' });
+  await keyboardAdd.focus();
+  await keyboardAdd.press('Enter');
+  const keyboardFeature = await page.evaluate(() => {
+    const entry = Object.entries(window.__mazoEditor.model.entries).find(
+      ([, value]) => !value.before && value.after.featureType === 'place',
+    );
+    return entry?.[0];
+  });
+  assert.ok(keyboardFeature, 'keyboard coordinate entry creates a real draft');
+  assert.equal(await page.locator('#edit-help').getAttribute('aria-live'), 'polite');
+  await page.click('[data-action="delete"]');
+  await page.getByLabel('Permanent Mazo ID').fill(state.id);
+  const loadFeature = page.getByRole('button', { name: 'Load feature by ID' });
+  await loadFeature.focus();
+  await loadFeature.press('Enter');
+  assert.equal(await page.locator('#edit-selection').inputValue(), state.id);
+  async function keyboardGeometry(type, geometry, coordinates) {
+    await page.selectOption('#edit-type', type);
+    await page.selectOption('#edit-geometry', geometry);
+    await page.getByRole('button', { name: 'Draw', exact: true }).click();
+    for (const [longitude, latitude] of coordinates) {
+      await page.getByLabel('Drawing longitude').fill(String(longitude));
+      await page.getByLabel('Drawing latitude').fill(String(latitude));
+      await keyboardAdd.press('Enter');
+    }
+    await page.getByRole('button', { name: 'Finish', exact: true }).focus();
+    await page.getByRole('button', { name: 'Finish', exact: true }).press('Enter');
+    const created = await page.evaluate(
+      (featureType) =>
+        Object.entries(window.__mazoEditor.model.entries).find(
+          ([, value]) => !value.before && value.after.featureType === featureType,
+        )?.[0],
+      type,
+    );
+    assert.ok(created, `keyboard coordinate entry creates a ${type}`);
+    await page.click('[data-action="delete"]');
+  }
+  await keyboardGeometry('road', 'LineString', [
+    [79.846, 6.921],
+    [79.8463, 6.9213],
+  ]);
+  await keyboardGeometry('land', 'Polygon', [
+    [79.846, 6.921],
+    [79.8463, 6.921],
+    [79.8462, 6.9213],
+  ]);
+  const keyboardDrawing = true;
   await page.click('[data-action="close"]');
   await page.waitForFunction(() => window.__mazoMap.isStyleLoaded());
   const offline = await page.evaluate(async () => {
@@ -482,6 +538,7 @@ try {
         crossVersionUpdate: true,
         changedUpdateFiles: updateAssetRequests,
         drawnFeatureTypes: 8,
+        keyboardDrawing,
         lightAndDark: true,
         jsHeapBytes: await page.evaluate(
           () => performance.memory?.usedJSHeapSize ?? null,

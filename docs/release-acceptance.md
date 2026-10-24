@@ -39,7 +39,7 @@ Canonical records, immutable complete-record/history shards and reviewed changes
 | 25 | Client routing | PASS | Explicit connectors, directed restrictions, interior snapping/unreachable tests and real ten-segment route; offline UI passes. Partial graph only; no nationwide or turn-by-turn claim. |
 | 26 | Attribution/licenses | PASS | Source provenance, separate license texts/notices, Foursquare NOTICE, ODbL/CDLA/Apache/CC BY/IGO distinctions and contributor terms retained. Review each future source separately. |
 | 27 | Pages compatibility | PASS | Actual artifact/browser served under `/maps/`, relative SDK URLs and PMTiles ranges. National hosting capacity and actual deployment remain blocked. |
-| 28 | Desktop/mobile compatibility | BLOCKED | Desktop Chromium and touch mobile emulation pass with no overflow; physical Android, low-memory browsers, screen readers and other browser engines not certified. Run device/accessibility acceptance. |
+| 28 | Desktop/mobile compatibility | BLOCKED | Desktop Chromium and touch mobile emulation pass with no overflow. Added live instructions, labeled coordinate entry, keyboard feature-by-ID loading, Enter activation, Escape cancellation, and keyboard point/line/polygon creation in a real browser test. Physical Android, low-memory browsers, screen readers and other browser engines remain uncertified; run device/accessibility acceptance. |
 
 ## Verification and measurements
 
@@ -52,6 +52,7 @@ Reproduction commands and scope: [deployment](deployment.md), [editor](editor-gu
 - Offline package: **157 files / 36,038,374 bytes** before final documentation-only changes. Browser evidence records initial rendering, tile latency, editor response and JS heap separately. Software-rendered local Chromium does not establish Android memory limits.
 - Final browser run: first rendering **3,834.5 ms**, seven tile requests with median **65.3 ms**, property application including UI waits **1,884.5 ms**, sampled JS heap **23,896,480 bytes**. These measurements include automation/rendering overhead and are not isolated engine microbenchmarks.
 - Browser tests exercise real tiles/geometry, all feature-type drawing, imported editing, downloaded proposals, both themes, touch layout, interrupted recovery, corrupt cache rejection/repair, disconnected search/rendering/routing and a version update fetching only one changed CSS asset. The update test changes local CSS only, never source geography. Binary-delta PMTiles updates are not implemented.
+- Follow-up browser test also verifies a keyboard-created point, road and polygon, keyboard activation of feature-ID loading, and Escape cancellation. It uses real published regional data for lookup; test drafts are deleted before the check ends. The same run took 1.89 s to first render, 23.6 ms median tile request and sampled 19.45 MB JS heap on this Codespace Chromium.
 
 ## Release gates and next work
 

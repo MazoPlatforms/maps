@@ -4,7 +4,7 @@
 
 Branch: `feat/geographic-contributions`. Recovery baseline: `7a2a1d62c619cc2c53fe8252d7056b250e86e0d7`. Main remains untouched. **Phases 2–6 and production deployment are incomplete.** Full statuses, evidence and remediation: [release acceptance](release-acceptance.md).
 
-Current subtask: regional implementation and local acceptance complete; verify remote CI, then address review/protection bootstrap, physical-device testing, full offline fonts and affected-partition publication. Resume this application; do not recreate it or repeat the repository audit.
+Current subtask: regional implementation and local acceptance complete. This follow-up adds keyboard coordinate drawing and feature-ID loading, with a real-browser check. The last checkpoint CI passed; current follow-up is awaiting the same remote CI before its push. Next address protection bootstrap, physical-device testing, full offline fonts and affected-partition publication. Resume this application; do not recreate it or repeat the repository audit.
 
 ## Commits
 
@@ -43,3 +43,7 @@ Read-only canonical CI builds review artifacts and validates history/proposals. 
 6. Review every future source separately. Current ODbL/CDLA/Apache/CC BY/IGO notices and Foursquare NOTICE are retained; imported geography is not relabelled wholly original Mazo content.
 
 Next task: inspect remote canonical workflow logs, fix actual failures, then exercise a nonprivileged reviewed PR after trusted policy/protection configuration. Do not deploy the partial regional artifact over the national viewer.
+
+## Editor accessibility follow-up
+
+Added keyboard coordinate entry for points, roads and polygons, keyboard loading by permanent feature ID, live instructions/status, Escape cancellation, initial focus in the editor and focus return on close. Real Chromium verifies keyboard-created features and feature lookup against the actual 13,993-record published sample, with temporary drafts removed before completion. Focused 16 JavaScript model/contribution/router tests passed; full JavaScript suite passed 21 with the real static-data test skipped because no build was configured. Full Python tests were not rerun locally because this resumed environment lacks Shapely; the same Python suite passed remotely at `e5bdcb5`. Overall accessibility remains blocked pending screen-reader and physical Android checks.
