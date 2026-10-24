@@ -9,11 +9,36 @@ const publicRoot = 'https://mazoplatforms.github.io/maps/';
 const response = await fetch(publicRoot + 'data/sri-lanka/manifest.json', { signal: AbortSignal.timeout(30000) });
 assert.ok(response.ok, 'Published data manifest unavailable');
 const manifest = await response.json();
+const archiveNames = new Set(Object.values(manifest.archives).map(a=>a.file));
+const ranges = new Map();
+async function publishedRange(file, range) {
+  const key=file+':'+range;
+  if (!ranges.has(key)) ranges.set(key,(async()=>{
+    let last;
+    for(let attempt=0;attempt<3;attempt++) {
+      try {
+        const upstream=await fetch(publicRoot+'data/sri-lanka/'+file,{headers:{Range:range},signal:AbortSignal.timeout(30000)});
+        if(upstream.status!==206) throw new Error(`Published range returned ${upstream.status}`);
+        const body=Buffer.from(await upstream.arrayBuffer());
+        return {body,range:upstream.headers.get('content-range')};
+      } catch(error) { last=error; }
+    }
+    throw last;
+  })());
+  return ranges.get(key);
+}
 const server = createServer(async (req, res) => {
   try {
     const path = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     if (path === '/maps/data/sri-lanka/manifest.json') {
       res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(manifest)); return;
+    }
+    if (path.startsWith('/maps/data/sri-lanka/')) {
+      const name=path.split('/').at(-1); const range=req.headers.range;
+      if(!archiveNames.has(name)||!/^bytes=\d+-\d+$/.test(range||'')) {res.writeHead(400);res.end();return;}
+      const data=await publishedRange(name,range);
+      res.writeHead(206,{'Content-Type':'application/octet-stream','Accept-Ranges':'bytes','Content-Range':data.range,'Content-Length':data.body.length});
+      res.end(data.body);return;
     }
     const file = resolve(root, path.replace(/^\/maps\//, '') || 'index.html');
     if (!file.startsWith(root + '/')) throw new Error('Invalid path');
@@ -23,7 +48,7 @@ const server = createServer(async (req, res) => {
       style.layers = style.layers.filter(layer => !layer.source || manifest.archives[layer.source].layers.includes(layer["source-layer"]));
       // Use existing content-addressed public data, with local candidate cartography.
       for (const [name, source] of Object.entries(style.sources))
-        source.url = `pmtiles://${publicRoot}data/sri-lanka/${manifest.archives[name].file}`;
+        source.url = `pmtiles://http://${req.headers.host}/maps/data/sri-lanka/${manifest.archives[name].file}`;
       content = Buffer.from(JSON.stringify(style));
     }
     res.setHeader('Content-Type', ({'.json':'application/json','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.html':'text/html','.svg':'image/svg+xml'})[extname(file)] || 'application/octet-stream');
@@ -39,7 +64,8 @@ await mkdir(output,{recursive:true});
 try {
   for (const mobile of [false,true]) {
     const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:1000},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?3:1});
-    const page=await context.newPage(); const errors=[];
+    const page=await context.newPage(); const errors=[]; const failedRequests=[];
+    page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText}));
     page.on('pageerror', e=>errors.push(e.message));
     page.on('crash',()=>console.error('Chromium page crashed')); 
     await page.goto(url);
@@ -62,7 +88,9 @@ try {
       assert.ok(detail.roads>0); assert.ok(detail.buildings>0); assert.ok(detail.places>0);
       assert.equal(detail.connectorVisibility,'none'); assert.equal(detail.roadPlacement,'line');
       assert.ok(detail.icons.some(n=>n.startsWith('mazo-poi-'))); assert.ok(detail.pixelRatio<=2);
-      assert.equal(detail.overflow,false); assert.equal(detail.mapError,undefined);
+      assert.equal(detail.overflow,false);
+      if(detail.mapError) console.error(JSON.stringify(failedRequests));
+      assert.equal(detail.mapError,undefined);
       await page.evaluate(()=>{const m=window.__mazoMap;const center=m.getCenter();m.easeTo({center:[center.lng+.0002,center.lat],bearing:20,duration:400});});
       await page.waitForFunction(()=>!window.__mazoMap.isMoving()&&window.__mazoMap.getBearing()>19);
       detail.firstRenderMs=await page.evaluate(()=>Math.round(window.__mazoMapTimings.firstRender-window.__mazoMapTimings.started));

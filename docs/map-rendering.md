@@ -19,7 +19,7 @@ Run the six local regression checks:
 node --test tests/map.test.mjs
 ```
 
-The real-data browser verifier serves candidate website files under `/maps/` while reading the unchanged, content-addressed archives from the public site. It verifies both themes at desktop (1440 × 1000) and mobile touch (390 × 844, device scale 3 capped to 2), real buildings/roads/place names, hidden connector dots, zoom controls, animated pan/rotation, mobile two-finger dragging and zoom-dependent detail. It saves screenshots and measurements in `RENDER_EVIDENCE_DIR` (default `/tmp/mazo-render-evidence`). Playwright is a verification tool only; the production site has no new package dependency.
+The real-data browser verifier serves candidate website files under `/maps/` while reading the unchanged, content-addressed archives from the public site. A test-only range cache forwards actual upstream bytes through the local site origin, matching production origin behavior without downloading whole archives or substituting map data. It verifies both themes at desktop (1440 × 1000) and mobile touch (390 × 844, device scale 3 capped to 2), real buildings/roads/place names, hidden connector dots, zoom controls, animated pan/rotation, mobile two-finger dragging and zoom-dependent detail. It saves screenshots and measurements in `RENDER_EVIDENCE_DIR` (default `/tmp/mazo-render-evidence`). Playwright is a verification tool only; the production site has no new package dependency.
 
 ```sh
 PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs \
