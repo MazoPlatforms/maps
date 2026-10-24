@@ -1052,7 +1052,7 @@ body.map-expanded {
 
 #offline-region{min-height:44px;max-width:100%;padding:8px;border:1px solid var(--line);border-radius:5px;background:transparent;color:inherit}#offline-open{min-height:44px;padding:8px;align-items:center}
 
-/* Keep quick-view labels readable on the translucent map caption in dark mode. */
+/* Avoid a low-contrast intermediate frame while the dark theme is applied. */
 html[data-theme='dark'] .quick-places button,
 html[data-theme='dark'] .quick-places button:hover,
 html[data-theme='dark'] .quick-places button[aria-pressed='true'] {
@@ -1061,6 +1061,7 @@ html[data-theme='dark'] .quick-places button[aria-pressed='true'] {
   background-image: none;
   border-color: #657568;
   opacity: 1 !important;
+  transition: none;
 }
 html[data-theme='dark'] .quick-places button > span {
   color: #f4f7f1;
