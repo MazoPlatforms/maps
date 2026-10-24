@@ -1,5 +1,14 @@
 # Development progress
 
+## Delivery checkpoint — 24 October 2026
+
+PR #1 is open at `b86c8b3e0ec8280ecedfa89ebf3e8182a6b88a20` on `feat/geographic-contributions`. Trusted review checker bootstrap is on `main` at `57280111c9bf7faf674c37558cab257c0e52ddbd`; the checker runs from the trusted base. The explicit solo-maintainer path passed for this ordinary PR and states that no independent approval exists or is claimed. Boundary changes remain excluded from solo approval and require two configured non-author maintainers.
+
+Verified current PR actions: canonical validate/build, contribution validation, maintainer review, Pages build and test all pass. Pages build assembled the canonical 13,993-record pilot beside the legacy map, marked coverage incomplete, verified API/tile/offline checksums, and measured a 979,194,664-byte payload under the 990,000,000-byte gate. PR deployment and live smoke are correctly skipped. Post-merge deployment and public URL checks are pending. The deployed root map remains the legacy nationwide viewer; the pilot is not represented as nationwide coverage.
+
+Repository `main` is unprotected and rulesets are empty. The authenticated GitHub CLI token can push but settings read/write calls return 403, so branch protection cannot be configured with this credential. Only `itzmzn` is available as configured maintainer and PR author. Do not claim independent review or protection. Main bootstrap commit: `57280111c9bf7faf674c37558cab257c0e52ddbd`. Feature commits this delivery: `543b144`, `8c1b331`, `cdf524a`, `433b6ed`, `b86c8b3`. The next step is to make PR #1 ready and use normal merge only with all checks green; then verify Pages deployment and the public legacy map plus canonical API. Nationwide migration, independently maintained nationwide root map, and second-person boundary review remain open.
+
+
 ## Verified recovery checkpoint — 24 October 2026
 
 Branch: `feat/geographic-contributions`. Prior checkpoint: `4926e1a559992dd760759debbb6dd85d0c2e3e69`. Main remains untouched. **Phases 2–6 and production deployment are incomplete.** Full statuses, evidence and remediation: [release acceptance](release-acceptance.md).
@@ -55,9 +64,10 @@ Read-only canonical CI builds review artifacts and validates history/proposals. 
 
 ## Remaining work and blockers
 
-1. Protection API **403 Resource not accessible by integration**: enforcement unverified. Verified administrator `itzmzn` is configured, but boundary policy needs a second eligible reviewer. Administrator must review/bootstrap trusted policy/protections. No authenticated PR→review→merge→publish acceptance performed.
-2. Test script-specific labels on Android and on broader licensed source coverage; retain the software Chromium evidence as bounded pilot verification.
-3. Canonical automatic Pages/affected-region publication is unimplemented. Main still builds legacy national archives. No main merge/deployment attempted. Choose durable Mazo-controlled national hosting; preserve Pages size gate and last-good release.
+1. Repository protection is not configured: rulesets are empty, `main` is unprotected, and settings calls return HTTP 403 despite repository metadata showing admin. A second eligible boundary reviewer is unavailable.
+2. Nationwide canonical migration is incomplete. Current 13,993-record Colombo-area pilot is supplemental; root map remains the legacy viewer until broad licensed coverage is migrated and verified.
+3. The PR Pages job builds and validates the canonical pilot package, but deployment/live verification occurs only after merge; affected-partition publishing and full national publication are not established.
+4. Test script-specific labels on Android and broader licensed source coverage; retain software Chromium evidence as bounded pilot verification.
 4. Regional compiler capped at 20,000 records. Improve full-record shard/spatial loading, graph memory and national export partitioning before expanding. No uncontrolled national import.
 5. Test physical Android, quota/low-memory failures, other engines and keyboard/screen readers. Expand complex road restrictions/topology coverage; add revision-preserving inverse changesets rather than rewriting history.
 6. Review every future source separately. Current ODbL/CDLA/Apache/CC BY/IGO notices and Foursquare NOTICE are retained; imported geography is not relabelled wholly original Mazo content.
