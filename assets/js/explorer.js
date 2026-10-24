@@ -90,6 +90,7 @@ export function setupExplorer(map, maplibre, siteRoot) {
   map.on('style.load',addDestinations);
   map.on('click',event=>{
     const layers=['place-names','destination-names'].filter(id=>map.getLayer(id));
+    results.hidden=true;
     const hit=map.queryRenderedFeatures(event.point,{layers}).find(f=>f.geometry.type==='Point');if(hit)select(hit);
   });
   fetch(new URL('./assets/data/destinations.geojson',siteRoot)).then(r=>{if(!r.ok)throw Error('Destinations unavailable');return r.json();}).then(data=>{

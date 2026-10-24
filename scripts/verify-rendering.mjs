@@ -133,12 +133,15 @@ try {
       if (mobile) {
         const frame=await page.locator('#map').boundingBox();
         const cy=frame.y+frame.height*.45; const cx=frame.x+frame.width*.5;
-        const before=await page.evaluate(()=>window.__mazoMap.getCenter().lng);
         const cdp=await context.newCDPSession(page);
-        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:cx-20,y:cy,id:1},{x:cx+20,y:cy,id:2}]});
-        for(let d=10;d<=60;d+=10) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:cx-20+d,y:cy,id:1},{x:cx+20+d,y:cy,id:2}]});
+        for (const fingers of [1,2]) {
+        const before=await page.evaluate(()=>window.__mazoMap.getCenter().lng);
+        const points=d=>[{x:cx-20+d,y:cy,id:1},...(fingers===2?[{x:cx+20+d,y:cy,id:2}]:[])];
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:points(0)});
+        for(let d=10;d<=60;d+=10) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:points(d)});
         await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
         await page.waitForFunction(lng=>Math.abs(window.__mazoMap.getCenter().lng-lng)>.00001,before);
+        }
         // Context disposal releases the input session after both theme checks.
       }
       await page.evaluate(()=>window.__mazoMap.jumpTo({zoom:10}));
