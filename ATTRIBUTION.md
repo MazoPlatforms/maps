@@ -12,7 +12,7 @@ Keep the MapLibre attribution control and visible page-level attribution enabled
 
 - **MapLibre GL JS 6.15.0**, served from `assets/vendor/`, under the BSD 3-Clause License: <https://github.com/maplibre/maplibre-gl-js/blob/main/LICENSE.txt>.
 - **PMTiles JavaScript 4.5.0**, served from `assets/vendor/`, under the BSD 3-Clause License: <https://github.com/protomaps/PMTiles/blob/main/LICENSE>.
-- **Label glyphs:** requested from the public OpenFreeMap font endpoint. This is a third-party availability dependency; it does not provide the basemap vector archives.
+- **Label glyphs:** Noto Sans, Noto Sans Tamil, and Noto Sans Sinhala are bundled and generated locally into MapLibre PBF glyph ranges. They are served from this site, with source fonts and SIL Open Font License 1.1 notices in `assets/fonts/source/`. The pinned MapLibre font-maker WASM generator and its BSD-3-Clause notice are retained in `scripts/vendor/maplibre-font-maker/`. Canonical pilot builds do not request a font service; the legacy production view still does.
 - **Tile generation:** the GitHub Actions build uses the official Overture `overture-tiles` container and its published profiles and records the resolved container digest in the build manifest.
 
 - **fflate 0.8.3**, bundled with the PMTiles adapter, under the MIT License. Its license is included in `assets/vendor/fflate-license.txt`.

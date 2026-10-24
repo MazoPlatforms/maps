@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import unicodedata
 import uuid
 from pathlib import Path
 
@@ -210,6 +211,10 @@ def build(records, admin, output, tippecanoe=None, maxzoom=14):
             properties = record['properties'] | {'id': key, '_mazoType': kind}
             if '@name' not in properties and isinstance(properties.get('names'), dict):
                 properties['@name'] = properties['names'].get('primary', '')
+            if isinstance(properties.get('@name'), str):
+                # Keep source spellings in canonical records while rendering
+                # compatibility characters in a form covered by Unicode fonts.
+                properties['@name'] = unicodedata.normalize('NFKC', properties['@name'])
             if kind == 'road':
                 properties.setdefault('subtype', 'road')
             # Structured original attributes remain lossless in the canonical API.

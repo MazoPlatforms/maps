@@ -42,7 +42,7 @@ Nationwide processing runs on native ARM64 GitHub-hosted runners; ordinary chang
 
 ## Roadmap boundary
 
-Only the listed Overture regional extract is included. Coverage depends on the selected release and source data; no Google Maps equivalence or complete local POI coverage is claimed. Label glyphs remain a public external dependency. No geographic data is invented or bundled as a placeholder.
+Only the listed Overture regional extract is included. Coverage depends on the selected release and source data; no Google Maps equivalence or complete local POI coverage is claimed. The legacy production view still requests label glyphs from a public endpoint; canonical pilot builds bundle their own glyph assets. No geographic data is invented or bundled as a placeholder.
 
 ## Geographic contributions
 
@@ -56,6 +56,6 @@ The v2 pilot supports full imported records, offline updates/tombstones, stable 
 
 ## Integrated regional development release
 
-The existing development branch now includes an independently owned canonical sample, transactional changesets, a browser editor, static `/api/v1/` compiler, JavaScript SDK with TypeScript declarations, English/Tamil/Sinhala search, geometry-only offline downloads, and experimental car routing. This is **not nationwide completion or an approved production deployment**.
+The existing development branch now includes an independently owned canonical sample, transactional changesets, a browser editor, static `/api/v1/` compiler, JavaScript SDK with TypeScript declarations, English/Tamil/Sinhala search, an offline pilot bundle with locally hosted glyph assets, and experimental car routing. Tamil complex-script label shaping is not supported by the current MapLibre renderer, and the new disconnected browser assertion awaits CI. This is **not nationwide completion or an approved production deployment**.
 
 Build and run the same website using [deployment and preview instructions](docs/deployment.md). Use `?dataset=canonical` to select the independent sample; the current public national viewer remains the default compatibility mode. See [editor guide](docs/editor-guide.md), [contribution workflow](CONTRIBUTING.md), [API/SDK](docs/api-sdk.md), [offline/routing](docs/offline-routing.md), [storage decision](docs/storage-decision.md), [security](docs/security.md), and [release acceptance](docs/release-acceptance.md). Resume engineering from [development progress](docs/development-progress.md).

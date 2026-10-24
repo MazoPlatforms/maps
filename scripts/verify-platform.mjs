@@ -491,6 +491,26 @@ try {
   await page.waitForFunction(() =>
     window.__mazoMap.queryRenderedFeatures().some((f) => f.properties.id),
   );
+  const offlineLabels = await page.evaluate(async () => {
+    const style = window.__mazoMap.getStyle();
+    const manifest = await (await fetch(new URL('offline-manifest.json', location.href))).json();
+    const glyphFiles = manifest.files.filter((entry) => entry.file.startsWith('assets/fonts/Noto Sans Regular/'));
+    const glyph = await fetch(new URL('assets/fonts/Noto%20Sans%20Regular/0-255.pbf', location.href));
+    return {
+      mode: manifest.mode,
+      glyphCount: glyphFiles.length,
+      glyphStatus: glyph.status,
+      symbolLayers: style.layers.filter((layer) => layer.type === 'symbol' && layer.layout?.['text-field']).length,
+      localGlyphs: style.glyphs?.includes(location.origin),
+      requested: performance.getEntriesByType('resource').some((entry) => /assets\/fonts\/Noto%20Sans%20Regular\/.*\.pbf/.test(entry.name)),
+    };
+  });
+  assert.match(offlineLabels.mode, /glyph-enabled/);
+  assert.ok(offlineLabels.glyphCount >= 4);
+  assert.equal(offlineLabels.glyphStatus, 200);
+  assert.ok(offlineLabels.symbolLayers > 0);
+  assert.ok(offlineLabels.localGlyphs);
+  assert.ok(offlineLabels.requested, 'MapLibre requested local glyphs while network is disconnected');
   const offlineSearch = await page.evaluate(async () => {
     const { MazoMaps } = await import('./sdk/index.js');
     const sdk = new MazoMaps({ baseURL: new URL('api/v1/', location.href) });
@@ -561,6 +581,7 @@ try {
         editorChangeset: changeset.id,
         editor: true,
         offlineGeometry: true,
+        offlineLabelledRendering: offlineLabels,
         offlineSearch,
         interruptedRecovery: offline.interrupted,
         corruptCacheRejected: offline.corruptRejected,

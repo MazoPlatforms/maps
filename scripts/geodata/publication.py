@@ -162,18 +162,30 @@ def build_publication(store, metadata, output, tippecanoe=None):
                 "ATTRIBUTION.md",
             ]:
                 shutil.copyfile(generated / name, target / name)
-            # Labels can be supplied by a later font bundle; offline geometry style
-            # is explicit and has NO network-required glyph or sprite dependencies.
+            bundled_glyphs = ROOT / "assets/fonts/manifest.json"
             for theme in ["light", "dark"]:
                 style = json.loads((target / (theme + ".json")).read_bytes())
-                if (ROOT / "assets/fonts/manifest.json").exists():
+                if bundled_glyphs.exists():
                     style["glyphs"] = (
                         "__MAZO_SITE_ROOT__/assets/fonts/{fontstack}/{range}.pbf"
                     )
                 (target / (theme + ".json")).write_bytes(encoded(style))
-                style.pop("glyphs", None)
-                style.pop("sprite", None)
-                style["layers"] = [l for l in style["layers"] if l["type"] != "symbol"]
+                if bundled_glyphs.exists():
+                    style.pop("sprite", None)
+                    symbol_layers = []
+                    for layer in style["layers"]:
+                        if layer["type"] != "symbol":
+                            symbol_layers.append(layer)
+                            continue
+                        layout = layer.get("layout", {})
+                        layout.pop("icon-image", None)
+                        if "text-field" in layout:
+                            symbol_layers.append(layer)
+                    style["layers"] = symbol_layers
+                else:
+                    style.pop("glyphs", None)
+                    style.pop("sprite", None)
+                    style["layers"] = [l for l in style["layers"] if l["type"] != "symbol"]
                 (target / ("offline-" + theme + ".json")).write_bytes(encoded(style))
             shutil.rmtree(generated)
         license_info = write(

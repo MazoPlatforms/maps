@@ -24,6 +24,11 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+      - name: Rebuild and verify committed offline glyphs
+        run: |
+          npm ci --ignore-scripts
+          npm run generate:fonts
+          git diff --exit-code -- assets/fonts
       - run: pip install -r requirements-geodata.txt
       - run: python -m unittest discover -s tests -p 'test_*.py' -q
       - run: node --test tests/*.test.mjs
@@ -36,6 +41,8 @@ jobs:
           fi
       - name: Validate complete canonical data and transactional proposals
         run: python scripts/validate-changesets.py --output "$RUNNER_TEMP/review"
+      - name: Generate glyph coverage for proposed canonical labels
+        run: npm run generate:fonts -- "$RUNNER_TEMP/review/snapshot"
       - name: Compile pinned regional tile tool
         run: |
           git clone --depth 1 --branch 2.79.0 https://github.com/felt/tippecanoe.git "$RUNNER_TEMP/tippecanoe"

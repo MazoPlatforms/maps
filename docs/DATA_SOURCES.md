@@ -14,7 +14,7 @@ Counts in the manifest are bbox-filtered source Parquet rows before tile dedupli
 
 ## Rendering dependencies
 
-The map renderer is MapLibre GL JS. The PMTiles browser adapter uses HTTP range requests against the same-origin archives. MapLibre label glyphs are retrieved from the public OpenFreeMap font endpoint, which is a third-party service dependency; geographic vector data remains served from this project site.
+The map renderer is MapLibre GL JS. The PMTiles browser adapter uses HTTP range requests against same-origin archives. The legacy production viewer retrieves label glyphs from the public OpenFreeMap font endpoint. Canonical regional builds bundle locally generated Noto Sans, Tamil, and Sinhala glyph ranges; no external font request is required by that independent preview. Production cutover remains incomplete.
 
 ## Refresh
 

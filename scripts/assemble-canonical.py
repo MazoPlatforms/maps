@@ -37,7 +37,10 @@ for path in sorted(a.output.rglob("*")):
         continue
     if rel.parts[0] == "assets" and len(rel.parts) > 1 and rel.parts[1] == "styles":
         continue
-    # Geometry-only mode intentionally has no glyph/sprite dependencies.
+    # Font source TTFs are compiler inputs. Runtime glyph PBFs and their OFL
+    # notices are packaged; users do not download the 3.5 MB source originals.
+    if rel.parts[:3] == ("assets", "fonts", "source") and rel.suffix.lower() in [".ttf", ".otf", ".woff", ".woff2"]:
+        continue
     if rel.parts[:2] == ("data", "mazo") and rel.name in ["light.json", "dark.json"]:
         continue
     body = path.read_bytes()
@@ -49,6 +52,51 @@ for path in sorted(a.output.rglob("*")):
         }
     )
 version = hashlib.sha256(encoded(files)).hexdigest()
+font_manifest_path = ROOT / "assets/fonts/manifest.json"
+has_fonts = False
+if font_manifest_path.exists():
+    font_manifest = load(font_manifest_path)
+    expected_faces = {
+        "Noto Sans Regular",
+        "Noto Sans Tamil Regular",
+        "Noto Sans Sinhala Regular",
+    }
+    if font_manifest.get("fontstack") != "Noto Sans Regular" or {
+        source.get("name") for source in font_manifest.get("sources", [])
+    } != expected_faces:
+        raise ValueError("font manifest does not contain the required Noto faces")
+    generator_license = (ROOT / font_manifest["generatorLicense"]).resolve()
+    license_text = generator_license.read_text(encoding="utf-8")
+    if ROOT.resolve() not in generator_license.parents or "All rights reserved" not in license_text or "Redistribution and use" not in license_text:
+        raise ValueError("MapLibre font-maker license notice is missing")
+    for name, expected in font_manifest["generatorHashes"].items():
+        generator_file = (ROOT / "scripts/vendor/maplibre-font-maker" / name).resolve()
+        if ROOT.resolve() not in generator_file.parents or hashlib.sha256(generator_file.read_bytes()).hexdigest() != expected:
+            raise ValueError(f"font generator input integrity check failed: {name}")
+    has_fonts = bool(font_manifest.get("files"))
+    for source in font_manifest["sources"]:
+        source_path = (ROOT / source["file"]).resolve()
+        license_path = (ROOT / source["license"]).resolve()
+        if ROOT.resolve() not in source_path.parents or ROOT.resolve() not in license_path.parents:
+            raise ValueError("font source path escapes the repository")
+        source_bytes = source_path.read_bytes()
+        if hashlib.sha256(source_bytes).hexdigest() != source["sha256"]:
+            raise ValueError(f"font input integrity check failed: {source['file']}")
+        if "SIL OPEN FONT LICENSE" not in license_path.read_text(encoding="utf-8"):
+            raise ValueError(f"font license notice missing: {source['license']}")
+    listed_ranges = set()
+    for item in font_manifest.get("files", []):
+        font_path = (ROOT / item["file"]).resolve()
+        if ROOT.resolve() not in font_path.parents:
+            raise ValueError("font bundle path escapes the repository")
+        listed_ranges.add(Path(item["file"]).stem + ".pbf")
+        body = font_path.read_bytes()
+        if len(body) != item["bytes"] or hashlib.sha256(body).hexdigest() != item["sha256"]:
+            raise ValueError(f"font bundle integrity check failed: {item['file']}")
+    if not has_fonts:
+        raise ValueError("font manifest contains no glyph ranges")
+    if listed_ranges != {f"{item}.pbf" for item in font_manifest["ranges"]}:
+        raise ValueError("font range manifest and generated glyph files disagree")
 (a.output / "offline-manifest.json").write_bytes(
     encoded(
         {
@@ -59,7 +107,7 @@ version = hashlib.sha256(encoded(files)).hexdigest()
             "regions": load(a.output / "api/v1" / manifest["regions"]["file"])[
                 "regions"
             ],
-            "mode": "geometry-only; map labels require a complete licensed glyph bundle",
+            "mode": "glyph-enabled; local Noto Sans/Tamil/Sinhala; Tamil complex-script shaping unsupported" if has_fonts else "geometry-only; map labels require a complete licensed glyph bundle",
             "files": files,
         }
     )

@@ -4,7 +4,13 @@
 
 Branch: `feat/geographic-contributions`. Recovery baseline: `7a2a1d62c619cc2c53fe8252d7056b250e86e0d7`. Main remains untouched. **Phases 2–6 and production deployment are incomplete.** Full statuses, evidence and remediation: [release acceptance](release-acceptance.md).
 
-Current subtask: automated WCAG A/AA browser checks and viewer/editor fixes are implemented, pushed and passed canonical CI. The keyboard coordinate/ID workflow is implemented and pushed in `9ebabcd`; its CI passed. Next address protection bootstrap, physical-device testing, full offline fonts and affected-partition publication. Resume this application; do not recreate it or repeat the repository audit.
+Current subtask: locally generated offline glyph assets cover the active canonical sample, and CI regenerates coverage from each validated proposed snapshot. Local unit and assembly checks pass; run the branch workflow's disconnected browser check before completing offline acceptance. Full multilingual label support remains blocked by MapLibre's documented Tamil shaping limitation. Continue with protection bootstrap, physical-device testing, and affected-partition publishing. Resume this application; do not recreate it or repeat the repository audit.
+
+## Offline font checkpoint — local verification complete, browser CI pending
+
+Generated a locally hosted MapLibre glyph bundle for all active canonical pilot labels, including Tamil and Sinhala codepoint ranges. Inputs are three Noto font families pinned to Google Fonts commit `e7db6ca603fd4862010383ff17ffd6cc4ffac1c0`; original TTFs and separate OFL 1.1 notices are retained. A local Node script calls the pinned BSD-3-Clause MapLibre font-maker WASM runtime, derives ranges from active canonical labels, NFKC-normalizes only rendered `@name` text, and emits deterministic checksummed PBFs. Candidate PR builds regenerate ranges from the validated proposed snapshot. The compiler refuses missing or checksum-mismatched glyph files. Offline styles keep text layers, remove sprite-only icons, and request same-site glyphs. Added a disconnected-browser glyph request assertion and recurring CI regeneration check; wait for this branch run before marking acceptance PASS. MapLibre documents Tamil among complex-text scripts it cannot render, so this bundle does not provide correct Tamil labels. A renderer change and disconnected visual test are still required.
+
+Verification at this checkpoint: all **22 runnable JavaScript tests passed** (one static-data test skipped without a build artifact); all **42 Python tests passed** (two skipped); font regeneration produced identical SHA-256 values for all five manifest/glyph files; local dataset assembly validated the glyph manifest and omitted source TTFs from the offline download; `npm audit` found zero vulnerabilities. Real browser verification is pending this checkpoint’s CI run because no browser binary is installed in this Codespace. No nationwide data conversion, deployment, or production release was performed.
 
 ## Commits
 
@@ -22,7 +28,7 @@ Preserved Phase 1.5 and the original viewer/design. Selected indexed SQLite work
 
 The independent snapshot contains **13,993 real records** (1,995 places, 9,997 buildings, 2,000 roads, one Colombo DS authority boundary); eight originals are quarantined outside classifier coverage. This is not a complete district or national dataset. No upstream archive is required to render/edit/search/route it. All administrative classifier entries remain pinned.
 
-Editor: eight types, canonical selection, properties/localized names, drawing/movement/vertices, guarded road split/merge, deletion, undo/redo, drafts, multi-feature changesets, comparison and download/fork/PR handoff. Canonical layers suppress edited originals. Static API/SDK/multilingual search and conservative explicit-connector routing operate on actual data. Offline checksums, recovery, corruption rejection, removal, versions and changed-file reuse work. Geometry-only disconnected rendering works; complete labelled offline rendering does not.
+Editor: eight types, canonical selection, properties/localized names, drawing/movement/vertices, guarded road split/merge, deletion, undo/redo, drafts, multi-feature changesets, comparison and download/fork/PR handoff. Canonical layers suppress edited originals. Static API/SDK/multilingual search and conservative explicit-connector routing operate on actual data. Offline checksums, recovery, corruption rejection, removal, versions and changed-file reuse work. Geometry-only disconnected rendering is verified; local glyphs remove the canonical pilot's external font request, but Tamil shaping and full multilingual offline labels are not accepted.
 
 Read-only canonical CI builds review artifacts and validates history/proposals. Trusted-base policy requires exact-head non-author approval; boundaries require two eligible maintainers. It neither bypasses protection nor deploys.
 
@@ -38,7 +44,7 @@ Read-only canonical CI builds review artifacts and validates history/proposals. 
 ## Remaining work and blockers
 
 1. Protection API **403 Resource not accessible by integration**: enforcement unverified. Verified administrator `itzmzn` is configured, but boundary policy needs a second eligible reviewer. Administrator must review/bootstrap trusted policy/protections. No authenticated PR→review→merge→publish acceptance performed.
-2. Glyph capture returned **HTTP 403**. Supply a complete licensed local font bundle and retest labelled offline rendering.
+2. Locally generated licensed glyphs now cover the active pilot and the proposed PR snapshot. Await the new disconnected browser check in canonical CI, then test Android and storage/quota failures.
 3. Canonical automatic Pages/affected-region publication is unimplemented. Main still builds legacy national archives. No main merge/deployment attempted. Choose durable Mazo-controlled national hosting; preserve Pages size gate and last-good release.
 4. Regional compiler capped at 20,000 records. Improve full-record shard/spatial loading, graph memory and national export partitioning before expanding. No uncontrolled national import.
 5. Test physical Android, quota/low-memory failures, other engines and keyboard/screen readers. Expand complex road restrictions/topology coverage; add revision-preserving inverse changesets rather than rewriting history.
