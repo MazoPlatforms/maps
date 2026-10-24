@@ -16,6 +16,9 @@ archive_layers = {
     name: set(info["layers"])
     for name, info in manifest["archives"].items()
 }
+version = hashlib.sha256(
+    f"{manifest['release']}:{manifest['builtAt']}:{manifest['overtureTilesImage']}".encode()
+).hexdigest()[:16]
 for theme, archive in manifest["archives"].items():
     name = f"{theme}.{archive['sha256']}.pmtiles"
     current = site / "data/sri-lanka" / archive["file"]
@@ -60,17 +63,6 @@ unstyled = {
 if unstyled:
     raise SystemExit(f"PMTiles source layers have no matching light/dark style rules: {unstyled}")
 
-client_digest = hashlib.sha256()
-for directory in (site / "assets/js", site / "assets/styles", site / "assets/css"):
-    for path in sorted(directory.glob("*")):
-        if path.is_file():
-            content = re.sub(rb"\?v=[a-f0-9]{16}", b"", path.read_bytes())
-            content = re.sub(rb"\.[a-f0-9]{64}\.pmtiles", b".pmtiles", content)
-            client_digest.update(path.name.encode() + content)
-version = hashlib.sha256(
-    f"{client_digest.hexdigest()}:{manifest['release']}:{manifest['builtAt']}:{manifest['overtureTilesImage']}".encode()
-).hexdigest()[:16]
-
 for page in (site / "index.html", site / "docs/index.html"):
     if page.is_file():
         content = re.sub(
@@ -82,7 +74,7 @@ for page in (site / "index.html", site / "docs/index.html"):
 
 app = site / "assets/js/app.js"
 if app.is_file():
-    app.write_text(re.sub(r"(\./(?:config|archive-source|contributions)\.js)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", app.read_text()))
+    app.write_text(re.sub(r"(\./(?:config|archive-source)\.js)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", app.read_text()))
 config = site / "assets/js/config.js"
 if config.is_file():
     config.write_text(re.sub(r"(sri-lanka-(?:light|dark)\.json)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", config.read_text()))

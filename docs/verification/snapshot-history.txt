@@ -1,1 +1,0 @@
-Committed snapshot history retained; complete head snapshot validated.
