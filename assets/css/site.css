@@ -525,6 +525,10 @@ body.map-expanded {
   border-color: var(--line);
   color: var(--ink);
 }
+:root[data-theme='dark'] .quick-places button,
+:root[data-theme='dark'] .quick-places button > span {
+  color: var(--ink);
+}
 .quick-places button > span {
   margin-left: 7px;
   color: var(--muted);
