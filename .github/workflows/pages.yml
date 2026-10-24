@@ -1,6 +1,13 @@
 name: Build and publish Sri Lanka basemap
 
 on:
+  pull_request:
+    paths:
+      - 'assets/**'
+      - 'scripts/verify-rendering.mjs'
+      - 'scripts/finalize-styles.py'
+      - 'tests/**'
+      - '.github/workflows/pages.yml'
   push:
     branches: [main]
     paths:
@@ -12,6 +19,7 @@ on:
       - 'scripts/finalize-styles.py'
       - 'scripts/validate-tiles.py'
       - 'scripts/verify-live-map.mjs'
+      - 'scripts/verify-rendering.mjs'
       - '.github/workflows/pages.yml'
       - 'tests/**'
       - 'README.md'
@@ -24,7 +32,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: mazo-maps-pages
+  group: mazo-maps-pages-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -33,6 +41,7 @@ env:
 
 jobs:
   test:
+    timeout-minutes: 10
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -40,8 +49,24 @@ jobs:
         with:
           node-version: '22'
       - run: node --test tests/map.test.mjs
+      - name: Verify candidate desktop and mobile rendering against real map data
+        run: |
+          npm install --prefix "$RUNNER_TEMP/mazo-render-browser" --no-save playwright@1.55.0
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/mazo-render-browser/node_modules/playwright/index.mjs" \
+          CHROMIUM_PATH="$(command -v google-chrome)" \
+          RENDER_EVIDENCE_DIR="$RUNNER_TEMP/render-evidence" \
+          node scripts/verify-rendering.mjs
+      - name: Retain candidate rendering evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazo-candidate-rendering
+          path: ${{ runner.temp }}/render-evidence
+          if-no-files-found: warn
+          retention-days: 7
 
   build:
+    if: github.event_name != 'pull_request'
     needs: test
     # Overture publishes its official builder as linux/arm64; use a native
     # GitHub-hosted ARM runner instead of relying on emulation.
@@ -148,7 +173,7 @@ jobs:
 
   deploy:
     needs: build
-    if: needs.build.outputs.deploy_allowed == 'true'
+    if: github.ref == 'refs/heads/main' && needs.build.outputs.deploy_allowed == 'true'
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -174,7 +199,7 @@ jobs:
 
   live-smoke:
     needs: [build, deploy]
-    if: needs.build.outputs.deploy_allowed == 'true' && needs.deploy.result == 'success'
+    if: github.ref == 'refs/heads/main' && needs.build.outputs.deploy_allowed == 'true' && needs.deploy.result == 'success'
     runs-on: ubuntu-24.04
     permissions:
       contents: read

@@ -362,6 +362,11 @@ test('publishing checks archive hashes and versions the client assets', async ()
       JSON.parse(await readFile(manifestPath, 'utf8')),
       manifest,
     );
+    // A style-only release must invalidate client caches with unchanged map archives.
+    const css = join(site, 'assets/css/site.css');
+    await writeFile(css, (await readFile(css, 'utf8')) + '\n/* cartography release */\n');
+    execFileSync('python3', [script, site]);
+    assert.notEqual(JSON.parse(await readFile(manifestPath, 'utf8')).siteVersion, manifest.siteVersion);
     await writeFile(
       join(site, 'data/sri-lanka', manifest.archives.base.file),
       Buffer.from([9]),
@@ -372,5 +377,22 @@ test('publishing checks archive hashes and versions the client assets', async ()
     );
   } finally {
     await rm(site, { recursive: true, force: true });
+  }
+});
+
+test('cartography hides topology dots and collides named place pins with labels', async () => {
+  for (const path of Object.values(mapConfig.styles)) {
+    const style = JSON.parse(await read(path));
+    const layers = Object.fromEntries(style.layers.map(layer => [layer.id, layer]));
+    assert.equal(layers.connectors.layout.visibility, 'none');
+    assert.ok(!style.layers.some(layer => layer.type === 'circle' && layer.source === 'places'));
+    assert.equal(layers['road-names'].layout['symbol-placement'], 'line');
+    assert.equal(layers['road-names'].layout['text-allow-overlap'], false);
+    assert.equal(layers['place-names'].layout['icon-allow-overlap'], false);
+    assert.equal(layers['place-names'].layout['text-allow-overlap'], false);
+    assert.match(JSON.stringify(layers['place-names'].layout['icon-image']), /basic_category/);
+    assert.match(JSON.stringify(layers['place-names'].filter), /@name/);
+    assert.equal(layers['road-lines'].layout['line-join'], 'round');
+    assert.match(JSON.stringify(layers['road-lines'].paint['line-width']), /motorway/);
   }
 });

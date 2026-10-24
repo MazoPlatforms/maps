@@ -67,19 +67,19 @@
       "id": "background",
       "type": "background",
       "paint": {
-        "background-color": "#173741"
+        "background-color": "#152e3b"
       }
     },
     {
-      "id": "land-cover",
+      "id": "land",
       "type": "fill",
       "source": "base",
-      "source-layer": "land_cover",
+      "source-layer": "land",
       "paint": {
-        "fill-color": "#24352c",
-        "fill-opacity": 0.72
+        "fill-color": "#202b2a",
+        "fill-opacity": 1
       },
-      "minzoom": 3,
+      "minzoom": 2,
       "filter": [
         "==",
         [
@@ -89,14 +89,15 @@
       ]
     },
     {
-      "id": "land",
+      "id": "land-cover",
       "type": "fill",
       "source": "base",
-      "source-layer": "land",
+      "source-layer": "land_cover",
       "paint": {
-        "fill-color": "#304139"
+        "fill-color": "#283e34",
+        "fill-opacity": 0.5
       },
-      "minzoom": 2,
+      "minzoom": 3,
       "filter": [
         "==",
         [
@@ -114,20 +115,32 @@
         "fill-color": [
           "match",
           [
-            "get",
-            "subtype"
+            "coalesce",
+            [
+              "get",
+              "subtype"
+            ],
+            [
+              "get",
+              "class"
+            ],
+            ""
           ],
-          "residential",
-          "#29332c",
-          "commercial",
-          "#29332c",
-          "industrial",
-          "#29332c",
-          "park",
-          "#24352c",
-          "forest",
-          "#24352c",
-          "#29332c"
+          [
+            "park",
+            "forest",
+            "recreation",
+            "nature_reserve",
+            "wood"
+          ],
+          "#283e34",
+          [
+            "industrial",
+            "commercial",
+            "residential"
+          ],
+          "#293332",
+          "#202b2a"
         ],
         "fill-opacity": 0.65
       },
@@ -147,8 +160,8 @@
       "source-layer": "bathymetry",
       "minzoom": 3,
       "paint": {
-        "fill-color": "#234450",
-        "fill-opacity": 0.42
+        "fill-color": "#152e3b",
+        "fill-opacity": 0.25
       },
       "filter": [
         "==",
@@ -164,7 +177,8 @@
       "source": "base",
       "source-layer": "water",
       "paint": {
-        "fill-color": "#173741"
+        "fill-color": "#152e3b",
+        "fill-opacity": 1
       },
       "minzoom": 2,
       "filter": [
@@ -181,7 +195,7 @@
       "source": "base",
       "source-layer": "water",
       "paint": {
-        "line-color": "#2c6875",
+        "line-color": "#244759",
         "line-width": [
           "interpolate",
           [
@@ -190,10 +204,12 @@
           [
             "zoom"
           ],
-          5,
-          0.5,
-          13,
-          2.2
+          7,
+          0.4,
+          12,
+          1,
+          16,
+          3
         ]
       },
       "minzoom": 5,
@@ -211,7 +227,7 @@
       "source": "base",
       "source-layer": "infrastructure",
       "paint": {
-        "line-color": "#65746d",
+        "line-color": "#414d4b",
         "line-width": [
           "interpolate",
           [
@@ -224,7 +240,8 @@
           0.5,
           14,
           1.5
-        ]
+        ],
+        "line-opacity": 0.4
       },
       "minzoom": 8,
       "filter": [
@@ -241,7 +258,7 @@
       "source": "transportation",
       "source-layer": "segment",
       "paint": {
-        "line-color": "#968773",
+        "line-color": "#64736d",
         "line-width": [
           "interpolate",
           [
@@ -258,7 +275,8 @@
         "line-dasharray": [
           2,
           1.5
-        ]
+        ],
+        "line-opacity": 0.7
       },
       "minzoom": 7,
       "filter": [
@@ -276,7 +294,7 @@
       "source": "transportation",
       "source-layer": "segment",
       "paint": {
-        "line-color": "#2c6875",
+        "line-color": "#244759",
         "line-width": [
           "interpolate",
           [
@@ -307,8 +325,133 @@
       "source": "transportation",
       "source-layer": "segment",
       "paint": {
-        "line-color": "#11191b",
+        "line-color": "#26312f",
         "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            1.35
+          ],
+          [
+            "zoom"
+          ],
+          5,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            1,
+            [
+              "primary",
+              "secondary"
+            ],
+            0.75,
+            [
+              "tertiary"
+            ],
+            0.55,
+            0
+          ],
+          9,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            2.6,
+            [
+              "primary",
+              "secondary"
+            ],
+            1.9500000000000002,
+            [
+              "tertiary"
+            ],
+            1.4300000000000002,
+            0.6
+          ],
+          12,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            5.4,
+            [
+              "primary",
+              "secondary"
+            ],
+            4.050000000000001,
+            [
+              "tertiary"
+            ],
+            2.9700000000000006,
+            1.9
+          ],
+          15,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            10.4,
+            [
+              "primary",
+              "secondary"
+            ],
+            7.800000000000001,
+            [
+              "tertiary"
+            ],
+            5.720000000000001,
+            5.6
+          ],
+          18,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            24,
+            [
+              "primary",
+              "secondary"
+            ],
+            18.0,
+            [
+              "tertiary"
+            ],
+            13.200000000000001,
+            14
+          ]
+        ],
+        "line-opacity": [
           "interpolate",
           [
             "linear"
@@ -316,26 +459,55 @@
           [
             "zoom"
           ],
-          6,
-          1.6,
-          10,
-          2.8,
+          8,
+          0.25,
           14,
-          5.2,
-          16,
-          8.2
-        ],
-        "line-opacity": 0.88
+          0.65
+        ]
       },
       "minzoom": 5,
       "filter": [
-        "==",
+        "all",
         [
-          "get",
-          "subtype"
+          "==",
+          [
+            "geometry-type"
+          ],
+          "LineString"
         ],
-        "road"
-      ]
+        [
+          "==",
+          [
+            "get",
+            "subtype"
+          ],
+          "road"
+        ]
+      ],
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round",
+        "line-sort-key": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "motorway",
+            "trunk"
+          ],
+          4,
+          [
+            "primary",
+            "secondary"
+          ],
+          3,
+          "tertiary",
+          2,
+          1
+        ]
+      }
     },
     {
       "id": "road-lines",
@@ -349,18 +521,273 @@
             "get",
             "class"
           ],
-          "motorway",
-          "#c99538",
-          "trunk",
-          "#c99538",
-          "primary",
-          "#c99538",
-          "secondary",
-          "#65706c",
-          "tertiary",
-          "#4e5b57",
-          "#3c4747"
+          [
+            "motorway",
+            "trunk"
+          ],
+          "#7d7961",
+          [
+            "primary",
+            "secondary"
+          ],
+          "#59625b",
+          "#465250"
         ],
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            1.35
+          ],
+          [
+            "zoom"
+          ],
+          5,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            0.65,
+            [
+              "primary",
+              "secondary"
+            ],
+            0.48750000000000004,
+            [
+              "tertiary"
+            ],
+            0.35750000000000004,
+            0
+          ],
+          9,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            1.9,
+            [
+              "primary",
+              "secondary"
+            ],
+            1.4249999999999998,
+            [
+              "tertiary"
+            ],
+            1.045,
+            0.25
+          ],
+          12,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            4.4,
+            [
+              "primary",
+              "secondary"
+            ],
+            3.3000000000000003,
+            [
+              "tertiary"
+            ],
+            2.4200000000000004,
+            1.1
+          ],
+          15,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            9,
+            [
+              "primary",
+              "secondary"
+            ],
+            6.75,
+            [
+              "tertiary"
+            ],
+            4.95,
+            4.4
+          ],
+          18,
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            22,
+            [
+              "primary",
+              "secondary"
+            ],
+            16.5,
+            [
+              "tertiary"
+            ],
+            12.100000000000001,
+            12
+          ]
+        ]
+      },
+      "minzoom": 5,
+      "filter": [
+        "all",
+        [
+          "==",
+          [
+            "geometry-type"
+          ],
+          "LineString"
+        ],
+        [
+          "==",
+          [
+            "get",
+            "subtype"
+          ],
+          "road"
+        ]
+      ],
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round",
+        "line-sort-key": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "motorway",
+            "trunk"
+          ],
+          4,
+          [
+            "primary",
+            "secondary"
+          ],
+          3,
+          "tertiary",
+          2,
+          1
+        ]
+      }
+    },
+    {
+      "id": "connectors",
+      "type": "circle",
+      "source": "transportation",
+      "source-layer": "connector",
+      "paint": {
+        "circle-color": "#e6b741",
+        "circle-radius": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          12,
+          1,
+          15,
+          2.2
+        ],
+        "circle-stroke-color": "#11191b",
+        "circle-stroke-width": 0.75
+      },
+      "minzoom": 12,
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "building-fills",
+      "type": "fill",
+      "source": "buildings",
+      "source-layer": "building",
+      "paint": {
+        "fill-color": "#34403f",
+        "fill-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          13,
+          0.15,
+          15,
+          0.75,
+          17,
+          0.9
+        ]
+      },
+      "minzoom": 13,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "building-parts",
+      "type": "fill",
+      "source": "buildings",
+      "source-layer": "building_part",
+      "paint": {
+        "fill-color": "#34403f",
+        "fill-opacity": 0.65
+      },
+      "minzoom": 14,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "building-outlines",
+      "type": "line",
+      "source": "buildings",
+      "source-layer": "building",
+      "paint": {
+        "line-color": "#414d4b",
         "line-width": [
           "interpolate",
           [
@@ -369,24 +796,1113 @@
           [
             "zoom"
           ],
-          6,
-          0.6,
-          10,
-          1.1,
-          14,
-          3.1,
-          16,
-          5.2
+          15,
+          0.35,
+          18,
+          0.7
         ]
       },
-      "minzoom": 5,
+      "minzoom": 15,
       "filter": [
         "==",
         [
-          "get",
-          "subtype"
+          "geometry-type"
         ],
-        "road"
+        "Polygon"
+      ]
+    },
+    {
+      "id": "place-names",
+      "type": "symbol",
+      "source": "places",
+      "source-layer": "place",
+      "paint": {
+        "text-color": "#c1ccc7",
+        "text-halo-color": "#202b2a",
+        "text-halo-width": 1.4,
+        "text-halo-blur": 0.3
+      },
+      "minzoom": 14,
+      "layout": {
+        "text-field": [
+          "get",
+          "@name"
+        ],
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          14,
+          10.5,
+          17,
+          12
+        ],
+        "text-offset": [
+          0,
+          0.35
+        ],
+        "text-anchor": "top",
+        "text-max-width": 9,
+        "symbol-sort-key": [
+          "-",
+          1,
+          [
+            "to-number",
+            [
+              "get",
+              "confidence"
+            ],
+            0.5
+          ]
+        ],
+        "icon-image": [
+          "case",
+          [
+            "any",
+            [
+              "in",
+              "restaurant",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "food",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "cafe",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "coffee",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "bakery",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "eatery",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ],
+              [
+                "literal",
+                [
+                  "bar",
+                  "pub",
+                  "lounge"
+                ]
+              ]
+            ]
+          ],
+          "mazo-poi-food",
+          [
+            "any",
+            [
+              "in",
+              "health",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "clinic",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "hospital",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "pharmacy",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "medical",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "dental",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "dentist",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ]
+          ],
+          "mazo-poi-health",
+          [
+            "any",
+            [
+              "in",
+              "_store",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "shopping",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "retail",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "supermarket",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "grocery",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ],
+              [
+                "literal",
+                [
+                  "store",
+                  "market"
+                ]
+              ]
+            ]
+          ],
+          "mazo-poi-shop",
+          [
+            "any",
+            [
+              "in",
+              "hotel",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "lodging",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "accommodation",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ]
+          ],
+          "mazo-poi-hotel",
+          [
+            "any",
+            [
+              "in",
+              "school",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "education",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "learning",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "college",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "university",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ]
+          ],
+          "mazo-poi-school",
+          [
+            "any",
+            [
+              "in",
+              "worship",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "religious",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "temple",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "church",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "mosque",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ]
+          ],
+          "mazo-poi-worship",
+          [
+            "any",
+            [
+              "in",
+              "transport",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "airport",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ],
+              [
+                "literal",
+                [
+                  "gas_station",
+                  "train_station",
+                  "bus_station",
+                  "fuel_station",
+                  "transit_station",
+                  "parking"
+                ]
+              ]
+            ]
+          ],
+          "mazo-poi-transport",
+          [
+            "any",
+            [
+              "in",
+              "outdoor",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "nature",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              "lake",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ]
+            ],
+            [
+              "in",
+              [
+                "to-string",
+                [
+                  "coalesce",
+                  [
+                    "get",
+                    "basic_category"
+                  ],
+                  [
+                    "get",
+                    "@category"
+                  ],
+                  [
+                    "get",
+                    "category"
+                  ],
+                  ""
+                ]
+              ],
+              [
+                "literal",
+                [
+                  "park",
+                  "theme_park"
+                ]
+              ]
+            ]
+          ],
+          "mazo-poi-park",
+          "mazo-poi-place"
+        ],
+        "icon-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          14,
+          0.85,
+          17,
+          1
+        ],
+        "icon-anchor": "bottom",
+        "icon-allow-overlap": false,
+        "icon-ignore-placement": false,
+        "icon-padding": 8,
+        "icon-optional": false,
+        "text-optional": false,
+        "text-allow-overlap": false,
+        "text-ignore-placement": false,
+        "text-padding": 8
+      },
+      "filter": [
+        "all",
+        [
+          "==",
+          [
+            "geometry-type"
+          ],
+          "Point"
+        ],
+        [
+          "has",
+          "@name"
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "@name"
+          ],
+          ""
+        ],
+        [
+          "!=",
+          [
+            "coalesce",
+            [
+              "get",
+              "operating_status"
+            ],
+            ""
+          ],
+          "permanently_closed"
+        ]
       ]
     },
     {
@@ -395,11 +1911,12 @@
       "source": "transportation",
       "source-layer": "segment",
       "paint": {
-        "text-color": "#e2e9e6",
-        "text-halo-color": "#182124",
-        "text-halo-width": 1.5
+        "text-color": "#c1ccc7",
+        "text-halo-color": "#202b2a",
+        "text-halo-width": 1.3,
+        "text-halo-blur": 0.3
       },
-      "minzoom": 12,
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -432,190 +1949,26 @@
           [
             "zoom"
           ],
-          12,
-          9,
+          13,
+          9.5,
           16,
+          11,
+          18,
           12
         ],
-        "text-max-angle": 35,
-        "symbol-spacing": 300
-      }
-    },
-    {
-      "id": "connectors",
-      "type": "circle",
-      "source": "transportation",
-      "source-layer": "connector",
-      "paint": {
-        "circle-color": "#e6b741",
-        "circle-radius": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          12,
-          1,
-          15,
-          2.2
-        ],
-        "circle-stroke-color": "#11191b",
-        "circle-stroke-width": 0.75
-      },
-      "minzoom": 12
-    },
-    {
-      "id": "building-fills",
-      "type": "fill",
-      "source": "buildings",
-      "source-layer": "building",
-      "paint": {
-        "fill-color": "#37403e",
-        "fill-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          12,
-          0.2,
-          15,
-          0.92
-        ]
-      },
-      "minzoom": 12,
-      "filter": [
-        "==",
-        [
-          "geometry-type"
-        ],
-        "Polygon"
-      ]
-    },
-    {
-      "id": "building-parts",
-      "type": "fill",
-      "source": "buildings",
-      "source-layer": "building_part",
-      "paint": {
-        "fill-color": "#37403e",
-        "fill-opacity": 0.72
-      },
-      "minzoom": 14,
-      "filter": [
-        "==",
-        [
-          "geometry-type"
-        ],
-        "Polygon"
-      ]
-    },
-    {
-      "id": "building-outlines",
-      "type": "line",
-      "source": "buildings",
-      "source-layer": "building",
-      "paint": {
-        "line-color": "#46504d",
-        "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          13,
-          0.2,
-          16,
-          0.7
-        ]
-      },
-      "minzoom": 13,
-      "filter": [
-        "==",
-        [
-          "geometry-type"
-        ],
-        "Polygon"
-      ]
-    },
-    {
-      "id": "place-points",
-      "type": "circle",
-      "source": "places",
-      "source-layer": "place",
-      "paint": {
-        "circle-color": "#f0c96a",
-        "circle-radius": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          12,
-          1.5,
-          15,
-          3
-        ],
-        "circle-stroke-color": "#182124",
-        "circle-stroke-width": 1
-      },
-      "minzoom": 12
-    },
-    {
-      "id": "place-names",
-      "type": "symbol",
-      "source": "places",
-      "source-layer": "place",
-      "paint": {
-        "text-color": "#e2e9e6",
-        "text-halo-color": "#182124",
-        "text-halo-width": 2
-      },
-      "minzoom": 12,
-      "layout": {
-        "text-field": [
-          "get",
-          "@name"
-        ],
-        "text-font": [
-          "Noto Sans Regular"
-        ],
-        "text-size": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          12,
-          10,
-          16,
-          14
-        ],
-        "text-offset": [
-          0,
-          0.8
-        ],
-        "text-anchor": "top",
-        "text-max-width": 10,
-        "symbol-sort-key": [
-          "coalesce",
-          [
-            "get",
-            "rank"
-          ],
-          99
-        ]
+        "text-max-angle": 40,
+        "symbol-spacing": 300,
+        "text-padding": 3,
+        "text-allow-overlap": false,
+        "text-ignore-placement": false,
+        "text-keep-upright": true,
+        "text-rotation-alignment": "auto",
+        "text-pitch-alignment": "auto"
       }
     }
-  ]
+  ],
+  "transition": {
+    "duration": 180,
+    "delay": 0
+  }
 }
