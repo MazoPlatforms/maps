@@ -21,6 +21,7 @@ Verification before this checkpoint: prior source work passed **42 Python tests*
 - `9ebabcdffb851b49de6ee4a8e7348ff0ee8ccba6` — keyboard feature lookup/drawing and Escape cancellation; browser and CI pass.
 - `36972fedd67ac6cb39ea26bda274186240a6ca05` — map contrast/name/control fixes and recurring axe WCAG scans; all remote checks passed.
 - `1fd965c4b46d19be678e04ad6fd47e4d6deec908` — reproducible local glyph bundle, license/hash validation and disconnected-browser coverage check; both pushed workflows passed.
+- `a6e552bb2a8068148982bc14500752432c9d921a` — self-hosted HarfBuzz Tamil shaping, multilingual canonical label properties and selector, license checks and offline browser evidence.
 - Resolve this document's checkpoint SHA with `git log -1 -- docs/development-progress.md`; it records final delivery evidence without a self-referential hash.
 
 ## Completed implementation
