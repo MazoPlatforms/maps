@@ -2,6 +2,10 @@
 
 **Full production release: BLOCKED.** PR #1 is merged, and Pages publishes the legacy root map plus a supplemental canonical pilot. Phases 2–6 are partially implemented, not complete. PASS below means the stated bounded capability was exercised, not nationwide acceptance.
 
+## Main delivery evidence
+
+`main` is `f5ae5905e31a73c376cf818646c28031169556c0`. PR #1 and follow-up PRs #2–#3 merged without bypass. Canonical/browser workflow [40085890044](https://github.com/MazoPlatforms/maps/actions/runs/40085890044) and Pages test/build/deploy/live-smoke workflow [40085890161](https://github.com/MazoPlatforms/maps/actions/runs/40085890161) succeeded. Live root, `/api/v1/manifest.json`, and `/offline-manifest.json` return HTTP 200. Canonical metadata reports `complete:false`, 13,993 records, and “Bounded source sample, not district-complete or nationwide.” The existing root map remains the legacy viewer. `main` has no branch protection/ruleset because settings writes return 403; review enforcement and independent boundary approvals are not configured.
+
 ## Scope and ownership
 
 The independent source snapshot contains **13,993 real features**: 1,995 places, 9,997 buildings, 2,000 roads and one authoritative Colombo DS boundary. Eight out-of-classifier source features are retained in quarantine. This is a Colombo-area source sample, not a complete district. Other supported feature types can be contributed and validated but have no imported coverage in this snapshot. All 9 province, 25 district and 339 DS classifier entries remain available as regional metadata.
@@ -39,7 +43,7 @@ Canonical records, immutable complete-record/history shards and reviewed changes
 | 25 | Client routing | PASS | Explicit connectors, directed restrictions, interior snapping/unreachable tests and real ten-segment route; offline UI passes. Partial graph only; no nationwide or turn-by-turn claim. |
 | 26 | Attribution/licenses | PASS | Source provenance, separate license texts/notices, Foursquare NOTICE, ODbL/CDLA/Apache/CC BY/IGO distinctions and contributor terms retained. Review each future source separately. |
 | 27 | Pages compatibility | PASS | Main Pages deployment [40083865521](https://github.com/MazoPlatforms/maps/actions/runs/40083865521) completed build, deploy and live Chromium smoke. Root map remains present; `/api/v1/manifest.json` and `/offline-manifest.json` return HTTP 200 and label canonical coverage incomplete (13,993 Colombo-area records).
-| 28 | Desktop/mobile compatibility | BLOCKED | Local Chromium and hosted CI desktop/touch mobile emulation pass; prior hosted PR run passed the six viewer/editor, light/dark, desktop/mobile Axe contexts; post-merge canonical workflow [40083865517](https://github.com/MazoPlatforms/maps/actions/runs/40083865517) exposed a mobile dark-theme quick-view contrast regression. A PR #2 CSS change did not resolve the transition race; PR #3 disables the dark-theme background transition and awaits verification; physical Android, low-memory browsers, screen readers and other browser engines remain uncertified. Keyboard feature-ID loading, coordinate entry, Enter activation, Escape cancellation, and point/line/polygon creation pass. Physical Android, low-memory browsers, screen readers and other browser engines remain uncertified; run device/accessibility acceptance. |
+| 28 | Desktop/mobile compatibility | BLOCKED | PR #3 real Chromium check passed the viewer/editor, light/dark, desktop/mobile Axe contexts after disabling the dark-theme quick-view background transition; main canonical/browser run [40085890044](https://github.com/MazoPlatforms/maps/actions/runs/40085890044) passed. Keyboard feature-ID loading, coordinate entry, Enter activation, Escape cancellation, and point/line/polygon creation pass. Physical Android, low-memory browsers, screen readers, and other browser engines remain unverified; run device/accessibility acceptance. |
 
 ## Verification and measurements
 
