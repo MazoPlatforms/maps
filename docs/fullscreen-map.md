@@ -21,10 +21,11 @@ points, not park boundaries or entrances. No geographic archives are removed or
 replaced. No Google assets or services are used.
 
 Search covers the overview index, alternate names and currently rendered POIs.
-It is not nationwide address search. Directions validates two indexed/selected
-locations and provides an explicit OpenStreetMap routing handoff with their actual
-coordinates. It does not pretend to calculate routes locally. An external routing
-website requires internet access. Existing city shortcuts remain in Layers.
+It is not nationwide address search. Directions submits selected location coordinates to FOSSGIS OSRM and displays
+actual road geometry, distance, travel time and turn instructions on the map.
+Results can be reused from device cache offline. Existing city shortcuts remain
+in Layers. Provider limits and privacy are documented in
+[performance and routing](performance-routing.md).
 
 Run `node --test tests/map.test.mjs`. Candidate browser checks are in
 `scripts/verify-rendering.mjs`, using real published PMTiles range bytes. They

@@ -181,6 +181,7 @@ async function startApp() {
     .replace("import { mapConfig, cityViews } from './config.js';", '')
     .replace("import { createArchiveSource } from './archive-source.js';", '')
     .replace("import { setupExplorer } from './explorer.js';", '')
+    .replace("import { setupRouting } from './routing.js';", '')
     .replaceAll(
       'import.meta.url',
       JSON.stringify(new URL('assets/js/app.js', root).href),

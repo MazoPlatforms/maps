@@ -1,12 +1,26 @@
+import { setupRouting } from './routing.js';
+
 // Native vector labels and bounded DOM controls; never one DOM marker per place.
 export function setupExplorer(map, maplibre, siteRoot) {
   const $ = selector => document.querySelector(selector);
   const search = $('#map-search');
   const results = $('#search-results');
-  let catalog = [], overview, popup, category = 'all';
+  let catalog = [], catalogIndex = [], overview, popup, category = 'all';
   const hidden = new Set();
   const placeFilter = map.getFilter('place-names');
   const destinationFilter = ['>=',['zoom'],['get','minzoom']];
+  const directionsElements = {
+    form: $('#directions-form'), from: $('#route-from'), to: $('#route-to'),
+    mode: $('#route-mode'), status: $('#route-status'), result: $('#route-result'),
+    distance: $('#route-distance'), duration: $('#route-duration'),
+    modeLabel: $('#route-mode-label'), steps: $('#route-steps'),
+    submit: $('#directions-form button[type="submit"]'),
+    panel: $('#directions-panel'), drag: $('#directions-drag'),
+    toggle: $('#directions-toggle'), close: $('#directions-close'),
+    swap: $('#route-swap'), clear: $('#route-clear'),
+  };
+  setupRouting(map, directionsElements, name => catalog.find(f =>
+    normalize(f.properties.name || f.properties['@name']) === normalize(name)));
   const groups = {
     roads: ['road-casing', 'road-lines', 'road-names', 'highway-names', 'rail-lines'],
     buildings: ['building-fills', 'building-parts', 'building-outlines'],
@@ -33,23 +47,35 @@ export function setupExplorer(map, maplibre, siteRoot) {
     content.append(title,button);
     popup=new maplibre.Popup({offset:12}).setLngLat(coordinates).setDOMContent(content).addTo(map);
     // Include selected real POIs in the directions handoff, without inventing coordinates.
-    if (!catalog.some(f=>f.properties.name===name)) catalog.push({type:'Feature',geometry:feature.geometry,properties:{name}});
+    if (!catalog.some(f=>f.properties.name===name)) addCatalog({type:'Feature',geometry:feature.geometry,properties:{name}});
   }
   const normalize=s=>s.normalize('NFKD').replace(/\p{M}/gu,'').toLocaleLowerCase().trim();
+  function indexFeature(feature) {
+    return { feature, key: normalize(
+      `${feature.properties.name || feature.properties['@name']} ${feature.properties.aliases || ''}`,
+    ) };
+  }
+  function addCatalog(feature) {
+    catalog.push(feature);
+    catalogIndex.push(indexFeature(feature));
+  }
+  let searchTimer;
   function find() {
     const query=normalize(search.value); results.replaceChildren(); results.hidden=!query;
     if (!query) return [];
     const visible = map.getLayer('place-names') ? map.queryRenderedFeatures({layers:['place-names']}).filter(f=>f.geometry.type==='Point').map(f=>({...f,properties:{...f.properties,name:f.properties['@name']}})) : [];
-    const matches=[...catalog,...visible].filter(f=>normalize(f.properties.name+' '+(f.properties.aliases||'')).includes(query))
-      .sort((a,b)=>Number(normalize(b.properties.name).startsWith(query))-Number(normalize(a.properties.name).startsWith(query)) || (b.properties.population||0)-(a.properties.population||0));
+    const matches = [
+      ...catalogIndex.filter(item => item.key.includes(query)).map(item => item.feature),
+      ...visible.filter(feature => normalize(feature.properties.name || '').includes(query)),
+    ].sort((a, b) => Number(normalize(b.properties.name).startsWith(query)) - Number(normalize(a.properties.name).startsWith(query)) || (b.properties.population || 0) - (a.properties.population || 0));
     const unique=[...new Map(matches.map(f=>[f.properties.name,f])).values()].slice(0,8);
     for(const f of unique) {const button=document.createElement('button');button.type='button';button.textContent=f.properties.name;button.addEventListener('click',()=>select(f));results.append(button);}
     if(!unique.length) results.textContent='No matching city or destination. Zoom in to search visible places.';
     return unique;
   }
-  search.addEventListener('input',find);
+  search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(find,120);});
   search.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();results.querySelector('button')?.focus();}});
-  $('#search-form').addEventListener('submit',event=>{event.preventDefault();const matches=find();if(matches.length)select(matches[0]);});
+  $('#search-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(searchTimer);const matches=find();if(matches.length)select(matches[0]);});
   for(const button of document.querySelectorAll('[data-category]')) button.addEventListener('click',()=>{
     category=button.dataset.category;
     for(const item of document.querySelectorAll('[data-category]'))item.setAttribute('aria-pressed',String(item===button));
@@ -65,17 +91,6 @@ export function setupExplorer(map, maplibre, siteRoot) {
   }
   for(const name of ['layers','directions']) $(`#${name}-toggle`).addEventListener('click',()=>openPanel($(`#${name}-panel`).hidden?name:null));
   document.addEventListener('keydown',event=>{if(event.key==='Escape'){openPanel(null);results.hidden=true;popup?.remove();}});
-  $('#directions-form').addEventListener('submit',event=>{
-    event.preventDefault();
-    const from=catalog.find(f=>normalize(f.properties.name)===normalize($('#route-from').value));
-    const to=catalog.find(f=>normalize(f.properties.name)===normalize($('#route-to').value));
-    const link=$('#route-link'); link.hidden=true;
-    if(!from||!to) {$('#route-status').textContent='Choose two known cities or destinations from the suggestions.';return;}
-    const route=[from,to].map(f=>[f.geometry.coordinates[1],f.geometry.coordinates[0]].join(',')).join(';');
-    link.href=`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${encodeURIComponent(route)}`;
-    link.hidden=false; $('#route-status').textContent='Your route is ready to open on OpenStreetMap.';
-    link.focus();
-  });
   function addDestinations() {
     if(!catalog.length || map.getSource('destinations'))return;
     map.addSource('destinations',{type:'geojson',data:overview});
@@ -93,8 +108,20 @@ export function setupExplorer(map, maplibre, siteRoot) {
     results.hidden=true;
     const hit=map.queryRenderedFeatures(event.point,{layers}).find(f=>f.geometry.type==='Point');if(hit)select(hit);
   });
-  fetch(new URL('./assets/data/destinations.geojson',siteRoot)).then(r=>{if(!r.ok)throw Error('Destinations unavailable');return r.json();}).then(data=>{
-    overview=data; catalog=[...data.features];
+  const destinationUrl = new URL('./assets/data/destinations.geojson',siteRoot);
+  destinationUrl.search = new URL(import.meta.url).search;
+  fetch(destinationUrl).then(async r=>{
+    if(!r.ok)throw Error('Destinations unavailable');
+    const text=await r.text();
+    const parseStarted=performance.now();
+    const data=JSON.parse(text);
+    const parseMs=performance.now()-parseStarted;
+    const indexStarted=performance.now();
+    overview=data; catalog=[...data.features]; catalogIndex=catalog.map(indexFeature);
+    if (globalThis.__mazoMapTimings) {
+      globalThis.__mazoMapTimings.destinationParseMs=Math.round(parseMs*100)/100;
+      globalThis.__mazoMapTimings.destinationIndexMs=Math.round((performance.now()-indexStarted)*100)/100;
+    }
     const list=$('#destinations');
     for(const f of catalog){const option=document.createElement('option');option.value=f.properties.name;list.append(option);}
     addDestinations();

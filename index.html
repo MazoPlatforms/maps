@@ -2,8 +2,8 @@
 <html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f7f8f4" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6f8fa" />
     <meta
       name="description"
       content="A closer look at Sri Lanka. Explore roads, landscapes, buildings and places with Mazo Maps."
@@ -72,15 +72,31 @@
           <select id="city-select" aria-label="Choose a place"><option value="island">Sri Lanka · All island</option><option value="colombo">Colombo</option><option value="jaffna">Jaffna</option><option value="kandy">Kandy</option><option value="galle">Galle</option><option value="trincomalee">Trincomalee</option><option value="batticaloa">Batticaloa</option></select>
           <button id="map-fullscreen" aria-label="Enter fullscreen" aria-pressed="false">Fullscreen</button>
         </section>
-        <section class="panel tool-panel" id="directions-panel" aria-label="Directions" hidden>
-          <h2>Directions</h2>
+        <section class="panel tool-panel directions-panel" id="directions-panel" aria-label="Directions" hidden>
+          <header class="directions-heading">
+            <button class="sheet-grab" id="directions-drag" type="button" aria-label="Drag directions panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9h8M8 15h8"/></svg></button>
+            <h2>Directions</h2>
+            <button class="panel-close" id="directions-close" type="button" aria-label="Close directions"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg></button>
+          </header>
           <form id="directions-form">
-            <label for="route-from">From</label><input id="route-from" list="destinations" required placeholder="City or destination"/>
-            <label for="route-to">To</label><input id="route-to" list="destinations" required placeholder="City or destination"/>
+            <div class="route-fields">
+              <label for="route-from">From</label><input id="route-from" list="destinations" required placeholder="Choose a starting point" autocomplete="off"/>
+              <button class="swap-route" id="route-swap" type="button" aria-label="Swap origin and destination"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13m0 0-4-4m4 4-4 4M17 17H4m0 0 4 4m-4-4 4-4"/></svg></button>
+              <label for="route-to">To</label><input id="route-to" list="destinations" required placeholder="Choose a destination" autocomplete="off"/>
+            </div>
             <datalist id="destinations"></datalist>
-            <button type="submit">Find a route</button>
-            <p id="route-status" role="status">Routes open on OpenStreetMap in a new tab.</p>
-            <a id="route-link" target="_blank" rel="noopener noreferrer" hidden>Open directions ↗</a>
+            <div class="route-submit-row">
+              <label class="sr-only" for="route-mode">Travel mode</label>
+              <select id="route-mode" aria-label="Travel mode"><option value="car">Driving</option><option value="bike">Cycling</option><option value="foot">Walking</option></select>
+              <button class="primary-button" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span>Find route</span></button>
+            </div>
+            <p id="route-status" class="route-status" role="status" aria-live="polite">Choose two places to calculate a route.</p>
+            <div id="route-result" class="route-result" hidden>
+              <button class="route-clear" id="route-clear" type="button">Clear route</button>
+              <p class="route-meta"><strong id="route-distance"></strong><span aria-hidden="true">·</span><span id="route-duration"></span><span class="route-mode-label" id="route-mode-label"></span></p>
+              <ol id="route-steps" class="route-steps" aria-label="Turn-by-turn directions"></ol>
+              <p class="route-attribution">Routing by <a href="https://routing.openstreetmap.de/about.html" target="_blank" rel="noopener noreferrer">FOSSGIS · OpenStreetMap contributors</a> · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener noreferrer">Fix map data</a></p>
+            </div>
           </form>
         </section>
         <div class="map-loading" id="map-status" role="status" aria-live="polite"><span class="loading-pulse" aria-hidden="true"></span><span>Loading Sri Lanka</span></div>

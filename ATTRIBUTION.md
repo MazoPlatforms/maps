@@ -36,3 +36,19 @@ and named national parks/nature reserves. Repeated names are deduplicated. Park
 points label destinations; they do not represent legal boundaries or entrances.
 This index is not an exhaustive address or POI database. Existing Overture and
 OpenStreetMap attribution remains applicable to the underlying tiles.
+
+
+## Routing and typeface
+
+Directions use the public FOSSGIS OSRM routing servers. Route data is derived
+from OpenStreetMap (ODbL 1.0): the directions panel credits OpenStreetMap and
+links to "Fix the map" as the FOSSGIS service requests. FOSSGIS reports a maximum
+of one request per second, prohibits scraping/heavy use, and logs route requests;
+its volunteer operated service has no uptime guarantee. See
+[service information](https://routing.openstreetmap.de/about.html) and
+[OSM based services](https://github.com/fossgis/openstreetmap.de/blob/main/content/nutzen/dienste-osm-de.md).
+This public demo endpoint is for light use. Heavier or commercial traffic needs
+a dedicated provider or self hosted OSRM service.
+
+The UI uses a self hosted Latin subset of Inter, licensed under the SIL Open Font
+License 1.1; the license is included at `assets/fonts/OFL-Inter.txt`.

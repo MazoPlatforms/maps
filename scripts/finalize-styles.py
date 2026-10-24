@@ -20,6 +20,10 @@ version_hash = hashlib.sha256(
     f"{manifest['release']}:{manifest['builtAt']}:{manifest['overtureTilesImage']}".encode()
 )
 for asset in sorted((site / "assets").rglob("*")):
+    if asset.is_file() and asset.suffix == ".woff2":
+        version_hash.update(asset.relative_to(site).as_posix().encode())
+        version_hash.update(asset.read_bytes())
+        continue
     if asset.is_file() and asset.suffix in {".js", ".css", ".json", ".geojson"}:
         # Remove prior cache keys and build substitutions for repeatable finalization.
         content = re.sub(r"\?v=[a-f0-9]+", "", asset.read_text())
@@ -89,6 +93,9 @@ for page in (site / "index.html", site / "docs/index.html"):
 app = site / "assets/js/app.js"
 if app.is_file():
     app.write_text(re.sub(r"(\./(?:config|archive-source|explorer)\.js)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", app.read_text()))
+explorer = site / "assets/js/explorer.js"
+if explorer.is_file():
+    explorer.write_text(re.sub(r"(\./routing\.js)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", explorer.read_text()))
 config = site / "assets/js/config.js"
 if config.is_file():
     config.write_text(re.sub(r"(sri-lanka-(?:light|dark)\.json)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", config.read_text()))
