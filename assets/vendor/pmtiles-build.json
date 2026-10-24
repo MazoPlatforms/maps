@@ -1,0 +1,9 @@
+{
+  "pmtiles": "4.5.0",
+  "fflate": "0.8.3",
+  "esbuild": "0.25.12",
+  "target": "es2020",
+  "format": "esm",
+  "bundleSha256": "aaf80e875b34b66bd206d6ab63d313cc6e1f6a813bc464373a4ddc8f86e6d41c",
+  "recipe": "scripts/rebuild-pmtiles.sh"
+}

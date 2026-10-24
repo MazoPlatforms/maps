@@ -38,6 +38,17 @@ for file in "${inputs[@]}"; do
   printf '%s\t%s\t%s\n' "$type" "$rows" "$named" >> "/counts/$THEME.tsv"
 done
 
+python3 - <<'PYCODE'
+from pathlib import Path
+profile = Path('/profiles/OvertureProfile.java')
+text = profile.read_text()
+needle = 'if (!pf.hasTag(name)) continue;'
+if text.count(needle) != 1:
+    raise ValueError('unsupported Overture profile source')
+text = text.replace(needle, needle + '\n                if (name.equals("id")) { feature.setAttr("id", source.getTag("id")); continue; }')
+profile.write_text(text)
+PYCODE
+
 cd /
 java -XX:MaxRAMPercentage=70 \
   -Dtiles.version="$RELEASE" \

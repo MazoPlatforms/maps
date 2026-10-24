@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "fontstack": "Noto Sans Regular",
+  "generatedBy": "MapLibre font-maker WASM",
+  "generatorRepository": "https://github.com/maplibre/font-maker",
+  "generatorCommit": "c56771948c59a01b89d0498d47dc4abf56c25338",
+  "generatorLicense": "scripts/vendor/maplibre-font-maker/LICENSE.txt",
+  "generatorHashes": {
+    "sdfglyph.js": "2d5cce9e20511e3e1798a696b496cfb4fb9c55cd9cceaa73fd77849e1c3d7a64",
+    "sdfglyph.wasm": "de2986e66201499de76f21bb3a649e1f27d7d68af21cb2616dc3a7b25bade691"
+  },
+  "sourceRepository": "https://github.com/google/fonts",
+  "sourceCommit": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+  "labelCount": 2963,
+  "ranges": [
+    "0-255",
+    "256-511",
+    "3328-3583",
+    "8192-8447"
+  ],
+  "normalization": "NFKC for rendered labels; source record names remain unchanged",
+  "sources": [
+    {
+      "name": "Noto Sans Regular",
+      "file": "assets/fonts/source/NotoSans.ttf",
+      "url": "https://github.com/google/fonts/blob/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
+      "sha256": "bfb7bb691513f12e734dc346c03a03f784912432d7e3fa8e56efcf906fe86b3d",
+      "license": "assets/fonts/source/notosans-OFL.txt"
+    },
+    {
+      "name": "Noto Sans Tamil Regular",
+      "file": "assets/fonts/source/NotoSansTamil.ttf",
+      "url": "https://github.com/google/fonts/blob/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/notosanstamil/NotoSansTamil%5Bwdth%2Cwght%5D.ttf",
+      "sha256": "aa3a9b321f4b0bb2c40203ffbde9af89713227866e0e13f76e5b9eeea727cf88",
+      "license": "assets/fonts/source/notosanstamil-OFL.txt"
+    },
+    {
+      "name": "Noto Sans Sinhala Regular",
+      "file": "assets/fonts/source/NotoSansSinhala.ttf",
+      "url": "https://github.com/google/fonts/blob/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/notosanssinhala/NotoSansSinhala%5Bwdth%2Cwght%5D.ttf",
+      "sha256": "9bd93e407a278075be403324063bc94a7e306c44de4df81214e932330c22eecf",
+      "license": "assets/fonts/source/notosanssinhala-OFL.txt"
+    }
+  ],
+  "files": [
+    {
+      "file": "assets/fonts/Noto Sans Regular/0-255.pbf",
+      "bytes": 75728,
+      "sha256": "77155941539782149e8a394c8d9e386dd903bb1d6ea628a980ea8e4e1c344617"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Regular/256-511.pbf",
+      "bytes": 126678,
+      "sha256": "638dc000699ddea02e788c2f654c7207415c313de9596ac87b20744a8b4e1dd1"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Regular/3328-3583.pbf",
+      "bytes": 55164,
+      "sha256": "2e203b5b65648044a924df9cbd50d92a7d405eb5414bacefcbbc4b4471741977"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Regular/8192-8447.pbf",
+      "bytes": 52060,
+      "sha256": "534eaad4841714c15bb71dc3877e7528af099de699e6c309c4c582ff8ad548ad"
+    }
+  ]
+}

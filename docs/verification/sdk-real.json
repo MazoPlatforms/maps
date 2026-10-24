@@ -1,0 +1,20 @@
+{
+  "realRecords": 13993,
+  "initializationMs": 35.684179,
+  "searchMs": [
+    10.155770000000018,
+    1.4985149999999976,
+    1.9972150000000966
+  ],
+  "languages": {
+    "en": 1,
+    "ta": 1,
+    "si": 1
+  },
+  "cacheBytes": 16214269,
+  "routingNodes": 2181,
+  "routingEdges": 4403,
+  "routeMeters": 531.9184872556008,
+  "routeSegments": 10,
+  "routeMs": 48.78017299999965
+}

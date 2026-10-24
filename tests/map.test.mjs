@@ -134,6 +134,8 @@ async function startApp() {
     mapConfig,
     cityViews,
     createArchiveSource,
+    fetchContributions: async () => null,
+    prepareContributions: (style) => style,
     URL,
     URLSearchParams,
     document,
@@ -180,6 +182,10 @@ async function startApp() {
   const source = (await read('assets/js/app.js'))
     .replace("import { mapConfig, cityViews } from './config.js';", '')
     .replace("import { createArchiveSource } from './archive-source.js';", '')
+    .replace(
+      "import { fetchContributions, prepareContributions } from './contributions.js';",
+      '',
+    )
     .replaceAll(
       'import.meta.url',
       JSON.stringify(new URL('assets/js/app.js', root).href),

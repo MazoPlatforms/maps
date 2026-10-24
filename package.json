@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "generate:fonts": "node scripts/generate-fonts.mjs"
+  },
+  "type": "module"
+}

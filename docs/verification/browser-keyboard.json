@@ -1,0 +1,23 @@
+{
+  "mapInitialMs": 1779.864102,
+  "editorApplyMs": 422.7437369999998,
+  "tileRequests": 7,
+  "tileMedianMs": 36,
+  "realFeature": "dd0b265b-4262-5bb6-8952-11db35dc7579",
+  "editorChangeset": "80268e6d-7ead-45ab-b395-8459f92e553b",
+  "editor": true,
+  "offlineGeometry": true,
+  "offlineSearch": 1,
+  "interruptedRecovery": true,
+  "corruptCacheRejected": true,
+  "mobileLayout": true,
+  "mobileTouchEditor": true,
+  "offlineRouting": true,
+  "crossVersionUpdate": true,
+  "changedUpdateFiles": 1,
+  "drawnFeatureTypes": 8,
+  "keyboardDrawing": true,
+  "lightAndDark": true,
+  "jsHeapBytes": 24233777,
+  "pageErrors": []
+}

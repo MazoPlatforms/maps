@@ -1,0 +1,31 @@
+✔ editor loads exact canonical record and prepares optimistic offline edits and tombstones (57.602556ms)
+✔ editor rejects stale or altered records and unsafe API paths (7.89848ms)
+✔ canonical styles resolve archives under the dataset location (2.126275ms)
+✔ source suppression and replacement layers preserve both themes and the original style (3.325232ms)
+✔ empty contributions preserve the viewer and boundary features receive an outline (0.522905ms)
+✔ contribution fetch checks content integrity, release and basemap identity (17.221227ms)
+✔ point land and water records remain visible when base styles only draw polygons (0.617562ms)
+✔ all editor geometry types support movement, validation and changeset drafts (12.690096ms)
+✔ vertex operations preserve polygon closure and reject invalid shapes (3.748531ms)
+✔ existing imports update and delete with server-issued record hashes; new deletion removes draft (3.400722ms)
+✔ localized edits preserve Overture name dictionaries and unrelated alternate names (0.592425ms)
+✔ road split is atomic, preserves explicit connectivity and can merge compatible segments (2.164116ms)
+✔ native connected roads merge without treating different endpoint IDs as access conflicts (1.077089ms)
+✔ deleting a new road preserves a shared new connector and repairs its draft lineage (0.495324ms)
+✔ the extract includes the north, south, east and western islands (11.848877ms)
+✔ the first geographic frame reveals the map without waiting for full load (14.526701ms)
+✔ city views, reset and theme switches preserve the map workflow (6.064519ms)
+✔ content-addressed archives keep one identity across CDN timestamp ETags (0.875582ms)
+✔ publishing checks archive hashes and versions the client assets (333.947297ms)
+✔ routing follows connected directed roads, preserves shape and rejects unreachable reverse travel (3.360898ms)
+✔ segment-interior snapping respects directed travel and does not route in straight lines (2.926317ms)
+{"realRecords":13993,"initializationMs":35.684179,"searchMs":[10.155770000000018,1.4985149999999976,1.9972150000000966],"languages":{"en":1,"ta":1,"si":1},"cacheBytes":16214269,"routingNodes":2181,"routingEdges":4403,"routeMeters":531.9184872556008,"routeSegments":10,"routeMs":48.78017299999965}
+✔ real static API, multilingual search, geocoding, nearby, feature lookup, and routing under /maps/ (2181.963579ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3458.704128

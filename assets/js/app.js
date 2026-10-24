@@ -1,10 +1,16 @@
 import { mapConfig, cityViews } from './config.js';
 import { createArchiveSource } from './archive-source.js';
+import { fetchContributions, prepareContributions } from './contributions.js';
 
 const root = document.documentElement;
+if(globalThis.navigator?.onLine===false){
+ const url=new URL(location.href);url.searchParams.set('dataset','canonical');url.searchParams.set('offline','1');history.replaceState(null,'',url);
+}
 const themeButton = document.querySelector('#theme-toggle');
 const mapStatus = document.querySelector('#map-status');
 const mapNode = document.querySelector('#map');
+const mapLabelControl = document.querySelector('#map-label-control');
+const mapLabelLanguage = document.querySelector('#map-label-language');
 const mapFrame = document.querySelector('#map-frame');
 const citySelect = document.querySelector('#city-select');
 const siteRoot = new URL('../../', import.meta.url).href;
@@ -14,7 +20,17 @@ const reducedMotion = window.matchMedia(
 ).matches;
 const mapTest = new URLSearchParams(location.search).has('maptest');
 let map;
+let geographicEditor=null;
 let firstFrame = false;
+let contributionBundle = null;
+
+function applyCanonicalLabelLanguage() {
+  if (!map || new URLSearchParams(location.search).get('dataset') !== 'canonical') return;
+  import('./canonical-records.js').then(({setCanonicalLabelLanguage}) => {
+    try { setCanonicalLabelLanguage(map, mapLabelLanguage?.value || 'en'); }
+    catch (error) { showNotice(error.message); }
+  });
+}
 
 function preferredTheme() {
   try {
@@ -50,6 +66,16 @@ function applyTheme(theme, persist = true) {
 }
 
 async function loadStyle(theme) {
+  if(new URLSearchParams(location.search).get('dataset')==='canonical'){
+    const offline=new URLSearchParams(location.search).has('offline');
+    const response=await fetch(new URL(`data/mazo/${offline?'offline-':''}${theme}.json`,siteRoot));
+    if(!response.ok)throw new Error('Canonical sample unavailable');
+    const {prepareCanonicalStyle}=await import('./canonical-records.js');
+    const style=prepareCanonicalStyle(await response.json(),new URL('data/mazo/',siteRoot));
+    if(style.glyphs)style.glyphs=style.glyphs.replace('__MAZO_SITE_ROOT__',siteRoot.replace(/\/$/,''));
+    return style;
+  }
+  if(geographicEditor?.active) return geographicEditor.style(theme);
   if (!styleCache.has(theme)) {
     const request = fetch(new URL(mapConfig.styles[theme], siteRoot))
       .then((response) => {
@@ -63,11 +89,14 @@ async function loadStyle(theme) {
     styleCache.set(theme, request);
   }
   const template = await styleCache.get(theme);
-  return JSON.parse(
-    JSON.stringify(template).replaceAll(
-      '__MAZO_SITE_ROOT__',
-      siteRoot.replace(/\/$/, ''),
+  return prepareContributions(
+    JSON.parse(
+      JSON.stringify(template).replaceAll(
+        '__MAZO_SITE_ROOT__',
+        siteRoot.replace(/\/$/, ''),
+      ),
     ),
+    contributionBundle,
   );
 }
 
@@ -115,9 +144,11 @@ async function loadDataManifest() {
 }
 
 function revealMap() {
-  if (firstFrame || !map.getLayer('land')) return;
+  if(firstFrame)return;
+  const canonical=new URLSearchParams(location.search).get('dataset')==='canonical';
+  if(!canonical&&!map.getLayer('land'))return;
   const features = map.queryRenderedFeatures({
-    layers: ['land', 'water-fill', 'road-lines'],
+    layers: ['land','water-fill','road-lines','building','place-points'].filter(id=>map.getLayer(id)),
   });
   if (!features.length) return;
   firstFrame = true;
@@ -126,7 +157,18 @@ function revealMap() {
   if (mapFrame) mapFrame.dataset.state = 'ready';
   if (mapTest) globalThis.__mazoMapTimings.firstRender = performance.now();
   map.off('render', revealMap);
+  if(canonical){const status=document.querySelector('#release-status');if(status)status.textContent='Independent Mazo sample · incomplete coverage';return;}
   loadDataManifest();
+  fetchContributions(siteRoot)
+    .then((bundle) => {
+      if (!bundle) return;
+      contributionBundle = bundle;
+      if (bundle.manifest.records) applyTheme(root.dataset.theme, false);
+    })
+    .catch((error) => {
+      if (mapTest) globalThis.__mazoContributionError = error.message;
+      showNotice('Community changes are temporarily unavailable.');
+    });
 }
 
 function updateCoordinates() {
@@ -246,6 +288,39 @@ async function initializeMap() {
       import('../vendor/pmtiles.mjs'),
       loadStyle(root.dataset.theme),
     ]);
+    const canonical = new URLSearchParams(location.search).get('dataset') === 'canonical';
+    if (mapLabelControl) mapLabelControl.hidden = !canonical;
+    if (canonical && mapLabelLanguage) {
+      try {
+        const saved = localStorage.getItem('mazo-map-label-language');
+        if (['en', 'ta', 'si'].includes(saved)) mapLabelLanguage.value = saved;
+      } catch {}
+    }
+    if (canonical) {
+      // The complex-text plugin and its encoded HarfBuzz glyph ranges are
+      // self-hosted so Tamil labels can shape without a network dependency.
+      maplibre.setRTLTextPlugin(
+        new URL('../vendor/complex-text/maplibre-gl-complex-text.js', import.meta.url).href,
+        false,
+      );
+    }
+    const encodedGlyphRanges = new Set([
+      2304, 2560, 2816, 3072, 10240, 10752,
+      57600, 57856, 58112, 58368, 58624, 58880, 59136, 59392,
+      59648, 59904, 60160, 60416, 60672, 60928, 61184, 61440,
+      61696, 61952, 62208, 62464, 62720, 62976, 63232, 63488,
+    ]);
+    const transformRequest = (requestUrl, resourceType) => {
+      if (!canonical || resourceType !== 'Glyphs') return undefined;
+      const match = requestUrl.match(/(?:^|\/)(\d+)-(\d+)\.pbf(?:\?.*)?$/);
+      if (!match || !encodedGlyphRanges.has(Number(match[1]))) return undefined;
+      return {
+        url: new URL(
+          `../fonts/Noto%20Sans%20Multiscript%20Regular/${match[1]}-${match[2]}.pbf`,
+          import.meta.url,
+        ).href,
+      };
+    };
     const protocol = new pmtiles.Protocol();
     for (const source of Object.values(style.sources)) {
       if (!source.url?.startsWith('pmtiles://')) continue;
@@ -258,7 +333,8 @@ async function initializeMap() {
     map = new maplibre.Map({
       container: mapNode,
       style,
-      bounds: mapConfig.bounds,
+      transformRequest,
+      bounds: new URLSearchParams(location.search).get('dataset')==='canonical'?[79.83,6.915,79.86,6.93]:mapConfig.bounds,
       fitBoundsOptions: { padding: 36 },
       minZoom: mapConfig.minZoom,
       maxZoom: mapConfig.maxZoom,
@@ -271,6 +347,7 @@ async function initializeMap() {
       'top-right',
     );
     map.on('render', revealMap);
+    map.on('style.load', applyCanonicalLabelLanguage);
     map.on('load', () => {
       revealMap();
       if (mapTest) globalThis.__mazoMapTimings.loaded = performance.now();
@@ -286,6 +363,7 @@ async function initializeMap() {
         .forEach((button) => button.setAttribute('aria-pressed', 'false'));
     });
     if (mapTest) globalThis.__mazoMap = map;
+    import('./explore.js').then(({mountExplore})=>mountExplore(map,siteRoot)).catch(()=>{});
     if (root.dataset.theme !== style.metadata?.['mazo:theme'])
       applyTheme(root.dataset.theme, false);
     updateCoordinates();
@@ -298,6 +376,10 @@ applyTheme(preferredTheme(), false);
 themeButton?.addEventListener('click', () =>
   applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'),
 );
+mapLabelLanguage?.addEventListener('change', () => {
+  try { localStorage.setItem('mazo-map-label-language', mapLabelLanguage.value); } catch {}
+  applyCanonicalLabelLanguage();
+});
 citySelect?.addEventListener('change', (event) =>
   chooseCity(event.target.value),
 );
@@ -325,3 +407,32 @@ document.addEventListener('keydown', (event) => {
   }
 });
 initializeMap();
+
+document.querySelector('#editor-toggle')?.addEventListener('click',async()=>{
+ if(!map||geographicEditor?.active)return;
+ try{
+  const {mountEditor}=await import('./editor.js');
+  geographicEditor=await mountEditor(map,siteRoot);
+  geographicEditor.onClose=()=>{geographicEditor=null;applyTheme(root.dataset.theme,false);};
+ }catch(error){showNotice('Editor unavailable: '+error.message);}
+});
+
+document.querySelector('#offline-download')?.addEventListener('click',async()=>{
+ try{
+  const {OfflineManager}=await import('./offline.js');const manager=new OfflineManager(siteRoot);
+  const button=document.querySelector('#offline-download');button.disabled=true;
+  try{await manager.download({region:document.querySelector('#offline-region')?.value||undefined,onProgress:({done,total})=>{button.textContent=`Downloading ${Math.round(done/total*100)}%`;}});button.textContent='Offline sample ready';document.querySelector('#offline-open').hidden=false;}
+  finally{button.disabled=false;}
+ }catch(error){showNotice('Offline download: '+error.message);}
+});
+document.querySelector('#offline-remove')?.addEventListener('click',async()=>{
+ try{const {OfflineManager}=await import('./offline.js');await new OfflineManager(siteRoot).remove();showNotice('Offline sample removed.');}catch(error){showNotice(error.message);}
+});
+
+document.querySelector('#offline-check')?.addEventListener('click',async()=>{
+ try{const {OfflineManager}=await import('./offline.js');const manager=new OfflineManager(siteRoot);showNotice(await manager.hasUpdate()?'A newer independent sample is available. Download it to update.':'The downloaded sample is current.');}catch(error){showNotice('Update check: '+error.message);}
+});
+
+document.querySelector('#offline-regions')?.addEventListener('click',async()=>{
+ try{const {OfflineManager}=await import('./offline.js');const inventory=await new OfflineManager(siteRoot).inventory();const select=document.querySelector('#offline-region');select.replaceChildren();for(const region of inventory.regions||[]){const option=document.createElement('option');option.value=region.id;option.textContent=region.name+(region.complete?'':' (incomplete)');select.append(option);}if(!select.options.length)showNotice('No offline regions are available.');}catch(error){showNotice('Region list: '+error.message);}
+});

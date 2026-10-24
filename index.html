@@ -130,7 +130,7 @@
               class="map-reset"
               id="map-reset"
               type="button"
-              aria-label="Reset map view to Sri Lanka"
+              aria-label="Island view: reset map to Sri Lanka"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 10a8 8 0 1 1 1.7 7M4 4v6h6" /></svg
@@ -206,6 +206,7 @@
               ></span>
             </button>
           </div>
+          <button id="editor-toggle" class="map-coordinates" style="left:12px;right:auto;bottom:42px;cursor:pointer" type="button">Edit Mazo sample</button>
           <output
             class="map-coordinates"
             id="map-coordinates"
@@ -276,6 +277,8 @@
     </main>
     <footer class="site-footer section-shell">
       <div class="footer-top">
+        <section aria-label="Search and routes in the independent sample"><label>Search available data <input id="geographic-search" type="search" placeholder="English · தமிழ் · සිංහල" autocomplete="off"></label><label id="map-label-control" hidden>Map label language <select id="map-label-language" aria-label="Map label language"><option value="en">English</option><option value="ta">தமிழ்</option><option value="si">සිංහල</option></select></label><div id="search-results" aria-live="polite"></div><details><summary>Route in the available road sample</summary><label>Origin longitude,latitude <input id="route-origin" placeholder="79.84,6.92"></label><label>Destination longitude,latitude <input id="route-destination" placeholder="79.85,6.92"></label><button id="route-submit" type="button">Find route</button><output id="route-result" role="status"></output></details></section>
+        <div><a href="?dataset=canonical#map">Independent Mazo sample</a> · <label>Offline region <select id="offline-region" aria-label="Available offline region"><option value="">Current available sample</option></select></label> <button id="offline-regions" type="button">Load available regions</button> <button id="offline-download" type="button">Download offline map sample</button> <button id="offline-check" type="button">Check sample updates</button> <button id="offline-remove" type="button">Remove offline sample</button> <a id="offline-open" href="?dataset=canonical&amp;offline=1#map" hidden>Open offline map sample</a></div>
         <a class="brand" href="#top"
           ><img
             src="./assets/mazo-mark.svg"

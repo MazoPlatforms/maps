@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 
 const baseUrl = 'https://mazoplatforms.github.io/maps/';
 const themes = ['base', 'transportation', 'buildings', 'places'];
@@ -11,6 +12,32 @@ const locations = [
   { name: 'galle', center: [80.217, 6.0329] }
 ];
 const rangeChecks = [];
+const canonicalResponse = await fetch(`${baseUrl}api/v1/manifest.json`);
+if (!canonicalResponse.ok) throw new Error(`Canonical API manifest returned ${canonicalResponse.status}`);
+const canonical = await canonicalResponse.json();
+if (canonical.complete !== false || canonical.records > 20000 || !canonical.coverage?.coverage?.includes('not')) {
+  throw new Error(`Canonical API must identify bounded incomplete coverage: ${JSON.stringify({ complete: canonical.complete, records: canonical.records, coverage: canonical.coverage })}`);
+}
+const featureShard = Object.values(canonical.features || {}).find(Boolean);
+if (!featureShard) throw new Error('Canonical API has no feature shards');
+const shardResponse = await fetch(new URL(featureShard.file, `${baseUrl}api/v1/`));
+if (!shardResponse.ok) throw new Error(`Canonical feature shard returned ${shardResponse.status}`);
+const shardBytes = Buffer.from(await shardResponse.arrayBuffer());
+if (shardBytes.byteLength !== featureShard.bytes || createHash('sha256').update(shardBytes).digest('hex') !== featureShard.sha256) {
+  throw new Error('Canonical feature shard failed its published size/checksum');
+}
+const shard = JSON.parse(shardBytes.toString('utf8'));
+if (!Object.keys(shard.records || {}).length) throw new Error('Canonical feature shard contains no real records');
+const canonicalStyleResponse = await fetch(`${baseUrl}data/mazo/light.json`);
+if (!canonicalStyleResponse.ok) throw new Error(`Canonical style returned ${canonicalStyleResponse.status}`);
+const canonicalStyle = await canonicalStyleResponse.json();
+const canonicalTile = canonicalStyle.sources?.mazo?.url?.replace(/^pmtiles:\/\//, '');
+if (!canonicalTile || canonicalStyle.sources.mazo.url.startsWith('pmtiles://http')) throw new Error('Canonical style has no same-origin tile archive');
+const canonicalTileResponse = await fetch(new URL(`data/mazo/${canonicalTile}`, baseUrl), { headers: { Range: 'bytes=0-63' } });
+if (canonicalTileResponse.status !== 206 || (await canonicalTileResponse.arrayBuffer()).byteLength !== 64) {
+  throw new Error(`Canonical PMTiles range request failed (${canonicalTileResponse.status})`);
+}
+rangeChecks.push({ theme: 'canonical-mazo', status: canonicalTileResponse.status });
 const manifestResponse = await fetch(`${baseUrl}data/sri-lanka/manifest.json`);
 if (!manifestResponse.ok) throw new Error(`Manifest returned ${manifestResponse.status}`);
 const manifest = await manifestResponse.json();
@@ -120,10 +147,25 @@ try {
   await page.waitForFunction(() => !window.__mazoMap.isMoving() && window.__mazoMap.getZoom() >= 13.9, null, { timeout: 15_000 });
   await page.locator('#map-reset').click();
   await page.waitForFunction(() => !window.__mazoMap.isMoving() && window.__mazoMap.getBounds().contains([79.3, 5.8]) && window.__mazoMap.getBounds().contains([82.1, 10.1]), null, { timeout: 15_000 });
+  await page.goto(`${baseUrl}?dataset=canonical&maptest=1#map`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.waitForFunction(() => Boolean(window.__mazoMap || window.__mazoMapError), null, { timeout: 30_000 });
+  if (!await page.evaluate(() => Boolean(window.__mazoMap))) {
+    throw new Error(`Canonical sample map initialization failed: ${await page.evaluate(() => window.__mazoMapError)}`);
+  }
+  await page.waitForFunction(() => window.__mazoMap.isStyleLoaded() && window.__mazoMap.areTilesLoaded(), null, { timeout: 60_000 });
+  const canonicalRender = await page.evaluate(() => ({
+    source: Boolean(window.__mazoMap.getStyle().sources.mazo),
+    features: window.__mazoMap.queryRenderedFeatures().length,
+    labelLanguage: document.querySelector('#map-label-language')?.value,
+    coverageLabel: document.querySelector('#release-status')?.textContent,
+  }));
+  if (!canonicalRender.source || !canonicalRender.features || !canonicalRender.coverageLabel?.includes('incomplete')) {
+    throw new Error(`Canonical sample did not render with an explicit partial-coverage label: ${JSON.stringify(canonicalRender)}`);
+  }
   const sameOriginFailures = failedResponses.filter(item => item.url.startsWith(baseUrl));
   if (pageErrors.length || sameOriginFailures.length) throw new Error(`Browser issues: ${JSON.stringify({ pageErrors: pageErrors.slice(0, 5), failedResponses: sameOriginFailures.slice(0, 10) })}`);
-  await writeFile('verification/map-smoke.json', JSON.stringify({ url: baseUrl, rangeChecks, themes: results, startup, pageErrors, consoleErrors, failedResponses }, null, 2) + '\n');
-  console.log(`Light and dark maps rendered in six Sri Lankan cities; four PMTiles range requests returned 206. First map frame: ${startup.firstFrameMs} ms. External resource failures: ${failedResponses.filter(item => !item.url.startsWith(baseUrl)).length}.`);
+  await writeFile('verification/map-smoke.json', JSON.stringify({ url: baseUrl, rangeChecks, themes: results, startup, canonical: { records: canonical.records, complete: canonical.complete, coverage: canonical.coverage, rendered: canonicalRender }, pageErrors, consoleErrors, failedResponses }, null, 2) + '\n');
+  console.log(`Legacy light and dark map rendered in six Sri Lankan cities; canonical API verified ${canonical.records} incomplete-coverage records and the regional canonical map rendered. First map frame: ${startup.firstFrameMs} ms. External resource failures: ${failedResponses.filter(item => !item.url.startsWith(baseUrl)).length}.`);
 } finally {
   await browser.close();
 }

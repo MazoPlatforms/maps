@@ -1,0 +1,17 @@
+{
+  "canonical": [
+    {
+      "theme": "light",
+      "rendered": 30,
+      "selected": "d3c12191-d26f-5e42-926b-fcc6bb68e96f",
+      "expected": "cce0c0d44749f932bc9e44fb3f861065272eafeb80211960f4d93a2efb6dbc3e"
+    },
+    {
+      "theme": "dark",
+      "rendered": 30,
+      "selected": "d3c12191-d26f-5e42-926b-fcc6bb68e96f",
+      "expected": "cce0c0d44749f932bc9e44fb3f861065272eafeb80211960f4d93a2efb6dbc3e"
+    }
+  ],
+  "upstreamRequests": 0
+}

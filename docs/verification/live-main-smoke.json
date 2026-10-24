@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-24T07:23:35Z",
+  "deploymentUrl": "https://mazoplatforms.github.io/maps/",
+  "pagesConfiguration": {
+    "branch": "main",
+    "path": "/",
+    "buildType": "workflow",
+    "httpsEnforced": true
+  },
+  "mainSha": "69fb1f3af178d170cc9e13df7f53df5d89ebb340",
+  "httpStatus": 200,
+  "browser": {
+    "mapStyleLoaded": true,
+    "renderedFeatureCount": 8089,
+    "pageErrors": [],
+    "sameOriginPmtilesRangeRequests": 206
+  },
+  "apiV1ManifestStatus": 404,
+  "legacySriLankaManifestStatus": 200,
+  "canonicalDatasetPublished": false
+}

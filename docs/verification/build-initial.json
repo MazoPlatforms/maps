@@ -1,0 +1,10 @@
+{
+  "records": 13993,
+  "version": "433954456f2c8315ca410d9c321c2d02fce62ff2956b91b96ebf348881f41bb1",
+  "loadValidateSeconds": 56.2385013460007,
+  "compileSeconds": 12.602655908000088,
+  "totalSeconds": 68.84115725400079,
+  "parentPeakRssKiB": 755836,
+  "childrenPeakRssKiBIncludingFork": 755836,
+  "note": "Measured before license-catalog deduplication; source validation and feature/tile outputs unchanged. Child RSS includes inherited pre-exec fork memory, not compiler-only isolated memory."
+}
