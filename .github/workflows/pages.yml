@@ -230,6 +230,7 @@ jobs:
           python3 scripts/finalize-styles.py _site
           cp -a "$RUNNER_TEMP/canonical-site/api" _site/
           cp -a "$RUNNER_TEMP/canonical-site/data/mazo" _site/data/
+          cp "$RUNNER_TEMP/canonical-site/build.json" _site/build.json
           mkdir -p _site/data/canonical
           cp -a "$RUNNER_TEMP/canonical-site/data/canonical/licenses" _site/data/canonical/
           cp "$RUNNER_TEMP/canonical-site/offline-manifest.json" _site/offline-manifest.json
