@@ -206,6 +206,7 @@
               ></span>
             </button>
           </div>
+          <button id="editor-toggle" class="map-coordinates" style="left:12px;right:auto;bottom:42px;cursor:pointer" type="button">Edit Mazo sample</button>
           <output
             class="map-coordinates"
             id="map-coordinates"
@@ -276,6 +277,8 @@
     </main>
     <footer class="site-footer section-shell">
       <div class="footer-top">
+        <section aria-label="Search and routes in the independent sample"><label>Search available data <input id="geographic-search" type="search" placeholder="English · தமிழ் · සිංහල" autocomplete="off"></label><div id="search-results" aria-live="polite"></div><details><summary>Route in the available road sample</summary><label>Origin longitude,latitude <input id="route-origin" placeholder="79.84,6.92"></label><label>Destination longitude,latitude <input id="route-destination" placeholder="79.85,6.92"></label><button id="route-submit" type="button">Find route</button><output id="route-result" role="status"></output></details></section>
+        <div><a href="?dataset=canonical#map">Independent Mazo sample</a> · <button id="offline-download" type="button">Download geometry-only sample</button> <button id="offline-remove" type="button">Remove offline sample</button> <a id="offline-open" href="?dataset=canonical&amp;offline=1#map" hidden>Open offline sample (no labels)</a></div>
         <a class="brand" href="#top"
           ><img
             src="./assets/mazo-mark.svg"

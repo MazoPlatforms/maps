@@ -15,3 +15,15 @@ Production physical storage decision: use indexed transactions plus Mazo-owned i
 Known blockers: GitHub branch-protection read returned HTTP 403 (Resource not accessible by integration); settings and required reviewer enforcement cannot be verified or changed. No OAuth/App backend or privileged browser credentials are configured. Website submissions use a file/fork/PR handoff. Main and production deployment are untouched. Nationwide data import remains deliberately blocked. Complete regional routing, source notice bundles, offline tests, build/publish integration, and security review are still pending.
 
 Next task: build the bounded canonical API/tiles, exercise real editor operations in Chromium under a repository subpath, finish contribution validation CI and document exact acceptance evidence. Do not recreate the existing app or repeat the recovery audit.
+
+## Indexed/API checkpoint
+
+- `ac473b5` — indexed canonical transactions and owned source snapshot (pushed).
+- `dc96eef` — static API compiler, multilingual SDK, explicit-connectivity router, and real Colombo DS authority record. Source snapshot now contains **13,993** records; eight source features remain quarantined.
+- Subsequent UI/offline/review/security work is in progress; exact commit list will be recorded at the next verified checkpoint.
+
+Real source SDK test passes English/Tamil/Sinhala search, geocoding/approximate reverse lookup, feature and region access and a ten-segment **531.9 m** road route. Unit tests cover one-way/unreachable behavior and segment-interior snapping. Real road split validation passed update/create/create operations with preserved connectivity. The integrated Chromium check passed both themes, real building selection/reshaping, point/polygon draft creation, undo/redo, draft persistence, deletion preview, actual changeset download, interrupted-download recovery, corrupt-cache rejection/repair, disconnected rendering/search/routing, mobile layout and a mobile touch editor opening.
+
+Security audit found and fixed DuckDB 1.4.1 and fflate 0.8.2 advisories. Current pins: DuckDB and signed extension transports 1.4.2; rebuilt PMTiles 4.5.0 with fflate 0.8.3. Repeat dependency queries returned no known findings for checked packages. Confirm full broad tests after the last changes before committing this checkpoint.
+
+Actual GitHub collaborator lookup verified `itzmzn` has administrator permissions. CODEOWNERS and a trusted-base review gate now reference that verified maintainer. Two-person boundary review is blocked until a second eligible maintainer is configured. The protection endpoint still returned 403, so settings are not verified as enforced. New workflow builds read-only artifacts and does not deploy.

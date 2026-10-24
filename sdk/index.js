@@ -111,8 +111,21 @@ export class MazoMaps {
     const index = await this.resource(m.regions);
     const region = index.regions.find((r) => r.id === id);
     if (region) return region;
-    if (index.memberships[id])
-      return { id, features: index.memberships[id], complete: false };
+    for (const [level, entry] of Object.entries(index.levels)) {
+      const divisions = await this.resource(entry),
+        division = divisions.find((d) => d.id === id);
+      if (!division) continue;
+      const ds =
+        level === 'dsDivision'
+          ? [division]
+          : (await this.resource(index.levels.dsDivision)).filter(
+              (d) => d.province === id || d.district === id,
+            );
+      const features = [
+        ...new Set(ds.flatMap((d) => index.memberships[d.id] || [])),
+      ];
+      return { ...division, level, features, complete: false };
+    }
     throw new MazoError('NOT_FOUND', 'Region outside available coverage');
   }
   async search(
@@ -124,7 +137,7 @@ export class MazoMaps {
     if (!q) return [];
     if (!Number.isInteger(limit) || limit < 1 || limit > 100)
       throw new MazoError('LIMIT', 'Limit must be 1–100');
-    const entry = m.search[q[0]];
+    const entry = m.search[Array.from(q)[0]];
     if (!entry) return [];
     const rows = await this.resource(entry);
     return rows

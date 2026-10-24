@@ -69,6 +69,9 @@ test(
       assert.ok(languages.ta);
       assert.ok(languages.si);
       assert.equal((await sdk.getRegion('colombo-sample')).complete, false);
+      assert.equal((await sdk.getRegion('LK1')).level, 'province');
+      assert.equal((await sdk.getRegion('LK11')).level, 'district');
+      assert.equal((await sdk.getRegion('LK1103')).level, 'dsDivision');
       await assert.rejects(
         sdk.getRegion('not-published'),
         (e) => e.code === 'NOT_FOUND',
