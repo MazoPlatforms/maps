@@ -16,6 +16,37 @@ const mapTest = new URLSearchParams(location.search).has('maptest');
 let map;
 let firstFrame = false;
 
+// Original Mazo canvas artwork. Icons are shared by category, not allocated per feature.
+const placeArtwork = {
+  food: ['#b87353', 'M7 3v7m3-7v7M5 7h7v3a3 3 0 0 1-3 3v8m9-18v18m0-18c-4 3-4 8 0 8'],
+  health: ['#b5666c', 'M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6Z'],
+  shop: ['#6d81aa', 'M5 8h14l1 12H4ZM9 8V6a3 3 0 0 1 6 0v2'],
+  hotel: ['#8c76a6', 'M3 19V6m0 9h18v4m-12-8h9a3 3 0 0 1 3 3v1M6 9h3v4H6Z'],
+  school: ['#668e9f', 'M2 9l10-5 10 5-10 5ZM6 12v5q6 5 12 0v-5m4-3v9'],
+  worship: ['#967c9c', 'M4 20h16M6 20V9l6-5 6 5v11M10 20v-6h4v6m-2-16V1'],
+  transport: ['#648b9d', 'M6 17V5q6-3 12 0v12ZM6 10h12M8 20v-3m8 3v-3M9 14h0m6 0h0'],
+  park: ['#628c6e', 'M12 3L5 12h4l-5 5h16l-5-5h4ZM12 17v4'],
+  place: ['#638a7c', 'M6 20V7l6-3 6 3v13ZM9 9h0m6 0h0m-6 4h0m6 0h0m-5 7v-4h2v4'],
+};
+function addPlaceIcon(id) {
+  if (!id.startsWith('mazo-poi-') || map.hasImage(id)) return;
+  const art = placeArtwork[id.slice(9)];
+  if (!art) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = 48; canvas.height = 56;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = art[0]; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(24, 53);
+  ctx.bezierCurveTo(19, 44, 6, 35, 6, 23);
+  ctx.arc(24, 23, 18, Math.PI, 0);
+  ctx.bezierCurveTo(42, 35, 29, 44, 24, 53);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.translate(12, 11); ctx.lineWidth = 1.8;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.stroke(new Path2D(art[1]));
+  map.addImage(id, ctx.getImageData(0, 0, 48, 56), { pixelRatio: 2 });
+}
+
 function preferredTheme() {
   try {
     const saved = localStorage.getItem('mazo-maps-theme');
@@ -263,6 +294,10 @@ async function initializeMap() {
       minZoom: mapConfig.minZoom,
       maxZoom: mapConfig.maxZoom,
       attributionControl: true,
+      pixelRatio: Math.min(globalThis.devicePixelRatio || 1, 2),
+      crossSourceCollisions: true,
+      renderWorldCopies: false,
+      maxTileCacheSize: 64,
       cooperativeGestures: true,
       fadeDuration: reducedMotion ? 0 : 150,
     });
@@ -270,6 +305,10 @@ async function initializeMap() {
       new maplibre.NavigationControl({ visualizePitch: true }),
       'top-right',
     );
+    map.on('styleimagemissing', (event) => addPlaceIcon(event.id));
+    map.on('style.load', () => {
+      for (const category of Object.keys(placeArtwork)) addPlaceIcon(`mazo-poi-${category}`);
+    });
     map.on('render', revealMap);
     map.on('load', () => {
       revealMap();

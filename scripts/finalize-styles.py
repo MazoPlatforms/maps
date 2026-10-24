@@ -16,9 +16,23 @@ archive_layers = {
     name: set(info["layers"])
     for name, info in manifest["archives"].items()
 }
-version = hashlib.sha256(
+version_hash = hashlib.sha256(
     f"{manifest['release']}:{manifest['builtAt']}:{manifest['overtureTilesImage']}".encode()
-).hexdigest()[:16]
+)
+for asset in sorted((site / "assets").rglob("*")):
+    if asset.is_file() and asset.suffix in {".js", ".css", ".json"}:
+        # Remove prior cache keys and build substitutions for repeatable finalization.
+        content = re.sub(r"\?v=[a-f0-9]+", "", asset.read_text())
+        if asset in styles.values():
+            style = json.loads(content)
+            style.get("metadata", {}).pop("mazo:release", None)
+            style["layers"] = [layer for layer in style["layers"] if not layer.get("source") or layer.get("source-layer") in archive_layers[layer["source"]]]
+            for source in style.get("sources", {}).values():
+                source["url"] = re.sub(r"\.[a-f0-9]{64}\.pmtiles", ".pmtiles", source["url"])
+            content = json.dumps(style, sort_keys=True)
+        version_hash.update(asset.relative_to(site).as_posix().encode())
+        version_hash.update(content.encode())
+version = version_hash.hexdigest()[:16]
 for theme, archive in manifest["archives"].items():
     name = f"{theme}.{archive['sha256']}.pmtiles"
     current = site / "data/sri-lanka" / archive["file"]
