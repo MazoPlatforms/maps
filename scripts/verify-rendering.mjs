@@ -192,7 +192,7 @@ try {
         await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:points(0)});
         for(let d=10;d<=60;d+=10) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:points(d)});
         await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-        await page.waitForFunction(lng=>Math.abs(window.__mazoMap.getCenter().lng-lng)>.00001,before);
+        await page.waitForFunction(lng=>Math.abs(window.__mazoMap.getCenter().lng-lng)>.00001,before,{timeout:10000});
         }
         // Context disposal releases the input session after both theme checks.
       }
