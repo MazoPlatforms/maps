@@ -137,7 +137,7 @@ try {
       const handle=await page.locator('#directions-drag').boundingBox();const x=handle.x+handle.width/2,y=handle.y+handle.height/2;
       await page.mouse.move(x,y);await page.mouse.down();
       await page.mouse.move(x,y-60,{steps:6});await page.mouse.up();
-      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#directions-panel')).transform.includes('-60px'),null,{timeout:10000});
+      await page.waitForFunction(()=>document.querySelector('#directions-panel').style.transform.includes('-60px'),null,{timeout:10000});
     }
     await page.click('#directions-close');
     await page.click('#layers-toggle');
