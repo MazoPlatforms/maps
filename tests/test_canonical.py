@@ -187,6 +187,8 @@ class Canonical(unittest.TestCase):
         style = load(out / 'light.json')
         self.assertEqual(set(style['sources']), {'mazo'})
         self.assertNotIn('overture', json.dumps(style['sources']))
+        again = build(self.store.scan(), self.admin, self.directory / 'tiles-again', os.environ['TIPPECANOE'], maxzoom=2)
+        self.assertEqual(manifest['tiles']['sha256'], again['tiles']['sha256'])
 
 
 if __name__ == '__main__':

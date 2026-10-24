@@ -9,7 +9,7 @@ The initial owned sample comes from Overture `2026-10-21.0` regional source Parq
 - The original Survey Department of Sri Lanka / OCHA classifier remains under CC BY 3.0 IGO, with attribution and snapshot dates in `ATTRIBUTION.md`. It is not silently rewritten by a proposed boundary correction.
 - Noto fonts, if bundled, retain the SIL Open Font License in `assets/fonts/OFL.txt`. A font license file alone is not a complete offline glyph bundle. Current font capture failed with HTTP 403; the geometry-only offline style does not require glyphs.
 
-License texts captured for this snapshot are in `data/canonical/licenses/`; they are copied into assembled canonical site artifacts. The captured CDLA page contains the agreement in its published HTML, including site navigation. The ODbL and Apache license texts are plain text. Existing boundary notices remain in `ATTRIBUTION.md`. Full source-specific notice/copyright review (including source-specific building notices) remains a release gate; these files are not a claim of completed legal review or a relicensing of upstream data.
+License texts captured for this snapshot are in `data/canonical/licenses/`; they are copied into assembled canonical site artifacts. The captured CDLA page is retained as plain text with its source URL; executable page scripts/styles are excluded, and the legal agreement text is preserved. The ODbL and Apache license texts are plain text. Existing boundary notices remain in `ATTRIBUTION.md`. Full source-specific notice/copyright review (including source-specific building notices) remains a release gate; these files are not a claim of completed legal review or a relicensing of upstream data.
 
 ## New contributions
 

@@ -232,13 +232,14 @@ def build(records, admin, output, tippecanoe=None, maxzoom=14):
                     'attribution': sorted(attribution), 'tiles': None,
                     'pilotLimit': PILOT_LIMIT}
         if tippecanoe and layers:
-            subprocess.run([tippecanoe, '--output=' + str(stage / 'mazo.pmtiles'),
+            subprocess.run(['tippecanoe', '--output=mazo.pmtiles', '--name=Mazo Maps',
+                            '--description=Independent canonical geographic records',
                             '--minimum-zoom=0', '--maximum-zoom=' + str(maxzoom),
                             '--drop-densest-as-needed', '--extend-zooms-if-still-dropping',
                             '--attribution=' + ' | '.join(sorted(attribution)),
                             *[arg for layer in sorted(layers)
-                              for arg in ('-L', layer + ':' + str(stage / (layer + '.geojsonl')))]],
-                           check=True)
+                              for arg in ('-L', layer + ':' + layer + '.geojsonl')]],
+                           executable=shutil.which(tippecanoe), cwd=stage, check=True)
             tile_hash = file_digest(stage / 'mazo.pmtiles')
             filename = 'mazo.' + tile_hash + '.pmtiles'
             (stage / 'mazo.pmtiles').rename(stage / filename)
