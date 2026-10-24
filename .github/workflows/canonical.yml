@@ -50,8 +50,8 @@ jobs:
       - name: Verify real browser editor, offline recovery and routing
         run: |
           set -euo pipefail
-          npm install --prefix "$RUNNER_TEMP/mazo-browser" --no-save --no-package-lock playwright@1.55.0
-          PLAYWRIGHT_MODULE="$RUNNER_TEMP/mazo-browser/node_modules/playwright/index.mjs" CHROMIUM_PATH="$(command -v google-chrome)" node scripts/verify-platform.mjs "$RUNNER_TEMP/canonical-site" | tee "$RUNNER_TEMP/review/browser.json"
+          npm install --prefix "$RUNNER_TEMP/mazo-browser" --no-save --no-package-lock playwright@1.55.0 @axe-core/playwright@4.14.0
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/mazo-browser/node_modules/playwright/index.mjs" AXE_PLAYWRIGHT_MODULE="$RUNNER_TEMP/mazo-browser/node_modules/@axe-core/playwright/dist/index.mjs" CHROMIUM_PATH="$(command -v google-chrome)" node scripts/verify-platform.mjs "$RUNNER_TEMP/canonical-site" | tee "$RUNNER_TEMP/review/browser.json"
       - name: Record elevated boundary review requirement
         id: review-summary
         run: |

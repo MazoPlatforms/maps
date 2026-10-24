@@ -4,7 +4,7 @@
   --surface: #fff;
   --surface-alt: #eef1e9;
   --ink: #1c2821;
-  --muted: #6c756d;
+  --muted: #646d65;
   --line: #dfe4d9;
   --accent: #d3eb8c;
   --accent-ink: #283b1c;
@@ -414,6 +414,11 @@ body.map-expanded {
   gap: 9px;
   pointer-events: none;
   color: #24362b;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  box-shadow: var(--shadow);
 }
 .signature-mark {
   display: grid;
@@ -437,12 +442,12 @@ body.map-expanded {
   letter-spacing: 1.4px;
 }
 [data-theme='dark'] .map-signature {
-  color: #d8e5d2;
+  color: #edf2e7;
 }
 .map-actions {
   position: absolute;
   right: 18px;
-  bottom: 40px;
+  bottom: 92px;
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -881,7 +886,7 @@ body.map-expanded {
   }
   .map-actions {
     right: 12px;
-    bottom: 38px;
+    bottom: 92px;
     gap: 6px;
   }
   .map-actions .icon-button {

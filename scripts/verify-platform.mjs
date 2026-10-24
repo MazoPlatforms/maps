@@ -7,6 +7,26 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 const root = resolve(process.argv[2]);
 if (!process.argv[2]) throw new Error('Assembled preview directory required');
+const AxeBuilder = process.env.AXE_PLAYWRIGHT_MODULE
+  ? (await import(process.env.AXE_PLAYWRIGHT_MODULE)).default
+  : null;
+const accessibilityContexts = [];
+async function checkAccessibility(page, context) {
+  if (!AxeBuilder) return;
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze();
+  assert.deepEqual(
+    results.violations.map(({ id, impact, nodes }) => ({
+      id,
+      impact,
+      targets: nodes.map((node) => node.target),
+    })),
+    [],
+    `Accessibility violations in ${context}`,
+  );
+  accessibilityContexts.push(context);
+}
 const server = createServer(async (req, res) => {
   try {
     const pathname = decodeURIComponent(
@@ -93,6 +113,7 @@ try {
   await page.waitForFunction(() =>
     window.__mazoMap.queryRenderedFeatures().some((f) => f.properties.id),
   );
+  await checkAccessibility(page, 'desktop viewer light theme');
   const mapMs = performance.now() - start;
   const tileDurations = await page.evaluate(() =>
     performance
@@ -106,6 +127,7 @@ try {
     await page.evaluate(() => document.documentElement.dataset.theme),
     'dark',
   );
+  await checkAccessibility(page, 'desktop viewer dark theme');
   await page.click('#theme-toggle');
   await page.waitForFunction(() => window.__mazoMap.isStyleLoaded());
   await page.click('#editor-toggle');
@@ -118,6 +140,12 @@ try {
           (await page.locator('#map-status').textContent()),
       );
     });
+  await page.waitForFunction(() => window.__mazoMap.isStyleLoaded());
+  await checkAccessibility(page, 'desktop editor light theme');
+  await page.click('#theme-toggle');
+  await page.waitForFunction(() => window.__mazoMap.isStyleLoaded());
+  await checkAccessibility(page, 'desktop editor dark theme');
+  await page.click('#theme-toggle');
   await page.waitForFunction(() => window.__mazoMap.isStyleLoaded());
   await page.selectOption('#edit-type', 'building');
   const selected = await page.evaluate(() => {
@@ -507,6 +535,10 @@ try {
   await mobile.waitForFunction(() => window.__mazoMap?.isStyleLoaded());
   await mobile.tap('#editor-toggle');
   await mobile.waitForFunction(() => !!window.__mazoEditor);
+  await checkAccessibility(mobile, 'mobile editor light theme');
+  await mobile.click('#theme-toggle');
+  await mobile.waitForFunction(() => window.__mazoMap.isStyleLoaded());
+  await checkAccessibility(mobile, 'mobile editor dark theme');
   assert.ok(
     await mobile.evaluate(
       () =>
@@ -539,6 +571,7 @@ try {
         changedUpdateFiles: updateAssetRequests,
         drawnFeatureTypes: 8,
         keyboardDrawing,
+        accessibilityChecks: accessibilityContexts,
         lightAndDark: true,
         jsHeapBytes: await page.evaluate(
           () => performance.memory?.usedJSHeapSize ?? null,
