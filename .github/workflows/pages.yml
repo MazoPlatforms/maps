@@ -1,6 +1,39 @@
 name: Build and publish Sri Lanka basemap
 
 on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - 'docs/**'
+      - 'sdk/**'
+      - 'schemas/**'
+      - 'data/boundaries/**'
+      - 'data/canonical/**'
+      - 'data/overture/**'
+      - 'data/sri-lanka/**'
+      - 'contributions/**'
+      - 'scripts/assemble-canonical.py'
+      - 'scripts/build-dataset.py'
+      - 'scripts/build-overture-theme.sh'
+      - 'scripts/canonical.py'
+      - 'scripts/contributions.py'
+      - 'scripts/fetch-upstream.py'
+      - 'scripts/finalize-styles.py'
+      - 'scripts/geodata/**'
+      - 'scripts/refresh_offline_manifest.py'
+      - 'scripts/reuse-basemap.py'
+      - 'scripts/validate-tiles.py'
+      - 'scripts/verify_canonical_site.py'
+      - 'scripts/verify-live-map.mjs'
+      - 'scripts/verify-source-identities.mjs'
+      - 'service-worker.js'
+      - 'LICENSE'
+      - 'LICENSE-DATA.md'
+      - 'ATTRIBUTION.md'
+      - 'README.md'
+      - '.nojekyll'
+      - '.github/workflows/pages.yml'
   push:
     branches: [main]
     paths:
@@ -46,7 +79,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: mazo-maps-pages
+  group: mazo-maps-pages-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
