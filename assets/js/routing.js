@@ -419,22 +419,25 @@ export function setupRouting(map, elements, resolveLocation) {
   });
   elements.close.addEventListener('click', () => elements.toggle.click());
 
-  // A short drag moves the mobile sheet; a downward swipe closes it.
+  // Track the active pointer on the document so drags keep working after the
+  // pointer leaves the small touch handle, including browsers without capture.
+  let dragPointer = null;
   elements.drag.addEventListener('pointerdown', (event) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
-    elements.drag.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    dragPointer = event.pointerId;
     elements.panel.dataset.dragStart = String(event.clientY);
     elements.panel.style.transition = 'none';
   });
-  elements.drag.addEventListener('pointermove', (event) => {
-    if (!elements.panel.hasPointerCapture(event.pointerId)) return;
+  document.addEventListener('pointermove', (event) => {
+    if (dragPointer !== event.pointerId) return;
     const start = Number(elements.panel.dataset.dragStart);
     elements.panel.style.transform = `translateY(${Math.max(-60, Math.min(240, event.clientY - start))}px)`;
   });
-  elements.drag.addEventListener('pointerup', (event) => {
-    if (!elements.panel.hasPointerCapture(event.pointerId)) return;
+  document.addEventListener('pointerup', (event) => {
+    if (dragPointer !== event.pointerId) return;
     const delta = event.clientY - Number(elements.panel.dataset.dragStart);
-    elements.panel.releasePointerCapture(event.pointerId);
+    dragPointer = null;
     elements.panel.style.transition = '';
     if (delta > 90) {
       elements.panel.style.transform = '';
@@ -443,7 +446,9 @@ export function setupRouting(map, elements, resolveLocation) {
       elements.panel.style.transform = delta < -40 ? 'translateY(-60px)' : '';
     }
   });
-  elements.drag.addEventListener('pointercancel', () => {
+  document.addEventListener('pointercancel', (event) => {
+    if (dragPointer !== event.pointerId) return;
+    dragPointer = null;
     elements.panel.style.transition = '';
     elements.panel.style.transform = '';
   });
