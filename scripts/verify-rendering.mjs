@@ -135,7 +135,7 @@ try {
     }
     if(mobile){
       const handle=await page.locator('#directions-drag').boundingBox();const cdp=await context.newCDPSession(page);const x=handle.x+handle.width/2,y=handle.y+handle.height/2;
-      await cdp.send('Input.setTouchEmulationEnabled',{enabled:true});
+      await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
       await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});
       for(let delta=10;delta<=60;delta+=10) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-delta,id:1}]});
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
