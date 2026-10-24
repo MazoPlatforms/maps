@@ -43,3 +43,13 @@ export function prepareCanonicalStyle(style, datasetRoot) {
   result.sources.mazo.url = 'pmtiles://' + new URL(style.sources.mazo.url.slice(10), datasetRoot).href;
   return result;
 }
+
+export function setCanonicalLabelLanguage(map, language) {
+  if (!['en', 'ta', 'si'].includes(language)) throw new Error('Unsupported label language');
+  const localized = language === 'en' ? ['get', '@name:en'] : ['get', `@name:${language}`];
+  const textField = ['coalesce', localized, ['get', '@name']];
+  for (const layer of map.getStyle().layers ?? []) {
+    if (layer.type === 'symbol' && layer.layout?.['text-field'] !== undefined)
+      map.setLayoutProperty(layer.id, 'text-field', textField);
+  }
+}

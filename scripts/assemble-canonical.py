@@ -97,6 +97,32 @@ if font_manifest_path.exists():
         raise ValueError("font manifest contains no glyph ranges")
     if listed_ranges != {f"{item}.pbf" for item in font_manifest["ranges"]}:
         raise ValueError("font range manifest and generated glyph files disagree")
+    shaping_path = ROOT / "assets/fonts/complex-text-manifest.json"
+    shaping = load(shaping_path)
+    plugin_path = (ROOT / shaping["runtime"]["file"]).resolve()
+    if (ROOT.resolve() not in plugin_path.parents or
+            hashlib.sha256(plugin_path.read_bytes()).hexdigest() != shaping["runtime"]["sha256"]):
+        raise ValueError("HarfBuzz complex-text runtime is missing or changed")
+    plugin_license = ROOT / "assets/vendor/complex-text/LICENSE-MIT.txt"
+    if "MIT License" not in plugin_license.read_text(encoding="utf-8"):
+        raise ValueError("complex-text runtime MIT notice is missing")
+    if "Apache License" not in (ROOT / "assets/vendor/complex-text/LICENSE-Apache-2.0.txt").read_text(encoding="utf-8"):
+        raise ValueError("embedded HarfBuzzJS Apache notice is missing")
+    if "Permission is hereby granted" not in (ROOT / "assets/vendor/complex-text/LICENSE-HARFBUZZJS-MIT.txt").read_text(encoding="utf-8"):
+        raise ValueError("checked HarfBuzzJS source MIT notice is missing")
+    if "MIT License" not in (ROOT / "assets/vendor/complex-text/LICENSE-PGF-ENCODING-MIT.txt").read_text(encoding="utf-8"):
+        raise ValueError("embedded pgf-encoding MIT notice is missing")
+    if len(shaping["files"]) != 30:
+        raise ValueError("unexpected encoded complex-text glyph range set")
+    for item in shaping["files"]:
+        glyph_path = (ROOT / item["file"]).resolve()
+        if ROOT.resolve() not in glyph_path.parents:
+            raise ValueError("complex-text glyph path escapes the repository")
+        body = glyph_path.read_bytes()
+        if len(body) != item["bytes"] or hashlib.sha256(body).hexdigest() != item["sha256"]:
+            raise ValueError(f"complex-text glyph integrity check failed: {item['file']}")
+    if "SIL OPEN FONT LICENSE" not in (ROOT / "assets/fonts/Noto Sans Multiscript Regular/OFL.txt").read_text(encoding="utf-8"):
+        raise ValueError("complex-text Noto font OFL notice is missing")
 (a.output / "offline-manifest.json").write_bytes(
     encoded(
         {
@@ -107,7 +133,7 @@ if font_manifest_path.exists():
             "regions": load(a.output / "api/v1" / manifest["regions"]["file"])[
                 "regions"
             ],
-            "mode": "glyph-enabled; local Noto Sans/Tamil/Sinhala; Tamil complex-script shaping unsupported" if has_fonts else "geometry-only; map labels require a complete licensed glyph bundle",
+            "mode": "glyph-enabled; local Noto Sans and offline HarfBuzz Tamil shaping" if has_fonts else "geometry-only; map labels require a complete licensed glyph bundle",
             "files": files,
         }
     )

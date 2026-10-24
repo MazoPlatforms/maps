@@ -75,6 +75,29 @@ def migrate_record(old, admin):
     return record
 
 
+def localized_label(properties, language):
+    """Return a real localized name without replacing the canonical source spelling."""
+    if language not in {'en', 'si', 'ta'}:
+        raise ValueError('unsupported map label language')
+    authoritative = properties.get('authoritativeNames', {})
+    if isinstance(authoritative, dict) and isinstance(authoritative.get(language), str):
+        return authoritative[language]
+    direct = properties.get('name:' + language)
+    if isinstance(direct, str) and direct:
+        return direct
+    names = properties.get('names', {})
+    common = names.get('common', []) if isinstance(names, dict) else []
+    if isinstance(common, dict):
+        value = common.get(language)
+        if isinstance(value, str) and value:
+            return value
+    if isinstance(common, list):
+        for item in common:
+            if isinstance(item, dict) and item.get('language') == language and isinstance(item.get('value'), str):
+                return item['value']
+    return None
+
+
 class FileStore:
     def __init__(self, root, admin):
         self.root, self.admin = Path(root), admin
@@ -211,6 +234,10 @@ def build(records, admin, output, tippecanoe=None, maxzoom=14):
             properties = record['properties'] | {'id': key, '_mazoType': kind}
             if '@name' not in properties and isinstance(properties.get('names'), dict):
                 properties['@name'] = properties['names'].get('primary', '')
+            for language in ('en', 'si', 'ta'):
+                localized = localized_label(record['properties'], language)
+                if localized:
+                    properties['@name:' + language] = unicodedata.normalize('NFKC', localized)
             if isinstance(properties.get('@name'), str):
                 # Keep source spellings in canonical records while rendering
                 # compatibility characters in a form covered by Unicode fonts.
@@ -280,6 +307,16 @@ def build(records, admin, output, tippecanoe=None, maxzoom=14):
                 style['layers'].append({'id': 'mazo-boundaries', 'type': 'line',
                     'source': 'mazo', 'source-layer': 'administrative_boundary',
                     'paint': {'line-color': '#718879', 'line-width': 1}})
+                style['layers'].append({'id': 'mazo-boundary-labels', 'type': 'symbol',
+                    'source': 'mazo', 'source-layer': 'administrative_boundary',
+                    'layout': {'text-field': ['get', '@name'],
+                               'text-font': ['Noto Sans Regular'],
+                               'text-size': ['interpolate', ['linear'], ['zoom'], 5, 10, 12, 13],
+                               'text-allow-overlap': False,
+                               'text-ignore-placement': False},
+                    'paint': {'text-color': '#f3f5ef' if theme == 'dark' else '#34433b',
+                              'text-halo-color': '#17201a' if theme == 'dark' else '#f8faf7',
+                              'text-halo-width': 1.5}})
                 (stage / f'{theme}.json').write_bytes(encoded(style))
         (stage / 'manifest.json').write_bytes(encoded(manifest))
         checksums = {str(p.relative_to(stage)): file_digest(p)

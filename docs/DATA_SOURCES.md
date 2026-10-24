@@ -14,7 +14,7 @@ Counts in the manifest are bbox-filtered source Parquet rows before tile dedupli
 
 ## Rendering dependencies
 
-The map renderer is MapLibre GL JS. The PMTiles browser adapter uses HTTP range requests against same-origin archives. The legacy production viewer retrieves label glyphs from the public OpenFreeMap font endpoint. Canonical regional builds bundle locally generated Noto Sans, Tamil, and Sinhala glyph ranges; no external font request is required by that independent preview. Production cutover remains incomplete.
+The map renderer is MapLibre GL JS. The PMTiles browser adapter uses HTTP range requests against same-origin archives. The legacy production viewer retrieves label glyphs from the public OpenFreeMap font endpoint. Canonical regional builds bundle local Noto ranges and a HarfBuzz complex-text runtime with encoded Tamil glyph PBFs; there is no runtime upstream font request on that path. The OCHA Colombo Tamil/Sinhala names have been checked in an offline browser. Production cutover remains incomplete.
 
 ## Refresh
 

@@ -9,6 +9,8 @@ if(globalThis.navigator?.onLine===false){
 const themeButton = document.querySelector('#theme-toggle');
 const mapStatus = document.querySelector('#map-status');
 const mapNode = document.querySelector('#map');
+const mapLabelControl = document.querySelector('#map-label-control');
+const mapLabelLanguage = document.querySelector('#map-label-language');
 const mapFrame = document.querySelector('#map-frame');
 const citySelect = document.querySelector('#city-select');
 const siteRoot = new URL('../../', import.meta.url).href;
@@ -21,6 +23,14 @@ let map;
 let geographicEditor=null;
 let firstFrame = false;
 let contributionBundle = null;
+
+function applyCanonicalLabelLanguage() {
+  if (!map || new URLSearchParams(location.search).get('dataset') !== 'canonical') return;
+  import('./canonical-records.js').then(({setCanonicalLabelLanguage}) => {
+    try { setCanonicalLabelLanguage(map, mapLabelLanguage?.value || 'en'); }
+    catch (error) { showNotice(error.message); }
+  });
+}
 
 function preferredTheme() {
   try {
@@ -278,6 +288,39 @@ async function initializeMap() {
       import('../vendor/pmtiles.mjs'),
       loadStyle(root.dataset.theme),
     ]);
+    const canonical = new URLSearchParams(location.search).get('dataset') === 'canonical';
+    if (mapLabelControl) mapLabelControl.hidden = !canonical;
+    if (canonical && mapLabelLanguage) {
+      try {
+        const saved = localStorage.getItem('mazo-map-label-language');
+        if (['en', 'ta', 'si'].includes(saved)) mapLabelLanguage.value = saved;
+      } catch {}
+    }
+    if (canonical) {
+      // The complex-text plugin and its encoded HarfBuzz glyph ranges are
+      // self-hosted so Tamil labels can shape without a network dependency.
+      maplibre.setRTLTextPlugin(
+        new URL('../vendor/complex-text/maplibre-gl-complex-text.js', import.meta.url).href,
+        false,
+      );
+    }
+    const encodedGlyphRanges = new Set([
+      2304, 2560, 2816, 3072, 10240, 10752,
+      57600, 57856, 58112, 58368, 58624, 58880, 59136, 59392,
+      59648, 59904, 60160, 60416, 60672, 60928, 61184, 61440,
+      61696, 61952, 62208, 62464, 62720, 62976, 63232, 63488,
+    ]);
+    const transformRequest = (requestUrl, resourceType) => {
+      if (!canonical || resourceType !== 'Glyphs') return undefined;
+      const match = requestUrl.match(/(?:^|\/)(\d+)-(\d+)\.pbf(?:\?.*)?$/);
+      if (!match || !encodedGlyphRanges.has(Number(match[1]))) return undefined;
+      return {
+        url: new URL(
+          `../fonts/Noto%20Sans%20Multiscript%20Regular/${match[1]}-${match[2]}.pbf`,
+          import.meta.url,
+        ).href,
+      };
+    };
     const protocol = new pmtiles.Protocol();
     for (const source of Object.values(style.sources)) {
       if (!source.url?.startsWith('pmtiles://')) continue;
@@ -290,6 +333,7 @@ async function initializeMap() {
     map = new maplibre.Map({
       container: mapNode,
       style,
+      transformRequest,
       bounds: new URLSearchParams(location.search).get('dataset')==='canonical'?[79.83,6.915,79.86,6.93]:mapConfig.bounds,
       fitBoundsOptions: { padding: 36 },
       minZoom: mapConfig.minZoom,
@@ -303,6 +347,7 @@ async function initializeMap() {
       'top-right',
     );
     map.on('render', revealMap);
+    map.on('style.load', applyCanonicalLabelLanguage);
     map.on('load', () => {
       revealMap();
       if (mapTest) globalThis.__mazoMapTimings.loaded = performance.now();
@@ -331,6 +376,10 @@ applyTheme(preferredTheme(), false);
 themeButton?.addEventListener('click', () =>
   applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'),
 );
+mapLabelLanguage?.addEventListener('change', () => {
+  try { localStorage.setItem('mazo-map-label-language', mapLabelLanguage.value); } catch {}
+  applyCanonicalLabelLanguage();
+});
 citySelect?.addEventListener('change', (event) =>
   chooseCity(event.target.value),
 );

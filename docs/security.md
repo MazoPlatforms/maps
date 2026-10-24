@@ -24,4 +24,4 @@ A targeted source scan for common GitHub/AWS secret/private-key patterns returne
 
 ## Remaining work
 
-Verify/enforce branch protections and reviewer configuration; independently review source-specific redistribution notices; complete Android low-memory and accessibility testing; harden huge-geometry/changeset resource limits and namespace/reference policies; review complex road topology and restriction edits; perform a full independent security review before public release. Offline glyph assets are now generated locally and checksummed; disconnected-browser verification is pending, and the current MapLibre renderer does not shape Tamil complex text.
+Verify/enforce branch protections and reviewer configuration; complete Android low-memory and accessibility testing; harden huge-geometry/changeset resource limits and namespace/reference policies; review complex road topology and restriction edits; perform a full independent security review before public release. Offline Tamil shaping now uses a pinned self-hosted HarfBuzz plugin and checksummed encoded glyph ranges; a real offline Chromium check passes, but Android and nationwide name coverage remain unverified.

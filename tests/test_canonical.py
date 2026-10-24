@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
-from geodata.canonical import FileStore, build, import_feature, migrate_record
+from geodata.canonical import FileStore, build, import_feature, localized_label, migrate_record
 from geodata.core import Administration, digest, encoded, load
 from geodata.history import check_revision
 from test_geodata import fake_boundaries, polygon
@@ -38,6 +38,15 @@ class Canonical(unittest.TestCase):
         self.assertNotEqual(self.admin.path(changed), self.admin.path(self.record))
         self.assertEqual(list(self.store.scan()), [self.record['id']])
         self.assertFalse((self.store.root / self.admin.path(self.record)).exists())
+
+    def test_authoritative_localized_map_labels_keep_each_source_language(self):
+        names = {'authoritativeNames': {'en': 'Colombo', 'ta': 'கொழும்பு', 'si': 'කොළඹ'}}
+        self.assertEqual(localized_label(names, 'en'), 'Colombo')
+        self.assertEqual(localized_label(names, 'ta'), 'கொழும்பு')
+        self.assertEqual(localized_label(names, 'si'), 'කොළඹ')
+        self.assertIsNone(localized_label({'name': 'English only'}, 'ta'))
+        with self.assertRaisesRegex(ValueError, 'unsupported'):
+            localized_label(names, 'fr')
 
     def test_offline_import_edit_delete_and_optimistic_concurrency(self):
         self.store.write(self.record)

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchCanonicalRecord, prepareCanonicalEdit, prepareCanonicalDeletion } from '../assets/js/canonical-records.js';
+import { fetchCanonicalRecord, prepareCanonicalEdit, prepareCanonicalDeletion, setCanonicalLabelLanguage } from '../assets/js/canonical-records.js';
 const id = '6763e377-ecea-4bea-aef4-5ac6ad8a978b';
 const record = { schemaVersion: 2, id, revision: 1, status: 'active', properties: { name: 'Fixture' } };
 const body = new TextEncoder().encode(JSON.stringify(record));
@@ -43,4 +43,22 @@ test('canonical styles resolve archives under the dataset location', async () =>
     `pmtiles://https://example.org/maps/canonical/${file}`);
   assert.equal(style.sources.mazo.url, `pmtiles://${file}`);
   assert.throws(() => prepareCanonicalStyle({ sources: { overture: {} } }, 'https://example.org/'), /canonical/);
+});
+
+test('canonical label language updates every symbol label with English fallback', () => {
+  const updates = [];
+  const map = {
+    getStyle: () => ({ layers: [
+      { id: 'place-names', type: 'symbol', layout: { 'text-field': ['get', '@name'] } },
+      { id: 'roads', type: 'symbol', layout: { 'text-field': ['get', '@name'] } },
+      { id: 'land', type: 'fill', paint: {} },
+    ] }),
+    setLayoutProperty: (...args) => updates.push(args),
+  };
+  setCanonicalLabelLanguage(map, 'ta');
+  assert.deepEqual(updates, [
+    ['place-names', 'text-field', ['coalesce', ['get', '@name:ta'], ['get', '@name']]],
+    ['roads', 'text-field', ['coalesce', ['get', '@name:ta'], ['get', '@name']]],
+  ]);
+  assert.throws(() => setCanonicalLabelLanguage(map, 'ar'), /Unsupported/);
 });

@@ -110,6 +110,12 @@ try {
   const start = performance.now();
   await page.goto(base + '?dataset=canonical&maptest');
   await page.waitForFunction(() => window.__mazoMap?.isStyleLoaded());
+  assert.equal(await page.locator('#map-label-control').isVisible(), true);
+  await page.selectOption('#map-label-language', 'ta');
+  await page.waitForFunction(() => window.__mazoMap.getLayoutProperty('place-names', 'text-field')?.[1]?.[1] === '@name:ta');
+  await page.selectOption('#map-label-language', 'si');
+  await page.waitForFunction(() => window.__mazoMap.getLayoutProperty('place-names', 'text-field')?.[1]?.[1] === '@name:si');
+  await page.selectOption('#map-label-language', 'en');
   await page.waitForFunction(() =>
     window.__mazoMap.queryRenderedFeatures().some((f) => f.properties.id),
   );
@@ -491,11 +497,46 @@ try {
   await page.waitForFunction(() =>
     window.__mazoMap.queryRenderedFeatures().some((f) => f.properties.id),
   );
+  const tamilLabel = await page.evaluate(async () => {
+    const { MazoMaps } = await import('./sdk/index.js');
+    const sdk = new MazoMaps({ baseURL: new URL('api/v1/', location.href) });
+    const record = await sdk.getFeature('266bd9b0-fc19-54fa-8647-0a85e631ac4a');
+    if (record.origin.provider !== 'Survey Department of Sri Lanka / OCHA' ||
+        record.sources.every((source) => source.license !== 'CC BY 3.0 IGO') ||
+        record.properties.authoritativeNames.ta !== 'கொழும்பு')
+      throw new Error('Expected the real OCHA Colombo Tamil name and provenance');
+    const coords = [79.85, 6.93];
+    window.__mazoMap.addSource('tamil-label-check', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: ['ta', 'si'].map((language) => ({
+        type: 'Feature', properties: { language, name: record.properties.authoritativeNames[language] },
+        geometry: { type: 'Point', coordinates: coords },
+      })) },
+    });
+    window.__mazoMap.addLayer({
+      id: 'tamil-label-check', type: 'symbol', source: 'tamil-label-check',
+      layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'],
+        'text-size': 20, 'text-allow-overlap': true, 'text-ignore-placement': true },
+      paint: { 'text-color': '#111111', 'text-halo-color': '#ffffff', 'text-halo-width': 2 },
+    });
+    window.__mazoMap.setCenter(coords);
+    window.__mazoMap.setZoom(12);
+    return { tamil: record.properties.authoritativeNames.ta, sinhala: record.properties.authoritativeNames.si, provider: record.origin.provider };
+  });
+  await page.waitForFunction(() =>
+    performance.getEntriesByType('resource').some((entry) =>
+      entry.name.includes('Noto%20Sans%20Multiscript%20Regular/') && entry.name.endsWith('.pbf')),
+  );
+  await page.waitForFunction(() =>
+    window.__mazoMap.queryRenderedFeatures({ layers: ['tamil-label-check'] }).length === 2,
+  );
   const offlineLabels = await page.evaluate(async () => {
     const style = window.__mazoMap.getStyle();
     const manifest = await (await fetch(new URL('offline-manifest.json', location.href))).json();
     const glyphFiles = manifest.files.filter((entry) => entry.file.startsWith('assets/fonts/Noto Sans Regular/'));
+    const shapedGlyphFiles = manifest.files.filter((entry) => entry.file.startsWith('assets/fonts/Noto Sans Multiscript Regular/'));
     const glyph = await fetch(new URL('assets/fonts/Noto%20Sans%20Regular/0-255.pbf', location.href));
+    const complexPlugin = await fetch(new URL('assets/vendor/complex-text/maplibre-gl-complex-text.js', location.href));
     return {
       mode: manifest.mode,
       glyphCount: glyphFiles.length,
@@ -503,6 +544,11 @@ try {
       symbolLayers: style.layers.filter((layer) => layer.type === 'symbol' && layer.layout?.['text-field']).length,
       localGlyphs: style.glyphs?.includes(location.origin),
       requested: performance.getEntriesByType('resource').some((entry) => /assets\/fonts\/Noto%20Sans%20Regular\/.*\.pbf/.test(entry.name)),
+      shapedGlyphCount: shapedGlyphFiles.length,
+      shapedRequested: performance.getEntriesByType('resource').some((entry) => /assets\/fonts\/Noto%20Sans%20Multiscript%20Regular\/.*\.pbf/.test(entry.name)),
+      scriptSymbolsPlaced: window.__mazoMap.queryRenderedFeatures({ layers: ['tamil-label-check'] }).length,
+      complexPluginStatus: complexPlugin.status,
+      complexPluginBytes: (await complexPlugin.arrayBuffer()).byteLength,
     };
   });
   assert.match(offlineLabels.mode, /glyph-enabled/);
@@ -511,6 +557,14 @@ try {
   assert.ok(offlineLabels.symbolLayers > 0);
   assert.ok(offlineLabels.localGlyphs);
   assert.ok(offlineLabels.requested, 'MapLibre requested local glyphs while network is disconnected');
+  assert.ok(tamilLabel.tamil.includes('கொழும்பு'));
+  assert.ok(tamilLabel.sinhala.includes('කොළඹ'));
+  assert.equal(tamilLabel.provider, 'Survey Department of Sri Lanka / OCHA');
+  assert.ok(offlineLabels.shapedGlyphCount >= 20, 'Offline inventory includes encoded HarfBuzz glyph ranges');
+  assert.ok(offlineLabels.shapedRequested, 'Tamil label requested a local HarfBuzz-encoded glyph range');
+  assert.equal(offlineLabels.scriptSymbolsPlaced, 2, 'Real Tamil and Sinhala label features were placed by MapLibre');
+  assert.equal(offlineLabels.complexPluginStatus, 200, 'Complex-text plugin is available from this site while offline');
+  assert.ok(offlineLabels.complexPluginBytes > 1_000_000);
   const offlineSearch = await page.evaluate(async () => {
     const { MazoMaps } = await import('./sdk/index.js');
     const sdk = new MazoMaps({ baseURL: new URL('api/v1/', location.href) });
