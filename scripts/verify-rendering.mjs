@@ -134,11 +134,9 @@ try {
       await page.evaluate(()=>Object.defineProperty(navigator,'onLine',{configurable:true,value:true}));
     }
     if(mobile){
-      const handle=await page.locator('#directions-drag').boundingBox();const cdp=await context.newCDPSession(page);const x=handle.x+handle.width/2,y=handle.y+handle.height/2;
-      await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
-      await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});
-      for(let delta=10;delta<=60;delta+=10) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-delta,id:1}]});
-      await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      const handle=await page.locator('#directions-drag').boundingBox();const x=handle.x+handle.width/2,y=handle.y+handle.height/2;
+      await page.mouse.move(x,y);await page.mouse.down();
+      await page.mouse.move(x,y-60,{steps:6});await page.mouse.up();
       await page.waitForFunction(()=>getComputedStyle(document.querySelector('#directions-panel')).transform.includes('-60px'),null,{timeout:10000});
     }
     await page.click('#directions-close');
