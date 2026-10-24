@@ -32,7 +32,9 @@ Serve this directory with any static HTTP server, then open its local URL. For e
 python3 -m http.server 8000
 ```
 
-MapLibre GL JS is bundled locally. The map requires an internet connection for label glyphs and map archives. Regional vector archives are served from this GitHub Pages site. No API key or secret is required.
+MapLibre GL JS is bundled locally. The map requires an internet connection for label glyphs, vector archives, and live routing. Regional vector archives are served from this GitHub Pages site. No API key or secret is required.
+
+Directions are calculated on demand through FOSSGIS OSRM and shown on the map. Requests include the selected map coordinates, are saved in the provider logs, and follow its one request per second and light usage policy. Offline routing uses routes cached on that device only. See [routing, performance and provider limits](docs/performance-routing.md).
 
 ## Map attribution and licensing
 

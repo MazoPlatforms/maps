@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/map.test.mjs
+      - run: node --test tests/*.test.mjs
       - name: Verify candidate desktop and mobile rendering against real map data
         run: |
           npm install --prefix "$RUNNER_TEMP/mazo-render-browser" --no-save playwright@1.55.0

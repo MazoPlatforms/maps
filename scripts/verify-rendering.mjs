@@ -62,9 +62,11 @@ const results=[];
 const output=process.env.RENDER_EVIDENCE_DIR || '/tmp/mazo-render-evidence';
 await mkdir(output,{recursive:true});
 try {
-  for (const mobile of [false,true]) {
+  const viewports=process.env.VERIFY_MOBILE_ONLY==='1'?[true]:[false,true];
+  for (const mobile of viewports) {
     const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:1000},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?3:1});
-    const page=await context.newPage(); const errors=[]; const failedRequests=[];
+    const page=await context.newPage();
+    if(mobile){const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});await cdp.send('Network.enable');await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200000,uploadThroughput:93750,connectionType:'cellular3g'});} const errors=[]; const failedRequests=[];
     page.on('response',r=>{if(r.status()>=400)console.error('HTTP',r.status(),r.url());});
     page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText}));
     page.on('pageerror', e=>{errors.push(e.message);console.error(e.message);});
@@ -72,22 +74,74 @@ try {
     page.on('crash',()=>console.error('Chromium page crashed')); 
     await page.goto(url);
     await page.waitForFunction(()=>window.__mazoMap?.isStyleLoaded(),null,{timeout:90000});
+    await page.waitForFunction(()=>document.querySelector('#destinations')?.options.length>=50,null,{timeout:30000});
     try {await page.waitForFunction(()=>window.__mazoMap.getLayer('destination-names'),null,{timeout:30000});} catch(e) {console.error(await page.evaluate(()=>({error:window.__mazoMapError,timings:window.__mazoMapTimings,status:document.querySelector('#route-status').textContent,layers:window.__mazoMap.getStyle().layers.map(l=>l.id)})));throw e;}
     await page.waitForFunction(()=>window.__mazoMap.queryRenderedFeatures({layers:['destination-names']}).length>0,null,{timeout:30000});
     await page.waitForFunction(()=>window.__mazoMap.areTilesLoaded(),null,{timeout:90000});
+    const initialLoad=await page.evaluate(()=>{
+      const resources=performance.getEntriesByType('resource');
+      return {firstRenderMs:Math.round(window.__mazoMapTimings.firstRender-window.__mazoMapTimings.started),requests:resources.length,transferBytes:resources.reduce((sum,e)=>sum+e.transferSize,0),encodedBytes:resources.reduce((sum,e)=>sum+e.encodedBodySize,0),resources:resources.map(e=>({url:new URL(e.name).pathname,transferBytes:e.transferSize})).filter(e=>e.transferBytes>0).slice(0,40)};
+    });
     assert.ok(await page.evaluate(()=>window.__mazoMap.queryRenderedFeatures({layers:['road-lines']}).length>0),'Major roads must render at the initial island zoom');
     console.error('Overview',await page.evaluate(()=>({zoom:window.__mazoMap.getZoom(),classes:[...new Set(window.__mazoMap.querySourceFeatures('transportation',{sourceLayer:'segment'}).map(f=>f.properties.class))],sample:window.__mazoMap.querySourceFeatures('transportation',{sourceLayer:'segment'})[0]?.properties})));
     await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-overview.png`});
     assert.equal(await page.evaluate(()=>Math.abs(document.querySelector('#map').getBoundingClientRect().height-innerHeight)<2),true);
     assert.equal(await page.locator('footer, .explorer-heading, .project-section').count(),0);
     await page.fill('#map-search','Kandy');
+    await page.waitForTimeout(250);
+    if (!(await page.locator('#search-results button').count())) console.error('Search diagnostic', await page.evaluate(()=>({value:document.querySelector('#map-search').value,results:document.querySelector('#search-results').textContent,options:document.querySelector('#destinations').options.length,errors:window.__mazoExplorerError})));
     await page.locator('#search-results button').first().click();
+    console.error('Search selected');
     await page.waitForFunction(()=>!window.__mazoMap.isMoving()&&window.__mazoMap.getZoom()>=14);
+    console.error('Search zoom complete');
     await page.click('#directions-toggle');
+    await page.evaluate(()=>{window.__mazoRouteMetrics=[];window.__mazoRouteTest=metric=>window.__mazoRouteMetrics.push(metric);});
     await page.fill('#route-from','Colombo'); await page.fill('#route-to','Kandy');
-    await page.locator('#directions-form button').click();
-    assert.match(await page.locator('#route-link').getAttribute('href'),/^https:\/\/www.openstreetmap.org\/directions\?/);
-    await page.click('#directions-toggle');
+    const routeMetrics=[];
+    for(const mode of mobile?['car']:['car','bike','foot']) {
+      await page.selectOption('#route-mode',mode);
+      await page.locator('#directions-form button[type="submit"]').click();
+      console.error(`${mobile?'mobile':'desktop'} ${mode} route submitted`);
+      await page.waitForFunction(()=>!document.querySelector('#route-status').classList.contains('is-loading')&&!document.querySelector('#directions-form button[type="submit"]').disabled,null,{timeout:90000});
+      console.error(`${mobile?'mobile':'desktop'} ${mode} route finished: ${await page.locator('#route-status').textContent()}`);
+      const route=await page.evaluate(()=>window.__mazoRouteMetrics.at(-1));
+      assert.ok(await page.locator('#route-result').isVisible(),`${mode} route should display a result: ${await page.locator('#route-status').textContent()}`);
+      assert.equal(route?.profile,mode,`${mode} route must complete successfully`);
+      assert.ok(route.distance>50000 && route.coordinates>2 && route.steps>0,`${mode} route must return real geometry, distance, and instructions`);
+      assert.ok(route.responseBytes>1000);
+      assert.equal(await page.locator('#route-mode-label').textContent(),({car:'Driving',bike:'Cycling',foot:'Walking'})[mode]);
+      assert.ok(await page.locator('#route-steps li').count()>0);
+      await page.waitForFunction(()=>window.__mazoMap.queryRenderedFeatures({layers:['mazo-route-line']}).length>0,null,{timeout:30000});
+      if(mode==='car'){
+        assert.match(await page.locator('#route-distance').textContent(),/\d+(\.\d)? km/);
+        await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-route.png`});
+      }
+      routeMetrics.push(route);
+    }
+    if(!mobile){
+      await page.click('#route-clear');
+      assert.equal(await page.locator('#route-result').isVisible(),false,'Clear removes the route result');
+      await page.evaluate(()=>Object.defineProperty(navigator,'onLine',{configurable:true,value:false}));
+      await page.locator('#directions-form button[type="submit"]').click();
+      await page.waitForFunction(()=>document.querySelector('#route-status').textContent.includes('offline'),null,{timeout:15000});
+      assert.ok(await page.locator('#route-result').isVisible(),'Cached route must remain available offline');
+      await page.evaluate(()=>Object.defineProperty(navigator,'onLine',{configurable:true,value:true}));
+      await page.evaluate(()=>Object.defineProperty(navigator,'onLine',{configurable:true,value:false}));
+      await page.selectOption('#route-mode','car');await page.fill('#route-from','Jaffna');await page.fill('#route-to','Trincomalee');
+      await page.locator('#directions-form button[type="submit"]').click();
+      await page.waitForFunction(()=>document.querySelector('#route-status').classList.contains('is-error'));
+      assert.match(await page.locator('#route-status').textContent(),/offline and this route has not been saved/);
+      await page.evaluate(()=>Object.defineProperty(navigator,'onLine',{configurable:true,value:true}));
+    }
+    if(mobile){
+      const handle=await page.locator('#directions-drag').boundingBox();const cdp=await context.newCDPSession(page);const x=handle.x+handle.width/2,y=handle.y+handle.height/2;
+      await cdp.send('Input.setTouchEmulationEnabled',{enabled:true});
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});
+      for(let delta=10;delta<=60;delta+=10) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-delta,id:1}]});
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('#directions-panel')).transform.includes('-60px'),null,{timeout:10000});
+    }
+    await page.click('#directions-close');
     await page.click('#layers-toggle');
     await page.locator('[data-layer="buildings"]').uncheck();
     assert.equal(await page.evaluate(()=>window.__mazoMap.getLayoutProperty('building-fills','visibility')),'none');
@@ -147,7 +201,7 @@ try {
       await page.evaluate(()=>window.__mazoMap.jumpTo({zoom:10}));
       await page.waitForTimeout(350);
       assert.equal(await page.evaluate(()=>window.__mazoMap.queryRenderedFeatures({layers:['place-names','building-fills']}).length),0);
-      results.push({mobile,theme,...detail});
+      results.push({mobile,theme,initialLoad,...detail,routeMetrics:theme==='light'?routeMetrics:undefined,network:await page.evaluate(()=>{const entries=performance.getEntriesByType('resource').filter(e=>e.name.includes('/assets/')||e.name.includes('.pmtiles')||e.name.includes('routing.openstreetmap.de'));return {requests:entries.length,transferBytes:entries.reduce((sum,e)=>sum+e.transferSize,0),encodedBytes:entries.reduce((sum,e)=>sum+e.encodedBodySize,0),fontLoaded:document.fonts.check('14px Inter'),destinationParseMs:window.__mazoMapTimings?.destinationParseMs,destinationIndexMs:window.__mazoMapTimings?.destinationIndexMs};})});
     }
     assert.deepEqual(errors,[]);
     await context.close();

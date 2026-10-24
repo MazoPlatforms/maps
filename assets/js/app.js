@@ -1,6 +1,5 @@
 import { mapConfig, cityViews } from './config.js';
 import { createArchiveSource } from './archive-source.js';
-import { setupExplorer } from './explorer.js';
 
 const root = document.documentElement;
 const themeButton = document.querySelector('#theme-toggle');
@@ -62,7 +61,7 @@ function applyTheme(theme, persist = true) {
   root.dataset.theme = theme;
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', theme === 'dark' ? '#111813' : '#f7f8f4');
+    ?.setAttribute('content', theme === 'dark' ? '#0d1117' : '#f6f8fa');
   themeButton?.setAttribute('aria-pressed', String(theme === 'dark'));
   themeButton?.setAttribute(
     'aria-label',
@@ -312,7 +311,9 @@ async function initializeMap() {
     });
     map.on('render', revealMap);
     map.on('load', () => {
-      setupExplorer(map, maplibre, siteRoot);
+      import('./explorer.js')
+        .then(({ setupExplorer }) => setupExplorer(map, maplibre, siteRoot))
+        .catch(() => showNotice('Search and directions could not be loaded.'));
       revealMap();
       if (mapTest) globalThis.__mazoMapTimings.loaded = performance.now();
     });
