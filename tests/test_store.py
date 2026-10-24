@@ -170,6 +170,65 @@ class IndexedStore(unittest.TestCase):
             load(self.root / "public-a/api/v1" / first["types"]["place"]["file"]), []
         )
 
+    def test_native_connectors_require_real_endpoint_alignment(self):
+        keys = [str(uuid.uuid4()) for _ in range(3)]
+
+        def operation(key, kind, geometry, properties):
+            return dict(
+                id=key,
+                expected=None,
+                operation="create",
+                value=dict(
+                    featureType=kind,
+                    geometry=geometry,
+                    properties=properties,
+                    sources=self.record["sources"],
+                ),
+            )
+
+        ops = [
+            operation(
+                keys[0],
+                "connector",
+                {"type": "Point", "coordinates": [79.505, 7.005]},
+                {},
+            ),
+            operation(
+                keys[1],
+                "connector",
+                {"type": "Point", "coordinates": [79.515, 7.005]},
+                {},
+            ),
+            operation(
+                keys[2],
+                "road",
+                {
+                    "type": "LineString",
+                    "coordinates": [[79.505, 7.005], [79.506, 7.005]],
+                },
+                {"routing": {"connectors": keys[:2], "access": "yes"}},
+            ),
+        ]
+        with self.assertRaisesRegex(ValueError, "connector coordinates"):
+            self.store.apply(self.changeset(ops))
+        ops[1]["value"]["geometry"]["coordinates"] = [79.506, 7.005]
+        self.store.apply(self.changeset(ops))
+        self.assertEqual(self.store.get(keys[2])["featureType"], "road")
+
+    def test_new_source_license_and_url_policy(self):
+        value = {
+            key: copy.deepcopy(self.record[key])
+            for key in ["featureType", "geometry", "properties", "sources"]
+        }
+        value["sources"][0]["license"] = "Proprietary"
+        op = dict(id=str(uuid.uuid4()), expected=None, operation="create", value=value)
+        with self.assertRaisesRegex(ValueError, "source license"):
+            self.store.apply(self.changeset([op]))
+        value["sources"][0]["license"] = "CC0-1.0"
+        value["sources"][0]["url"] = "javascript:alert(1)"
+        with self.assertRaisesRegex(ValueError, "source URL"):
+            self.store.apply(self.changeset([op]))
+
     def test_boundary_flag_and_immutable_sources(self):
         op = self.op()
         op["value"]["sources"] = [self.record["sources"][0] | {"license": "Different"}]

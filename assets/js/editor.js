@@ -32,7 +32,7 @@ export async function mountEditor(map, siteRoot) {
  <label>Your name<input id="edit-author" autocomplete="name"></label><label>Survey/source URL<input id="edit-source" type="url" placeholder="https://…"></label>
  <label>Summary<input id="edit-summary"></label><label><input id="edit-license" type="checkbox"> I own or may contribute my changes under the contributor terms.</label>
  <div class="editor-row"><button data-action="preview">Preview changeset</button><button data-action="submit">Download & submit</button></div>
- <pre id="edit-preview" tabindex="0"></pre><div id="edit-handoff" hidden><a href="https://github.com/MazoPlatforms/maps/fork" target="_blank" rel="noopener noreferrer">1. Fork repository</a><p>2. Upload the downloaded JSON to contributions/ on your fork. 3. Open a pull request to feat/geographic-contributions. CI validates the canonical operations; a maintainer reviews and publishes. This page does not create a PR automatically.</p><a href="https://github.com/MazoPlatforms/maps/compare/feat/geographic-contributions..." target="_blank" rel="noopener noreferrer">Open pull request comparison</a></div><output id="edit-status" role="status" aria-live="polite"></output>`;
+ <pre id="edit-preview" tabindex="0"></pre><div id="edit-handoff" hidden><a href="https://github.com/MazoPlatforms/maps/fork" target="_blank" rel="noopener noreferrer">1. Fork repository</a><p>2. Include all branches when forking (uncheck “Copy main branch only”). Create your contribution branch from feat/geographic-contributions. 3. Upload the JSON to contributions/ there and open a pull request back to feat/geographic-contributions. Do not base it on main. CI validates the canonical operations; a maintainer reviews and publishes. This page does not create a PR automatically.</p><a href="https://github.com/MazoPlatforms/maps/compare/feat/geographic-contributions..." target="_blank" rel="noopener noreferrer">Open pull request comparison</a></div><output id="edit-status" role="status" aria-live="polite"></output>`;
   root.append(panel);
   const field = (id) => panel.querySelector('#edit-' + id);
   let selected = null,
@@ -53,7 +53,12 @@ export async function mountEditor(map, siteRoot) {
   };
   const theme = () => document.documentElement.dataset.theme;
   async function style(value = theme()) {
-    const r = await fetch(new URL(`data/mazo/${value}.json`, siteRoot));
+    const r = await fetch(
+      new URL(
+        `data/mazo/${navigator.onLine === false || new URLSearchParams(location.search).has('offline') ? 'offline-' : ''}${value}.json`,
+        siteRoot,
+      ),
+    );
     if (!r.ok) throw new Error('Canonical map has not been built');
     template = prepareCanonicalStyle(
       await r.json(),

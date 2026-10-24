@@ -53,3 +53,9 @@ The pinned Survey Department/OCHA boundary dataset and contribution JSON Schema 
 ## Independent canonical dataset
 
 The v2 pilot supports full imported records, offline updates/tombstones, stable IDs, provenance, the requested administrative JSON paths, and canonical API/index/PMTiles generation. Nationwide expansion is capped pending the measured storage decision. See [verified recovery and migration requirements](docs/canonical-data.md) and [real-data scalability evidence](docs/canonical-benchmark.md). Existing overlays remain a compatibility path while production cutover is incomplete.
+
+## Integrated regional development release
+
+The existing development branch now includes an independently owned canonical sample, transactional changesets, a browser editor, static `/api/v1/` compiler, JavaScript SDK with TypeScript declarations, English/Tamil/Sinhala search, geometry-only offline downloads, and experimental car routing. This is **not nationwide completion or an approved production deployment**.
+
+Build and run the same website using [deployment and preview instructions](docs/deployment.md). Use `?dataset=canonical` to select the independent sample; the current public national viewer remains the default compatibility mode. See [editor guide](docs/editor-guide.md), [contribution workflow](CONTRIBUTING.md), [API/SDK](docs/api-sdk.md), [offline/routing](docs/offline-routing.md), [storage decision](docs/storage-decision.md), [security](docs/security.md), and [release acceptance](docs/release-acceptance.md). Resume engineering from [development progress](docs/development-progress.md).

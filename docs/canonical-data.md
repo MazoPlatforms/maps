@@ -1,5 +1,7 @@
 # Independent geographic database: recovery and migration
 
+**24 October update:** [The indexed regional implementation](storage-decision.md) now materializes complete Mazo-owned records, with an integrated editor/API/SDK/offline/routing checkpoint. This earlier pilot report is retained as history; see [current progress](development-progress.md) and [acceptance evidence](release-acceptance.md).
+
 Verified on 23 October 2026, starting from `main` at `69fb1f3` and the existing remote development branch at `1235be1`. The initial working tree was clean. `git fetch origin` confirmed these heads; there was one development branch, `feat/geographic-contributions`. Work continues there. No changes to main or unrelated files were discarded.
 
 ## Recovered implementation

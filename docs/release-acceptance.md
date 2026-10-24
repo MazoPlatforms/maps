@@ -1,0 +1,62 @@
+# Regional acceptance checkpoint — 24 October 2026
+
+**Production release: BLOCKED. Phases 2–6 are partially implemented, not complete.** PASS below means the stated bounded capability was exercised, not nationwide or deployed acceptance. Main and the production Pages site have not been changed. Recovery baseline: `7a2a1d62c619cc2c53fe8252d7056b250e86e0d7`.
+
+## Scope and ownership
+
+The independent source snapshot contains **13,993 real features**: 1,995 places, 9,997 buildings, 2,000 roads and one authoritative Colombo DS boundary. Eight out-of-classifier source features are retained in quarantine. This is a Colombo-area source sample, not a complete district. Other supported feature types can be contributed and validated but have no imported coverage in this snapshot. All 9 province, 25 district and 339 DS classifier entries remain available as regional metadata.
+
+Canonical records, immutable complete-record/history shards and reviewed changesets belong to the independently maintained Mazo dataset. Source IDs and source-specific licenses remain attached; independent maintenance does not erase third-party rights. No upstream geographic archive is fetched to render, edit, search or route this canonical snapshot. The existing legacy national viewer remains separate and has not yet been migrated. See [storage decision](storage-decision.md) for the explicit physical-layout trade-off from individual JSON files and the preserved logical export paths.
+
+## Acceptance matrix
+
+| # | Capability | Status | Evidence and remaining action |
+|---|---|---|---|
+| 1 | Public map rendering | PASS | Existing viewer regression tests retained; real independent MapLibre/PMTiles regional rendering under `/maps/` in browser. Deployed national site not recertified. |
+| 2 | Light/dark themes | PASS | Both actual regional styles exercised in Chromium. |
+| 3 | Imported selection | PASS | Browser selects a real rendered building and resolves its permanent ID/full record. ID lookup also implemented. |
+| 4 | Creation | PASS | Real browser drawing across all eight requested types, with temporary drafts only; unit/validator coverage. Import other types before claiming their geographic coverage. |
+| 5 | Existing edits | PASS | Actual imported building edit downloaded and passed Python canonical validation; real road split validated independently. |
+| 6 | Movement/reshape/split/merge | PASS | Browser vertex reshape, model movement/vertex/guarded merge tests and real imported road split validation. Complex restriction-aware transforms reject unsupported cases; expand topology tests before broader road editing. |
+| 7 | Deletion | PASS | Imported deletion preview/undo in browser; transactional tombstones/history and reference rejection in Python. |
+| 8 | Undo/redo | PASS | Model tests and real browser controls. |
+| 9 | Draft persistence | PASS | Save, discard and restore exercised; stale dataset drafts rejected. |
+| 10 | Multi-feature changesets | PASS | Eight-type browser draft operations; real road update plus road/connector creation validated atomically. |
+| 11 | Before/after preview | PASS | Browser comparison with original-feature suppression; validator emits before/after GeoJSON and summary. |
+| 12 | Canonical validation | PASS | Schema, geometry, bounds, hashes/conflicts, licensing metadata, malicious fields, history and relations covered by Python suite. Huge adversarial datasets need additional limits/review. |
+| 13 | Administration | PASS | GEOS classification against pinned real boundaries; cross-boundary memberships with one canonical geometry. |
+| 14 | Identity/provenance | PASS | Permanent UUIDs, preserved originals, expected hashes and immutable revision history; trusted-base history comparison passes. |
+| 15 | GitHub PR contribution flow | BLOCKED | Functional download/fork/upload/compare handoff and actual CI are implemented. No authenticated end-to-end community PR/review/merge was performed. Exercise a real reviewed proposal without bypassing protection. |
+| 16 | Maintainer review | BLOCKED | Trusted-base exact-head review gate and verified CODEOWNER implemented. Protection API returns 403; enforcement unverified. Configure protections and a second eligible boundary reviewer (currently one). Bootstrap trusted policy through administrator review. |
+| 17 | Automatic canonical publication | FAIL | Regional CI builds review artifacts only. Main Pages pipeline still uses legacy archives. Integrate approved canonical releases/affected partitions after hosting, protection and coverage gates; preserve last good release. |
+| 18 | Accepted update on public map | BLOCKED | Local changeset materialization/rebuild works; no approved main merge or deployed canonical update. Verify actual public assets after authorized release. |
+| 19 | Static API | PASS | Actual versioned resources, ID/type/region/search/routing indexes, notices and checksums; real tests under repository subpath. Regional only. |
+| 20 | JavaScript SDK | PASS | Actual data tests for initialize/search/autocomplete/geocode/reverse/nearby/feature/region/version; TypeScript declarations. Full-record shards and representative-point nearby searches need national optimization. |
+| 21 | Multilingual search | PASS | English, Tamil and Sinhala real-source queries; normalization/prefix/category/geographic filtering implemented with lazy worker indexes. Coverage depends on supplied names. |
+| 22 | Geocoding/reverse | PASS | Actual search results and approximate nearby-place reverse lookup; no invented addresses. Address-level coverage absent. |
+| 23 | Offline rendering | BLOCKED | Geometry-only rendering truly passes network-disconnected tests. Full labelled rendering blocked: glyph capture returned HTTP 403 and complete verified font assets are unavailable. Supply licensed local glyphs and retest. |
+| 24 | Offline search | PASS | Real installed API/search data queried with browser network disabled. |
+| 25 | Client routing | PASS | Explicit connectors, directed restrictions, interior snapping/unreachable tests and real ten-segment route; offline UI passes. Partial graph only; no nationwide or turn-by-turn claim. |
+| 26 | Attribution/licenses | PASS | Source provenance, separate license texts/notices, Foursquare NOTICE, ODbL/CDLA/Apache/CC BY/IGO distinctions and contributor terms retained. Review each future source separately. |
+| 27 | Pages compatibility | PASS | Actual artifact/browser served under `/maps/`, relative SDK URLs and PMTiles ranges. National hosting capacity and actual deployment remain blocked. |
+| 28 | Desktop/mobile compatibility | BLOCKED | Desktop Chromium and touch mobile emulation pass with no overflow; physical Android, low-memory browsers, screen readers and other browser engines not certified. Run device/accessibility acceptance. |
+
+## Verification and measurements
+
+Reproduction commands and scope: [deployment](deployment.md), [editor](editor-guide.md), [API/SDK](api-sdk.md), [offline/routing](offline-routing.md). Machine-readable evidence is in [verification](verification/). These are single local runs, not latency guarantees or national extrapolations.
+
+- 42 Python tests passed with native Tippecanoe enabled; 22 JavaScript tests passed including real-source SDK/routing integration. The original pilot suites remain intact.
+- Two independent real builds produced identical PMTiles and feature/search/routing index descriptors. Final compile from an already validated indexed store took **12.06 s**, parent peak RSS **649,968 KiB**. Earlier full load/validation plus compile took **68.84 s**; it is a separate run, not incremental publication timing.
+- Indexed ID lookup: **0.054 ms mean over 100** local cached lookups. Validated rollback transactions: real building **4.92 s**, three-operation real road split **5.80 s**. Publication currently rebuilds the bounded region; nationwide affected-partition publication is unimplemented.
+- Latest SDK local run: initialization **35.68 ms**, three language searches **10.16/1.50/2.00 ms**, real route **531.918 m**, ten segments, **48.78 ms**. Graph: **2,181 nodes / 4,403 directed edges**; unsupported restrictions are conservatively excluded. Encoded SDK cache accounting was **16,214,269 bytes**, not total browser memory.
+- Offline package: **157 files / 36,038,374 bytes** before final documentation-only changes. Browser evidence records initial rendering, tile latency, editor response and JS heap separately. Software-rendered local Chromium does not establish Android memory limits.
+- Final browser run: first rendering **3,834.5 ms**, seven tile requests with median **65.3 ms**, property application including UI waits **1,884.5 ms**, sampled JS heap **23,896,480 bytes**. These measurements include automation/rendering overhead and are not isolated engine microbenchmarks.
+- Browser tests exercise real tiles/geometry, all feature-type drawing, imported editing, downloaded proposals, both themes, touch layout, interrupted recovery, corrupt cache rejection/repair, disconnected search/rendering/routing and a version update fetching only one changed CSS asset. The update test changes local CSS only, never source geography. Binary-delta PMTiles updates are not implemented.
+
+## Release gates and next work
+
+Dependency audit found and fixed DuckDB 1.4.1 and fflate 0.8.2 advisories; repeat checks for pinned packages returned no known findings. This is not a complete supply-chain/security certification. See [security review](security.md) for untrusted-PR permissions, secret handling and unresolved controls. No privileged secrets are provided to PR builds.
+
+Prioritize a real nonprivileged PR exercise and protection bootstrap; a second boundary reviewer; complete local licensed fonts; physical Android/accessibility/resource testing; bounded canonical coverage expansion and better spatial/shard loading; and affected-region release integration on Mazo-controlled durable hosting. The current regional compiler is capped at 20,000 records and must not be used for uncontrolled national conversion. Preserve this checkpoint and resume these tasks rather than rebuilding the application.
+
+Other incomplete requested work: a dedicated inverse-changeset/revert tool (history is retained, but reverting source shards directly is intentionally rejected); automated affected-partition publishing; robust national search/graph partitioning; physical-device quota/low-memory testing; and full keyboard/screen-reader certification of vertex editing. Add tested revision-preserving inverse operations and bounded partition scheduling before claiming these capabilities. Automatic PR creation remains unavailable without an authenticated integration; the functional manual handoff is the supported flow.

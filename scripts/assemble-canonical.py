@@ -26,7 +26,7 @@ for name in ["assets", "sdk", "schemas", "docs"]:
     shutil.copytree(ROOT / name, a.output / name, dirs_exist_ok=True)
 licenses = ROOT / "data/canonical/licenses"
 if licenses.exists():
-    shutil.copytree(licenses, a.output / "data/licenses")
+    shutil.copytree(licenses, a.output / "data/canonical/licenses")
 manifest = load(a.output / "api/v1/manifest.json")
 files = []
 for path in sorted(a.output.rglob("*")):
@@ -56,6 +56,9 @@ version = hashlib.sha256(encoded(files)).hexdigest()
             "version": version,
             "datasetVersion": manifest["version"],
             "coverage": manifest["coverage"],
+            "regions": load(a.output / "api/v1" / manifest["regions"]["file"])[
+                "regions"
+            ],
             "mode": "geometry-only; map labels require a complete licensed glyph bundle",
             "files": files,
         }

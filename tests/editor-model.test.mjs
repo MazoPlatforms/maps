@@ -183,3 +183,64 @@ test('road split is atomic, preserves explicit connectivity and can merge compat
   assert.equal(m.entries[id].after.geometry.coordinates.length, 3);
   assert.equal(m.entries[rightID], undefined);
 });
+test('native connected roads merge without treating different endpoint IDs as access conflicts', () => {
+  const m = new EditorModel('a'.repeat(64));
+  const a = m.create(
+      'road',
+      {
+        type: 'LineString',
+        coordinates: [
+          [79.9, 6.9],
+          [79.91, 6.9],
+        ],
+      },
+      source,
+    ),
+    b = m.create(
+      'road',
+      {
+        type: 'LineString',
+        coordinates: [
+          [79.91, 6.9],
+          [79.92, 6.9],
+        ],
+      },
+      source,
+    );
+  const end = m.entries[a].after.properties.routing.connectors[1];
+  m.entries[b].after.properties.routing.connectors[0] = end;
+  m.mergeRoads(a, b);
+  assert.equal(m.entries[a].after.geometry.coordinates.length, 3);
+  assert.equal(m.entries[b], undefined);
+});
+test('deleting a new road preserves a shared new connector and repairs its draft lineage', () => {
+  const m = new EditorModel('a'.repeat(64));
+  const a = m.create(
+      'road',
+      {
+        type: 'LineString',
+        coordinates: [
+          [79.9, 6.9],
+          [79.91, 6.9],
+        ],
+      },
+      source,
+    ),
+    b = m.create(
+      'road',
+      {
+        type: 'LineString',
+        coordinates: [
+          [79.91, 6.9],
+          [79.92, 6.9],
+        ],
+      },
+      source,
+    );
+  const shared = m.entries[a].after.properties.routing.connectors[1];
+  m.entries[b].after.properties.routing.connectors[0] = shared;
+  m.remove(a);
+  assert.ok(m.entries[shared]);
+  assert.equal(m.entries[shared].after.properties.lineage.from, b);
+  assert.ok(!m.entries[a]);
+});

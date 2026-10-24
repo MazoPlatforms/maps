@@ -255,6 +255,23 @@ def build(records, admin, output, tippecanoe=None, maxzoom=14):
                 for layer in style['layers']:
                     if layer.get('source'):
                         layer['source'] = 'mazo'
+                # Natural features with no profile-specific classification still
+                # need visible geometry after acceptance, including points/lines.
+                fallback=[]
+                for kind in sorted({r['featureType'] for r in records.values() if r['status']=='active'}):
+                    if kind not in {'connector','land','land_use','water','land_cover','infrastructure','bathymetry'}:
+                        continue
+                    source_layer=LAYER[kind][1]
+                    geometries={r['geometry']['type'].removeprefix('Multi') for r in records.values() if r['featureType']==kind and r['status']=='active'}
+                    for geometry_type,layer_type,paint in (
+                        ('Polygon','fill',{'fill-color':'#8caea4','fill-opacity':0.35}),
+                        ('LineString','line',{'line-color':'#668d91','line-width':2}),
+                        ('Point','circle',{'circle-color':'#668d91','circle-radius':4}),
+                    ):
+                        if geometry_type in geometries:
+                            fallback.append({'id':f'mazo-{kind}-{layer_type}','type':layer_type,'source':'mazo','source-layer':source_layer,'filter':['==',['geometry-type'],geometry_type],'paint':paint})
+                insertion=next((i for i,l in enumerate(style['layers']) if l['type']!='background'),len(style['layers']))
+                style['layers'][insertion:insertion]=fallback
                 style['layers'].append({'id': 'mazo-boundaries', 'type': 'line',
                     'source': 'mazo', 'source-layer': 'administrative_boundary',
                     'paint': {'line-color': '#718879', 'line-width': 1}})

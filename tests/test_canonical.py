@@ -173,6 +173,17 @@ class Canonical(unittest.TestCase):
         run('validate')
         run('build', '--output', str(self.directory / 'cli-build'))
 
+    @unittest.skipUnless(os.environ.get('TIPPECANOE'), 'TIPPECANOE needed')
+    def test_natural_feature_geometry_has_native_fallback_styles(self):
+        for kind in ['water','land','connector']:
+            r=import_feature(self.feature|{'featureType':kind},self.source,self.admin)
+            self.store.write(r)
+        out=self.directory/'natural-tiles'
+        build(self.store.scan(),self.admin,out,os.environ['TIPPECANOE'],maxzoom=2)
+        style=load(out/'light.json')
+        for kind in ['water','land','connector']:
+            self.assertTrue(any(layer['id']==f'mazo-{kind}-circle' for layer in style['layers']))
+
     @unittest.skipUnless(os.environ.get('TIPPECANOE'), 'TIPPECANOE executable needed for real tile integration')
     def test_real_pmtiles_build_contains_mazo_string_id_and_no_upstream_style(self):
         self.store.write(self.record)

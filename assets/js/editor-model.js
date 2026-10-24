@@ -221,16 +221,38 @@ export class EditorModel {
     this.checkpoint();
     if (!this.entries[id].before) {
       delete this.entries[id];
-      for (const [key, e] of Object.entries(this.entries))
-        if (
-          !e.before &&
-          e.after.properties.lineage?.operation === 'road-endpoint' &&
-          e.after.properties.lineage.from === id
-        )
-          delete this.entries[key];
+      this.cleanupDerivedConnectors(id);
     } else {
       this.entries[id].after.status = 'removed';
       this.entries[id].dirty = true;
+    }
+  }
+  cleanupDerivedConnectors(parentID) {
+    for (const [key, e] of Object.entries(this.entries)) {
+      if (
+        e.before ||
+        e.after.featureType !== 'connector' ||
+        e.after.properties.lineage?.from !== parentID
+      )
+        continue;
+      const parents = Object.entries(this.entries)
+        .filter(
+          ([id, c]) =>
+            id !== key &&
+            c.after.status !== 'removed' &&
+            (c.after.properties.routing?.connectors?.includes(key) ||
+              (c.after.properties.connectors || []).some(
+                (ref) => ref.namespace === 'mazo' && ref.connector_id === key,
+              ) ||
+              (c.after.properties.references || []).includes(key)),
+        )
+        .map(([id]) => id);
+      if (!parents.length) delete this.entries[key];
+      else
+        e.after.properties.lineage = {
+          operation: 'road-connector',
+          from: parents[0],
+        };
     }
   }
   undo() {
@@ -467,8 +489,24 @@ EditorModel.prototype.mergeRoads = function (id, otherID) {
     'routing',
   ])
     if (
-      JSON.stringify(a.after.properties[key] ?? null) !==
-      JSON.stringify(b.after.properties[key] ?? null)
+      JSON.stringify(
+        key === 'routing'
+          ? Object.fromEntries(
+              Object.entries(a.after.properties.routing || {}).filter(
+                ([k]) => k !== 'connectors',
+              ),
+            )
+          : (a.after.properties[key] ?? null),
+      ) !==
+      JSON.stringify(
+        key === 'routing'
+          ? Object.fromEntries(
+              Object.entries(b.after.properties.routing || {}).filter(
+                ([k]) => k !== 'connectors',
+              ),
+            )
+          : (b.after.properties[key] ?? null),
+      )
     )
       throw new Error(
         'Road metadata/access/classifications must be compatible',
@@ -521,6 +559,9 @@ EditorModel.prototype.mergeRoads = function (id, otherID) {
   if (b.before) {
     b.after.status = 'removed';
     b.dirty = true;
-  } else delete this.entries[otherID];
+  } else {
+    delete this.entries[otherID];
+    this.cleanupDerivedConnectors(otherID);
+  }
   return id;
 };

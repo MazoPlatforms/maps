@@ -15,7 +15,7 @@ Keep the MapLibre attribution control and visible page-level attribution enabled
 - **Label glyphs:** requested from the public OpenFreeMap font endpoint. This is a third-party availability dependency; it does not provide the basemap vector archives.
 - **Tile generation:** the GitHub Actions build uses the official Overture `overture-tiles` container and its published profiles and records the resolved container digest in the build manifest.
 
-- **fflate 0.8.2**, bundled with the PMTiles adapter, under the MIT License. Its license is included in `assets/vendor/fflate-license.txt`.
+- **fflate 0.8.3**, bundled with the PMTiles adapter, under the MIT License. Its license is included in `assets/vendor/fflate-license.txt`.
 
 ## Project software and fonts
 

@@ -1,6 +1,6 @@
 # Build, preview and release
 
-The canonical dataset and the current public national viewer are separate release modes in the same repository and website. Main has not been merged or redeployed during this work. The new canonical workflow validates proposals and builds a reviewable **regional** artifact; it deliberately has no deployment permissions/job. Do not upload that incomplete artifact over the production national site.
+The canonical dataset and the current public national viewer are separate release modes in the same repository and website. Main has not been merged or redeployed during this work. The new canonical workflow validates proposals, executes the real browser/offline integration suite, checks configured PR approvals, and builds a reviewable **regional** artifact; it deliberately has no deployment permissions/job. Do not upload that incomplete artifact over the production national site.
 
 With Python 3.12, install `requirements-geodata.txt`. Build pinned Tippecanoe 2.79.0 at `68ab8dcc229f95b8b25877697d5e8d66783af503`, then:
 

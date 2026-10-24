@@ -8,6 +8,7 @@ import re
 import sqlite3
 import uuid
 from pathlib import Path
+from urllib.parse import urlparse
 
 from jsonschema import Draft202012Validator, FormatChecker
 from shapely.geometry import shape
@@ -37,6 +38,27 @@ def safe_metadata(value):
 def validate_feature(record, admin):
     validate(record, admin)
     safe_metadata(record["properties"])
+    permitted = {
+        "CC0-1.0",
+        "ODbL-1.0",
+        "CDLA-Permissive-2.0",
+        "Apache-2.0",
+        "CC BY 3.0 IGO",
+        "CC-BY-3.0-IGO",
+        "CC-BY-4.0",
+        "MIT",
+        "PDDL-1.0",
+    }
+    for source in record["sources"]:
+        if source["license"] not in permitted:
+            raise ValueError(
+                "unsupported source license; reviewed policy update required"
+            )
+        uri = urlparse(source["url"])
+        if uri.scheme not in ("https", "http", "s3") or not uri.netloc:
+            raise ValueError(
+                "source URL must identify a permitted public provenance resource"
+            )
     west, south, east, north = shape(record["geometry"]).bounds
     if west < 79.3 or east > 82.1 or south < 5.8 or north > 10.1:
         raise ValueError("geometry exceeds Sri Lanka import bounds")
@@ -170,8 +192,8 @@ class Store:
                             record["properties"].setdefault("sources", references)
                     record.update(revision=old["revision"] + 1, previous=digest(old))
                 record["administration"] = self.admin.classify(record["geometry"])
-                validate_feature(record, self.admin)
                 check_revision(record, old)
+                validate_feature(record, self.admin)
                 self.put(record, changeset["id"], validate_input=False)
                 summary.append(
                     {
@@ -219,9 +241,47 @@ class Store:
                 target = self.get(key)
                 if target["featureType"] != "connector" or target["status"] != "active":
                     raise ValueError("routing references missing/deleted connector")
+            if record["featureType"] == "road":
+                refs = [
+                    {"connector_id": key, "at": index}
+                    for index, key in enumerate(routing.get("connectors", []))
+                ]
+                refs += [
+                    ref
+                    for ref in record["properties"].get("connectors") or []
+                    if ref.get("namespace") == "mazo"
+                ]
+                if refs and record["geometry"]["type"] != "LineString":
+                    raise ValueError(
+                        "explicit road connector edits require a single LineString"
+                    )
+                for ref in refs:
+                    if not 0 <= ref["at"] <= 1:
+                        raise ValueError("invalid connector linear reference")
+                    expected = shape(record["geometry"]).interpolate(
+                        ref["at"], normalized=True
+                    )
+                    actual = shape(self.get(ref["connector_id"])["geometry"])
+                    if expected.distance(actual) > 0.00005:
+                        raise ValueError(
+                            "road and canonical connector coordinates disagree"
+                        )
             for key in record["properties"].get("references", []):
                 if self.get(key)["status"] != "active":
                     raise ValueError("relationship references deleted feature")
+            lineage = record["properties"].get("lineage")
+            if isinstance(lineage, dict) and lineage.get("operation") in (
+                "split",
+                "road-endpoint",
+                "road-connector",
+            ):
+                if lineage.get("from") == record["id"]:
+                    raise ValueError("self-referential feature lineage")
+                self.get(lineage.get("from", ""))
+            for key in record["properties"].get("mergedFrom") or []:
+                self.get(key)
+            for key in record["properties"].get("splitChildren") or []:
+                self.get(key)
         from .routing import compile_graph
 
         compile_graph(records)

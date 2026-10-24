@@ -9,7 +9,7 @@ import unicodedata
 from pathlib import Path
 
 from shapely.geometry import shape
-from .canonical import build as build_tiles
+from .canonical import build as build_tiles, file_digest
 from .core import ROOT, digest, encoded
 
 
@@ -202,6 +202,15 @@ def build_publication(store, metadata, output, tippecanoe=None):
                         for reference in r["properties"].get("sources") or []
                     }
                 ),
+                "texts": [
+                    {
+                        "file": "../../data/canonical/licenses/" + p.name,
+                        "sha256": file_digest(p),
+                        "bytes": p.stat().st_size,
+                    }
+                    for p in sorted((ROOT / "data/canonical/licenses").glob("*"))
+                    if p.is_file()
+                ],
                 "notices": "../../LICENSE-DATA.md",
             },
         )

@@ -3,6 +3,9 @@ import { createArchiveSource } from './archive-source.js';
 import { fetchContributions, prepareContributions } from './contributions.js';
 
 const root = document.documentElement;
+if(globalThis.navigator?.onLine===false){
+ const url=new URL(location.href);url.searchParams.set('dataset','canonical');url.searchParams.set('offline','1');history.replaceState(null,'',url);
+}
 const themeButton = document.querySelector('#theme-toggle');
 const mapStatus = document.querySelector('#map-status');
 const mapNode = document.querySelector('#map');
@@ -369,10 +372,18 @@ document.querySelector('#offline-download')?.addEventListener('click',async()=>{
  try{
   const {OfflineManager}=await import('./offline.js');const manager=new OfflineManager(siteRoot);
   const button=document.querySelector('#offline-download');button.disabled=true;
-  try{await manager.download({onProgress:({done,total})=>{button.textContent=`Downloading ${Math.round(done/total*100)}%`;}});button.textContent='Offline sample ready';document.querySelector('#offline-open').hidden=false;}
+  try{await manager.download({region:document.querySelector('#offline-region')?.value||undefined,onProgress:({done,total})=>{button.textContent=`Downloading ${Math.round(done/total*100)}%`;}});button.textContent='Offline sample ready';document.querySelector('#offline-open').hidden=false;}
   finally{button.disabled=false;}
  }catch(error){showNotice('Offline download: '+error.message);}
 });
 document.querySelector('#offline-remove')?.addEventListener('click',async()=>{
  try{const {OfflineManager}=await import('./offline.js');await new OfflineManager(siteRoot).remove();showNotice('Offline sample removed.');}catch(error){showNotice(error.message);}
+});
+
+document.querySelector('#offline-check')?.addEventListener('click',async()=>{
+ try{const {OfflineManager}=await import('./offline.js');const manager=new OfflineManager(siteRoot);showNotice(await manager.hasUpdate()?'A newer independent sample is available. Download it to update.':'The downloaded sample is current.');}catch(error){showNotice('Update check: '+error.message);}
+});
+
+document.querySelector('#offline-regions')?.addEventListener('click',async()=>{
+ try{const {OfflineManager}=await import('./offline.js');const inventory=await new OfflineManager(siteRoot).inventory();const select=document.querySelector('#offline-region');select.replaceChildren();for(const region of inventory.regions||[]){const option=document.createElement('option');option.value=region.id;option.textContent=region.name+(region.complete?'':' (incomplete)');select.append(option);}if(!select.options.length)showNotice('No offline regions are available.');}catch(error){showNotice('Region list: '+error.message);}
 });

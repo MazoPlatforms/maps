@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
+let rollout = false,
+  updateAssetRequests = 0;
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 const root = resolve(process.argv[2]);
@@ -15,7 +18,36 @@ const server = createServer(async (req, res) => {
       '.' + pathname.slice(5) + (pathname.endsWith('/') ? 'index.html' : ''),
     );
     if (!file.startsWith(root + '/')) throw new Error();
-    const body = await readFile(file);
+    let body = await readFile(file);
+    if (rollout && pathname.endsWith('/assets/css/site.css'))
+      body = Buffer.concat([
+        body,
+        Buffer.from('\n/* local integration update */\n'),
+      ]);
+    if (rollout && pathname.endsWith('/offline-manifest.json')) {
+      const inventory = JSON.parse(body);
+      const css = await readFile(resolve(root, 'assets/css/site.css'));
+      const updated = Buffer.concat([
+        css,
+        Buffer.from('\n/* local integration update */\n'),
+      ]);
+      const entry = inventory.files.find(
+        (e) => e.file === 'assets/css/site.css',
+      );
+      entry.bytes = updated.length;
+      entry.sha256 = createHash('sha256').update(updated).digest('hex');
+      inventory.version = createHash('sha256')
+        .update(JSON.stringify(inventory.files))
+        .digest('hex');
+      body = Buffer.from(JSON.stringify(inventory));
+    }
+    if (
+      rollout &&
+      req.headers['x-mazo-download'] === '1' &&
+      !pathname.endsWith('/offline-manifest.json')
+    )
+      updateAssetRequests++;
+
     const mime = {
       '.js': 'text/javascript',
       '.mjs': 'text/javascript',
@@ -62,6 +94,12 @@ try {
     window.__mazoMap.queryRenderedFeatures().some((f) => f.properties.id),
   );
   const mapMs = performance.now() - start;
+  const tileDurations = await page.evaluate(() =>
+    performance
+      .getEntriesByType('resource')
+      .filter((e) => e.name.includes('.pmtiles'))
+      .map((e) => e.duration),
+  );
   await page.click('#theme-toggle');
   await page.waitForFunction(() => window.__mazoMap.isStyleLoaded());
   assert.equal(
@@ -146,6 +184,7 @@ try {
       );
     });
   await page.fill('#edit-en', 'Browser verification draft only');
+  const editStarted = performance.now();
   await page.click('[data-action="apply"]');
   await page
     .waitForFunction(() =>
@@ -158,6 +197,10 @@ try {
           (await page.locator('#edit-status').textContent()),
       );
     });
+  await page.waitForFunction(() =>
+    window.__mazoMap.isSourceLoaded('editor-drafts'),
+  );
+  const editorApplyMs = performance.now() - editStarted;
   const state = await page.evaluate(() => {
     const before = Object.values(window.__mazoEditor.model.entries)[0].before;
     let position = before.geometry.coordinates;
@@ -270,6 +313,52 @@ try {
   await page.fill('#edit-vertex', '1');
   await page.click('[data-action="remove-vertex"]');
   await page.click('[data-action="delete"]');
+  for (const [kind, geometry] of [
+    ['connector', 'Point'],
+    ['road', 'LineString'],
+    ['land', 'Polygon'],
+    ['land_use', 'Polygon'],
+    ['water', 'LineString'],
+    ['water', 'Polygon'],
+    ['administrative_boundary', 'Polygon'],
+  ]) {
+    await page.selectOption('#edit-type', kind);
+    await page.selectOption('#edit-geometry', geometry);
+    await page.click('[data-action="draw"]');
+    const coordinates =
+      geometry === 'Point'
+        ? [[79.846, 6.921]]
+        : geometry === 'LineString'
+          ? [
+              [79.846, 6.921],
+              [79.8464, 6.9213],
+            ]
+          : [
+              [79.846, 6.921],
+              [79.8464, 6.921],
+              [79.8462, 6.9213],
+            ];
+    for (const c of coordinates) {
+      const p = await page.evaluate((c) => {
+        const m = window.__mazoMap,
+          p = m.project(c),
+          r = m.getCanvas().getBoundingClientRect();
+        return { x: p.x + r.x, y: p.y + r.y };
+      }, c);
+      await page.mouse.click(p.x, p.y);
+    }
+    if (geometry !== 'Point') await page.click('[data-action="finish"]');
+    assert.ok(
+      await page.evaluate(
+        (kind) =>
+          Object.values(window.__mazoEditor.model.entries).some(
+            (e) => !e.before && e.after.featureType === kind,
+          ),
+        kind,
+      ),
+    );
+    await page.click('[data-action="delete"]');
+  }
   await page.click('[data-action="close"]');
   await page.waitForFunction(() => window.__mazoMap.isStyleLoaded());
   const offline = await page.evaluate(async () => {
@@ -297,6 +386,21 @@ try {
     await manager.download();
     return { state, interrupted, corruptRejected: rejected };
   });
+  rollout = true;
+  const updated = await page.evaluate(async () => {
+    const { OfflineManager } = await import('./assets/js/offline.js');
+    const m = new OfflineManager(new URL('./', location.href));
+    const old = await m.installed();
+    if (!(await m.hasUpdate())) throw new Error('Update not detected');
+    const next = await m.download();
+    return old.version !== next.version;
+  });
+  assert.ok(updated);
+  assert.equal(
+    updateAssetRequests,
+    1,
+    'Only the changed CSS resource should be downloaded across versions',
+  );
   await context.setOffline(true);
   await page.goto(base + '?dataset=canonical&offline=1&maptest');
   await page.waitForFunction(() => window.__mazoMap?.isStyleLoaded());
@@ -360,6 +464,11 @@ try {
     JSON.stringify(
       {
         mapInitialMs: mapMs,
+        editorApplyMs,
+        tileRequests: tileDurations.length,
+        tileMedianMs: tileDurations.sort((a, b) => a - b)[
+          Math.floor(tileDurations.length / 2)
+        ],
         realFeature: state.id,
         editorChangeset: changeset.id,
         editor: true,
@@ -370,6 +479,9 @@ try {
         mobileLayout: true,
         mobileTouchEditor: true,
         offlineRouting: true,
+        crossVersionUpdate: true,
+        changedUpdateFiles: updateAssetRequests,
+        drawnFeatureTypes: 8,
         lightAndDark: true,
         jsHeapBytes: await page.evaluate(
           () => performance.memory?.usedJSHeapSize ?? null,

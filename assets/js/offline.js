@@ -21,6 +21,7 @@ export class OfflineManager {
   async inventory() {
     const r = await fetch(new URL('offline-manifest.json', this.root), {
       cache: 'no-cache',
+      headers: { 'X-Mazo-Download': '1' },
     });
     if (!r.ok) throw new Error('Offline release unavailable');
     const m = await r.json();
@@ -33,10 +34,12 @@ export class OfflineManager {
     const r = await cache.match(new URL('offline-active.json', this.root));
     return r ? await r.json() : null;
   }
-  async download({ signal, onProgress = () => {} } = {}) {
+  async download({ signal, region, onProgress = () => {} } = {}) {
     await this.register();
-    const manifest = await this.inventory(),
-      total = manifest.files.reduce((sum, e) => sum + e.bytes, 0);
+    const manifest = await this.inventory();
+    if (region && !(manifest.regions || []).some((r) => r.id === region))
+      throw new Error('Offline region unavailable');
+    const total = manifest.files.reduce((sum, e) => sum + e.bytes, 0);
     const estimate = await navigator.storage?.estimate?.();
     if (estimate?.quota && estimate.quota - estimate.usage < total * 1.15)
       throw new Error('Not enough browser storage for this region');
@@ -84,7 +87,11 @@ export class OfflineManager {
           );
       }
       if (!valid) {
-        const r = await fetch(url, { signal, cache: 'no-cache' });
+        const r = await fetch(url, {
+          signal,
+          cache: 'no-cache',
+          headers: { 'X-Mazo-Download': '1' },
+        });
         if (!r.ok) throw new Error('Offline asset unavailable: ' + file.file);
         const bytes = await r.arrayBuffer();
         if (
