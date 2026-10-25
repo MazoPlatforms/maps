@@ -188,7 +188,6 @@ function revealMap() {
   if (mapFrame) mapFrame.dataset.state = 'ready';
   if (mapTest) globalThis.__mazoMapTimings.firstRender = performance.now();
   map.off('render', revealMap);
-  upgradeToFullStyle();
   loadDataManifest();
 }
 
@@ -347,6 +346,10 @@ async function initializeMap() {
       import('./explorer.js')
         .then(({ setupExplorer }) => setupExplorer(map, maplibre, siteRoot))
         .catch(() => showNotice('Search and directions could not be loaded.'));
+      // Wait for the lightweight style's load event before swapping styles.
+      // Swapping during its first render cancels that event and would leave
+      // search/community controls uninitialised.
+      upgradeToFullStyle();
       revealMap();
       if (mapTest) globalThis.__mazoMapTimings.loaded = performance.now();
     });

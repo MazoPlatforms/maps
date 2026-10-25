@@ -243,7 +243,7 @@ test('the first geographic frame reveals the map without waiting for full load',
   assert.equal(app.node('#map-status').classList.contains('is-hidden'), true);
   assert.equal(app.node('#map').attributes['aria-busy'], 'false');
   assert.equal(app.context.__mazoMapTimings.firstRender, 42);
-  assert.equal(app.styles.at(-1).layers.at(-1).id, 'road-lines');
+  assert.equal(app.styles.length, 0);
   assert.equal(app.context.__mazoMapTimings.loaded, null);
   assert.equal(app.handlers.render, undefined);
   await settle();
