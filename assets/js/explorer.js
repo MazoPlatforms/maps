@@ -76,6 +76,57 @@ export async function setupExplorer(map, maplibre, siteRoot) {
     catalog.push(feature);
     catalogIndex.push(indexFeature(feature));
   }
+
+  let onlineRequest;
+  async function searchOnline(query) {
+    onlineRequest?.abort();
+    onlineRequest = new AbortController();
+    const request = onlineRequest;
+    const url = new URL('https://nominatim.openstreetmap.org/search');
+    url.searchParams.set('q', query);
+    url.searchParams.set('format', 'jsonv2');
+    url.searchParams.set('countrycodes', 'lk');
+    url.searchParams.set('limit', '8');
+    try {
+      const response = await fetch(url, {signal: request.signal, headers: {Accept:'application/json'}});
+      if (!response.ok) throw Error('Search service unavailable');
+      const places = await response.json();
+      if (request !== onlineRequest || normalize(search.value) !== normalize(query)) return;
+      const local = find();
+      results.replaceChildren();
+      const seen = new Set();
+      for (const feature of local.slice(0, 4)) {
+        seen.add(normalize(feature.properties.name));
+        resultButton(feature);
+      }
+      for (const place of places) {
+        const lat = Number(place.lat), lon = Number(place.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+        const name = place.display_name?.split(',')[0] || place.name;
+        if (!name || seen.has(normalize(name))) continue;
+        seen.add(normalize(name));
+        resultButton({type:'Feature', geometry:{type:'Point',coordinates:[lon,lat]},
+          properties:{name,category:place.type || 'place'}}, place.display_name);
+      }
+      if (!results.children.length) results.textContent = 'No matching places found.';
+      else {
+        const credit = document.createElement('small');
+        credit.textContent = 'Online search © OpenStreetMap contributors';
+        results.append(credit);
+      }
+      results.hidden = false;
+    } catch (error) {
+      if (error.name !== 'AbortError' && !results.children.length)
+        results.textContent = 'Online search is unavailable. Try again later.';
+    }
+  }
+  function resultButton(feature, label = feature.properties.name) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    button.addEventListener('click', () => select(feature));
+    results.append(button);
+  }
   let searchTimer;
   function find() {
     const query=normalize(search.value); results.replaceChildren(); results.hidden=!query;
@@ -87,13 +138,13 @@ export async function setupExplorer(map, maplibre, siteRoot) {
       ...visible.filter(feature => normalize(feature.properties.name || '').includes(query)),
     ].sort((a, b) => Number(normalize(b.properties.name).startsWith(query)) - Number(normalize(a.properties.name).startsWith(query)) || (b.properties.population || 0) - (a.properties.population || 0));
     const unique=[...new Map(matches.map(f=>[f.properties.name,f])).values()].slice(0,8);
-    for(const f of unique) {const button=document.createElement('button');button.type='button';button.textContent=f.properties.name;button.addEventListener('click',()=>select(f));results.append(button);}
-    if(!unique.length) results.textContent='No matching city or destination. Zoom in to search visible places.';
+    for(const f of unique) resultButton(f);
+    if(!unique.length) results.textContent='Press Enter to search across Sri Lanka.';
     return unique;
   }
-  search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(find,120);});
+  search.addEventListener('input',()=>{onlineRequest?.abort();clearTimeout(searchTimer);searchTimer=setTimeout(find,180);});
   search.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();results.querySelector('button')?.focus();}});
-  $('#search-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(searchTimer);const matches=find();if(matches.length)select(matches[0]);});
+  $('#search-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(searchTimer);find();if(search.value.trim())searchOnline(search.value.trim());});
   for(const button of document.querySelectorAll('[data-category]')) button.addEventListener('click',()=>{
     category=button.dataset.category;
     for(const item of document.querySelectorAll('[data-category]'))item.setAttribute('aria-pressed',String(item===button));
