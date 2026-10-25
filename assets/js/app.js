@@ -18,6 +18,7 @@ let firstFrame = false;
 let fullMapStyle;
 let fullStyleLoaded = false;
 let fullStyleUpgradeQueued = false;
+let explorerStarted = false;
 
 // Original Mazo canvas artwork. Icons are shared by category, not allocated per feature.
 const placeArtwork = {
@@ -340,16 +341,19 @@ async function initializeMap() {
     map.on('styleimagemissing', (event) => addPlaceIcon(event.id));
     map.on('style.load', () => {
       for (const category of Object.keys(placeArtwork)) addPlaceIcon(`mazo-poi-${category}`);
+      if (!explorerStarted) {
+        explorerStarted = true;
+        import('./explorer.js')
+          .then(({ setupExplorer }) => setupExplorer(map, maplibre, siteRoot))
+          .then(upgradeToFullStyle)
+          .catch(() => {
+            showNotice('Search and directions could not be loaded.');
+            upgradeToFullStyle();
+          });
+      } else upgradeToFullStyle();
     });
     map.on('render', revealMap);
     map.on('load', () => {
-      import('./explorer.js')
-        .then(({ setupExplorer }) => setupExplorer(map, maplibre, siteRoot))
-        .catch(() => showNotice('Search and directions could not be loaded.'));
-      // Wait for the lightweight style's load event before swapping styles.
-      // Swapping during its first render cancels that event and would leave
-      // search/community controls uninitialised.
-      upgradeToFullStyle();
       revealMap();
       if (mapTest) globalThis.__mazoMapTimings.loaded = performance.now();
     });
