@@ -1,0 +1,25 @@
+name: OSM overlap checks
+on:
+  push:
+    paths:
+      - 'scripts/osm-overlap.mjs'
+      - 'tests/osm-overlap.test.mjs'
+      - '.github/workflows/osm-overlap.yml'
+  pull_request:
+    paths:
+      - 'scripts/osm-overlap.mjs'
+      - 'tests/osm-overlap.test.mjs'
+      - '.github/workflows/osm-overlap.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check scripts/osm-overlap.mjs
+      - run: node --test tests/osm-overlap.test.mjs
