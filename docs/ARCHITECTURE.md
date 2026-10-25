@@ -29,4 +29,18 @@ The Pages deployment and live browser test are skipped if the site exceeds the s
 
 ## Scope and future data
 
-This is a regional Overture extract, not Google Maps-equivalent coverage, a routing service, a live traffic product, or an operational service boundary. No project-owned POIs are added. New sources must document release, license, attribution, geographic coverage, provenance and refresh policy before they are integrated. See [Data sources](DATA_SOURCES.md) and [Attribution](../ATTRIBUTION.md).
+This is a regional Overture extract, not Google Maps-equivalent coverage, a routing service, a live traffic product, or an operational service boundary. Reviewed community JSON records are published as a separate bounded GeoJSON layer; they do not replace upstream features. See [community architecture](COMMUNITY.md). New sources must document release, license, attribution, geographic coverage, provenance and refresh policy before they are integrated. See [Data sources](DATA_SOURCES.md) and [Attribution](../ATTRIBUTION.md).
+
+## Community publication
+
+Accepted source records live individually under `records/`. Node validates schemas,
+geometry, sizes, canonical paths, parent hashes, provenance and tombstones, then
+compiles content-addressed records and active-feature bundles. Pages compilation
+is required before deployment. The browser verifies the records checksum before
+rendering and indexing the community layer. Complete source/provenance remains
+in the records bundle, including tombstones. No fictional records seed production.
+
+PR validation uses trusted base code after bootstrap. Admin approval is a separate
+current-commit status driven by GitHub reviews. Required branch rules provide
+server-side enforcement; CODEOWNERS alone does not block a merge/direct push.
+GitHub's authenticated UI provides branch/PR submission, not a browser API token.

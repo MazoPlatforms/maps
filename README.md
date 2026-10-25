@@ -53,4 +53,4 @@ The workflow downloads and processes data only on GitHub-hosted runners. A verif
 
 ## Roadmap boundary
 
-Only the listed Overture regional extract is included. Coverage depends on the selected release and source data; no Google Maps equivalence or complete local POI coverage is claimed. Label glyphs remain a public external dependency. No geographic data is invented or bundled as a placeholder.
+The national baseline is the listed Overture regional extract, supplemented by any accepted community JSON records. Coverage depends on the selected release and source data; no Google Maps equivalence or complete local POI coverage is claimed. Label glyphs remain a public external dependency. No geographic data is invented or bundled as a placeholder.

@@ -22,13 +22,13 @@ const server=createServer(async(req,res)=>{
   }catch {res.writeHead(404);res.end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
-let browser;
+let browser,lastPage;
 try {
   browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH || undefined,args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   for(const mobile of [false,true]) {
     records=new Map();await buildRecords(records,stage);
     const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:1000},isMobile:mobile,hasTouch:mobile,acceptDownloads:true});
-    const page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    const page=await context.newPage();lastPage=page;const errors=[];page.on('pageerror',error=>errors.push(error.message));
     await page.goto(`http://127.0.0.1:${server.address().port}/maps/?maptest=1`);
     await page.waitForFunction(()=>document.querySelector('#community-status').textContent.includes('0 published'));
     await page.click('#community-toggle');
@@ -61,7 +61,7 @@ try {
     await page.click('#community-toggle');await page.selectOption('#record-select',edited.id);await fillEvidence();const deleted=await proposal('#record-delete');
     assert.equal(deleted.status,'deleted');await compareRecords(records,new Map([[deleted.id,deleted]]));records=new Map([[deleted.id,deleted]]);await buildRecords(records,stage);
     await page.reload();await page.waitForFunction(()=>document.querySelector('#community-status').textContent.includes('0 published'));
-    assert.equal(await page.evaluate(()=>window.__mazoMap.getSource('community')._data.features.length),0);
+    assert.equal(await page.evaluate(async()=>(await window.__mazoMap.getSource('community').getData()).features.length),0);
     await page.click('#community-toggle');await page.selectOption('#record-select',deleted.id);await fillEvidence();const restored=await proposal('#record-restore');assert.equal(restored.status,'active');assert.equal(restored.revision,4);
     await compareRecords(records,new Map([[restored.id,restored]]));
     await page.click('#record-save');await page.click('#record-new');await page.click('#record-load');assert.equal(await page.inputValue('#record-name'),restored.properties.names.primary);assert.equal(await page.isChecked('#record-consent'),false);
@@ -71,4 +71,7 @@ try {
     assert.deepEqual(errors,[]);await context.close();
   }
   console.log('Desktop/mobile community proposal → review validation → publish → search/map → edit → tombstone → restore passed. No production records changed.');
+}catch(error){
+  if(lastPage && !lastPage.isClosed()){await mkdir('verification',{recursive:true});await lastPage.screenshot({path:'verification/community-failure.png'});console.error(await lastPage.evaluate(()=>({status:document.querySelector('#record-editor-status')?.textContent,publication:document.querySelector('#community-status')?.textContent})));}
+  throw error;
 }finally{await browser?.close();await new Promise(r=>server.close(r));await rm(stage,{recursive:true,force:true});}
