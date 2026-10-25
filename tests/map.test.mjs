@@ -359,6 +359,9 @@ test('publishing checks archive hashes and versions the client assets', async ()
       await readFile(join(site, 'assets/js/app.js'), 'utf8'),
       /archive-source\.js\?v=[a-f0-9]{16}/,
     );
+    // Version imports without corrupting .json resource paths into .js?v=...on.
+    assert.ok((await readFile(join(site, 'assets/js/app.js'), 'utf8')).includes('./data/sri-lanka/manifest.json'));
+    assert.doesNotMatch(await readFile(join(site, 'assets/js/app.js'), 'utf8'), /manifest\.js\?v=/);
     execFileSync('python3', [script, site]);
     assert.deepEqual(
       JSON.parse(await readFile(manifestPath, 'utf8')),

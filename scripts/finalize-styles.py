@@ -92,7 +92,7 @@ for page in (site / "index.html", site / "docs/index.html"):
 
 # Version every local JS dependency, including the editor's transitive imports.
 for module in (site / "assets/js").glob("*.js"):
-    content = re.sub(r"((?:\./|\.\./)[A-Za-z0-9_./-]+\.js)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", module.read_text())
+    content = re.sub(r"((?:\./|\.\./)[A-Za-z0-9_./-]+\.js)(?:\?v=[a-f0-9]+)?(?=['\"])", rf"\1?v={version}", module.read_text())
     module.write_text(content)
 config = site / "assets/js/config.js"
 if config.is_file():
