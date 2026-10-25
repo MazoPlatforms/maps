@@ -13,7 +13,7 @@ export function adminDecision({head,author,maintainers,reviews,comments}) {
   if([...latest.values()].some(r=>r.state==='APPROVED' && r.user.login!==author))return {approved:true,reason:'Admin review approves the current commit'};
   const pattern=new RegExp(`^/approve-records ${head}$`);
   // Explicit solo-maintainer mode. GitHub does not allow approving one's own PR.
-  if(maintainers.includes(author) && comments.some(c=>c.user?.login===author && pattern.test(c.body.trim())))return {approved:true,reason:'Maintainer explicitly approved their own exact commit'};
+  if(maintainers.length===1 && maintainers.includes(author) && comments.some(c=>c.user?.login===author && pattern.test(c.body.trim())))return {approved:true,reason:'Maintainer explicitly approved their own exact commit'};
   return {approved:false,reason:'Admin approval of the current commit is required'};
 }
 async function main() {

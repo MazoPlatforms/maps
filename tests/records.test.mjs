@@ -62,5 +62,6 @@ test('admin approval is bound to current head, trusted maintainers and outstandi
   assert.equal(adminDecision({...base,reviews:[{user:{login:'admin'},commit_id:'b'.repeat(40),state:'APPROVED'}]}).approved,false);
   assert.equal(adminDecision({...base,reviews:[{user:{login:'admin'},commit_id:head,state:'APPROVED'}]}).approved,true);
   assert.equal(adminDecision({...base,author:'admin',comments:[{user:{login:'admin'},body:`/approve-records ${head}`}]}).approved,true);
+  assert.equal(adminDecision({...base,maintainers:['admin','second-admin'],author:'admin',comments:[{user:{login:'admin'},body:`/approve-records ${head}`}]}).approved,false);
   assert.equal(adminDecision({...base,author:'admin',comments:[{user:{login:'admin'},body:`/approve-records ${head}`}],reviews:[{user:{login:'admin'},commit_id:head,state:'CHANGES_REQUESTED'}]}).approved,false);
 });
