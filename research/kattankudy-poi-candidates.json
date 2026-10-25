@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "area": "Kattankudy, Batticaloa, Sri Lanka",
+  "purpose": "Unverified research queue; not published map records",
+  "referencePolicy": "Google Maps for visual reference only; never copy proprietary POI data or coordinates",
+  "candidates": [
+    {
+      "name": "Al Othaim Super Market",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "AK Stores",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "FCC Wholesale Mart",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Gem Jewellers",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "JEWELLINE",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "ADS-CCTV",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Khalids",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "New Fathima Shoe Palace",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Hoorlin",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Faleel Store",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "New Life Pharmacy",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Family Pharmacy",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Life Care Pharmacy & Distributors",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Ideal Pharmacy",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Rizly Pharmacy",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Boots Pharmacy",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Shakthy Pharmacy",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Jasmin Ayurvedic Medicine Shop",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Kattankudy Vocational Training Centre",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Kattankudy Public Library",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "New Kattankudy Post Office",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Karbala Post Office",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Kattankudy Heritage Museum",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Red Cross Society Kattankudy",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Al Falak Book Centre",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    },
+    {
+      "name": "Noori Book Shop",
+      "verification": "pending",
+      "overtureMatch": "unknown",
+      "communityMatch": "unknown",
+      "coordinates": null,
+      "independentSource": null
+    }
+  ],
+  "nextSteps": [
+    "Confirm each business still exists from independent sources",
+    "Find independently licensed geolocation and attribution",
+    "Compare against Overture and community data",
+    "Publish only confirmed missing POIs through reviewed individual JSON files"
+  ],
+  "comparison": {
+    "method": "Repository text index spot-check plus community record inventory",
+    "coverage": "partial",
+    "checkedSources": [
+      "GitHub repository indexed code search",
+      "records/place directory listing",
+      "data/canonical/manifest.json"
+    ],
+    "limitations": [
+      "Overture basemap is stored in generated PMTiles or external data, not fully searchable via GitHub code search",
+      "Canonical data shards are gzip binaries and were not decompressed in this check",
+      "No independent coordinates or provenance validated"
+    ],
+    "findings": {
+      "publishedCommunityRecordCountInspected": 1,
+      "knownSampleRecord": "Mazo Platforms, Inc. tombstoned in this branch",
+      "confirmedMissing": 0,
+      "confirmedPresent": 0,
+      "unresolved": 26
+    },
+    "conclusion": "All candidates remain unresolved; absence from GitHub text search does not prove absence from map tiles"
+  }
+}
