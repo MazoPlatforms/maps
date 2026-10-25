@@ -105,9 +105,6 @@ async function startApp() {
     on(event, callback) {
       handlers[event] = callback;
     }
-    once(event, callback) {
-      handlers[`once:${event}`] = callback;
-    }
     off(event) {
       delete handlers[event];
     }
@@ -122,12 +119,6 @@ async function startApp() {
     }
     getLayer() {
       return {};
-    }
-    getStyle() {
-      return { layers: [] };
-    }
-    isStyleLoaded() {
-      return true;
     }
     queryRenderedFeatures() {
       return features;
@@ -166,14 +157,6 @@ async function startApp() {
         return { matches: false };
       },
     },
-    setTimeout(callback) {
-      callback();
-      return 0;
-    },
-    requestAnimationFrame(callback) {
-      callback();
-      return 0;
-    },
     location: { search: '?maptest=1' },
     maplibre: { Map: TestMap, NavigationControl: class {}, addProtocol() {} },
     pmtiles: {
@@ -196,13 +179,8 @@ async function startApp() {
                 version: 8,
                 name: String(url),
                 metadata: { 'mazo:theme': theme },
-                sources: { base: { type: 'vector' }, transportation: { type: 'vector' } },
-                layers: [
-                  { id: 'background', type: 'background' },
-                  { id: 'land', type: 'fill', source: 'base' },
-                  { id: 'water-fill', type: 'fill', source: 'base' },
-                  { id: 'road-lines', type: 'line', source: 'transportation' },
-                ],
+                sources: {},
+                layers: [],
               },
       };
     },
@@ -245,8 +223,6 @@ const settle = () => new Promise((resolve) => setImmediate(resolve));
 
 test('the first geographic frame reveals the map without waiting for full load', async () => {
   const app = await startApp();
-  assert.deepEqual(Object.keys(app.options.style.sources), ['base']);
-  assert.deepEqual(Array.from(app.options.style.layers, (layer) => layer.id), ['background', 'land', 'water-fill']);
   app.handlers.render();
   assert.equal(app.node('#map-frame').dataset.state, undefined);
   assert.equal(app.context.__mazoMapTimings.firstRender, null);
@@ -256,7 +232,6 @@ test('the first geographic frame reveals the map without waiting for full load',
   assert.equal(app.node('#map-status').classList.contains('is-hidden'), true);
   assert.equal(app.node('#map').attributes['aria-busy'], 'false');
   assert.equal(app.context.__mazoMapTimings.firstRender, 42);
-  assert.equal(app.styles.at(-1).layers.at(-1).id, 'road-lines');
   assert.equal(app.context.__mazoMapTimings.loaded, null);
   assert.equal(app.handlers.render, undefined);
   await settle();

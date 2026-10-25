@@ -15,11 +15,6 @@ const reducedMotion = window.matchMedia(
 const mapTest = new URLSearchParams(location.search).has('maptest');
 let map;
 let firstFrame = false;
-let fullMapStyle;
-let fullStyleLoaded = false;
-let fullStyleUpgradeQueued = false;
-let explorerStarted = false;
-let maplibreInstance;
 
 // Original Mazo canvas artwork. Icons are shared by category, not allocated per feature.
 const placeArtwork = {
@@ -80,11 +75,7 @@ function applyTheme(theme, persist = true) {
   if (map)
     loadStyle(theme)
       .then((style) => {
-        if (root.dataset.theme === theme) {
-          fullMapStyle = style;
-          fullStyleLoaded = true;
-          map.setStyle(style, { diff: true });
-        }
+        if (root.dataset.theme === theme) map.setStyle(style);
       })
       .catch((error) => showMapError(error, false));
 }
@@ -109,41 +100,6 @@ async function loadStyle(theme) {
       siteRoot.replace(/\/$/, ''),
     ),
   );
-}
-
-function initialMapStyle(style) {
-  const initialLayerIds = new Set(['background', 'land', 'water-fill']);
-  return {
-    ...style,
-    sources: { base: style.sources.base },
-    layers: style.layers.filter((layer) => initialLayerIds.has(layer.id)),
-  };
-}
-
-function startExplorer() {
-  if (!map || !maplibreInstance || explorerStarted) return;
-  explorerStarted = true;
-  import('./explorer.js')
-    .then(({ setupExplorer }) => setupExplorer(map, maplibreInstance, siteRoot))
-    .catch(() => showNotice('Search and directions could not be loaded.'));
-}
-
-function upgradeToFullStyle() {
-  if (!map || !fullMapStyle || fullStyleLoaded || fullStyleUpgradeQueued) return;
-  fullStyleUpgradeQueued = true;
-  const upgrade = () => {
-    fullStyleUpgradeQueued = false;
-    if (!map || fullStyleLoaded) return;
-    fullStyleLoaded = true;
-    // Explorer needs the full style's place/road layers. Register before the
-    // style switch so this event cannot be missed on fast local styles.
-    map.once('style.load', startExplorer);
-    map.setStyle(fullMapStyle, { diff: true });
-  };
-  // Paint the geographic frame before parsing nationwide road and label data.
-  if ('requestIdleCallback' in window)
-    window.requestIdleCallback(upgrade, { timeout: 350 });
-  else setTimeout(upgrade, 0);
 }
 
 function showNotice(message, blocking = false) {
@@ -201,7 +157,6 @@ function revealMap() {
   if (mapFrame) mapFrame.dataset.state = 'ready';
   if (mapTest) globalThis.__mazoMapTimings.firstRender = performance.now();
   map.off('render', revealMap);
-  upgradeToFullStyle();
   loadDataManifest();
 }
 
@@ -331,11 +286,9 @@ async function initializeMap() {
       );
     }
     maplibre.addProtocol('pmtiles', protocol.tile);
-    maplibreInstance = maplibre;
-    fullMapStyle = style;
     map = new maplibre.Map({
       container: mapNode,
-      style: initialMapStyle(style),
+      style,
       bounds: mapConfig.bounds,
       fitBoundsOptions: { padding: 36 },
       minZoom: mapConfig.minZoom,
@@ -358,6 +311,9 @@ async function initializeMap() {
     });
     map.on('render', revealMap);
     map.on('load', () => {
+      import('./explorer.js')
+        .then(({ setupExplorer }) => setupExplorer(map, maplibre, siteRoot))
+        .catch(() => showNotice('Search and directions could not be loaded.'));
       revealMap();
       if (mapTest) globalThis.__mazoMapTimings.loaded = performance.now();
     });
