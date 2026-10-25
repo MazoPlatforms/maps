@@ -134,6 +134,25 @@ function upgradeToFullStyle() {
   else setTimeout(upgrade, 0);
 }
 
+function startExplorerWhenReady(maplibre) {
+  const start = () => {
+    if (!map || explorerStarted) return;
+    if (!map.isStyleLoaded()) {
+      requestAnimationFrame(start);
+      return;
+    }
+    explorerStarted = true;
+    import('./explorer.js')
+      .then(({ setupExplorer }) => setupExplorer(map, maplibre, siteRoot))
+      .then(upgradeToFullStyle)
+      .catch(() => {
+        showNotice('Search and directions could not be loaded.');
+        upgradeToFullStyle();
+      });
+  };
+  requestAnimationFrame(start);
+}
+
 function showNotice(message, blocking = false) {
   if (!mapStatus) return;
   mapStatus.classList.remove('is-hidden');
@@ -341,16 +360,6 @@ async function initializeMap() {
     map.on('styleimagemissing', (event) => addPlaceIcon(event.id));
     map.on('style.load', () => {
       for (const category of Object.keys(placeArtwork)) addPlaceIcon(`mazo-poi-${category}`);
-      if (!explorerStarted) {
-        explorerStarted = true;
-        import('./explorer.js')
-          .then(({ setupExplorer }) => setupExplorer(map, maplibre, siteRoot))
-          .then(upgradeToFullStyle)
-          .catch(() => {
-            showNotice('Search and directions could not be loaded.');
-            upgradeToFullStyle();
-          });
-      } else upgradeToFullStyle();
     });
     map.on('render', revealMap);
     map.on('load', () => {
@@ -367,6 +376,7 @@ async function initializeMap() {
         .querySelectorAll('[data-city]')
         .forEach((button) => button.setAttribute('aria-pressed', 'false'));
     });
+    startExplorerWhenReady(maplibre);
     if (mapTest) globalThis.__mazoMap = map;
     if (root.dataset.theme !== style.metadata?.['mazo:theme'])
       applyTheme(root.dataset.theme, false);
