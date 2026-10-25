@@ -19,6 +19,7 @@ let fullMapStyle;
 let fullStyleLoaded = false;
 let fullStyleUpgradeQueued = false;
 let explorerStarted = false;
+let maplibreInstance;
 
 // Original Mazo canvas artwork. Icons are shared by category, not allocated per feature.
 const placeArtwork = {
@@ -119,6 +120,14 @@ function initialMapStyle(style) {
   };
 }
 
+function startExplorer() {
+  if (!map || !maplibreInstance || explorerStarted) return;
+  explorerStarted = true;
+  import('./explorer.js')
+    .then(({ setupExplorer }) => setupExplorer(map, maplibreInstance, siteRoot))
+    .catch(() => showNotice('Search and directions could not be loaded.'));
+}
+
 function upgradeToFullStyle() {
   if (!map || !fullMapStyle || fullStyleLoaded || fullStyleUpgradeQueued) return;
   fullStyleUpgradeQueued = true;
@@ -126,34 +135,15 @@ function upgradeToFullStyle() {
     fullStyleUpgradeQueued = false;
     if (!map || fullStyleLoaded) return;
     fullStyleLoaded = true;
+    // Explorer needs the full style's place/road layers. Register before the
+    // style switch so this event cannot be missed on fast local styles.
+    map.once('style.load', startExplorer);
     map.setStyle(fullMapStyle, { diff: true });
   };
   // Paint the geographic frame before parsing nationwide road and label data.
   if ('requestIdleCallback' in window)
     window.requestIdleCallback(upgrade, { timeout: 350 });
   else setTimeout(upgrade, 0);
-}
-
-function startExplorerWhenReady(maplibre) {
-  const start = () => {
-    if (!map || explorerStarted) return;
-    // isStyleLoaded also waits for every source and glyph request.  The
-    // controls only need the parsed style, so do not let a slow tile/font
-    // request block community data or search startup.
-    if (!map.getStyle()?.layers) {
-      requestAnimationFrame(start);
-      return;
-    }
-    explorerStarted = true;
-    import('./explorer.js')
-      .then(({ setupExplorer }) => setupExplorer(map, maplibre, siteRoot))
-      .then(upgradeToFullStyle)
-      .catch(() => {
-        showNotice('Search and directions could not be loaded.');
-        upgradeToFullStyle();
-      });
-  };
-  requestAnimationFrame(start);
 }
 
 function showNotice(message, blocking = false) {
@@ -211,6 +201,7 @@ function revealMap() {
   if (mapFrame) mapFrame.dataset.state = 'ready';
   if (mapTest) globalThis.__mazoMapTimings.firstRender = performance.now();
   map.off('render', revealMap);
+  upgradeToFullStyle();
   loadDataManifest();
 }
 
@@ -340,6 +331,7 @@ async function initializeMap() {
       );
     }
     maplibre.addProtocol('pmtiles', protocol.tile);
+    maplibreInstance = maplibre;
     fullMapStyle = style;
     map = new maplibre.Map({
       container: mapNode,
@@ -379,7 +371,6 @@ async function initializeMap() {
         .querySelectorAll('[data-city]')
         .forEach((button) => button.setAttribute('aria-pressed', 'false'));
     });
-    startExplorerWhenReady(maplibre);
     if (mapTest) globalThis.__mazoMap = map;
     if (root.dataset.theme !== style.metadata?.['mazo:theme'])
       applyTheme(root.dataset.theme, false);

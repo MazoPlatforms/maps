@@ -105,6 +105,9 @@ async function startApp() {
     on(event, callback) {
       handlers[event] = callback;
     }
+    once(event, callback) {
+      handlers[`once:${event}`] = callback;
+    }
     off(event) {
       delete handlers[event];
     }
