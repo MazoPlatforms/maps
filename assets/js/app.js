@@ -367,3 +367,42 @@ document.addEventListener('keydown', (event) => {
   }
 });
 initializeMap();
+
+
+// Community editor sheet states: compact, half, expanded.
+const communitySheet = document.querySelector('#contribution-panel');
+if (communitySheet) {
+  const heading = communitySheet.querySelector('header');
+  const controls = document.createElement('div');
+  controls.className = 'community-sheet-controls';
+  controls.setAttribute('role', 'group');
+  controls.setAttribute('aria-label', 'Community panel size');
+  for (const [state, label] of [['compact','Compact'],['half','Half'],['expanded','Expand']]) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    button.dataset.sheetTarget = state;
+    button.addEventListener('click', () => setCommunitySheet(state));
+    controls.append(button);
+  }
+  heading?.after(controls);
+  function setCommunitySheet(state) {
+    communitySheet.dataset.sheet = state;
+    for (const button of controls.querySelectorAll('button'))
+      button.setAttribute('aria-pressed', String(button.dataset.sheetTarget === state));
+  }
+  setCommunitySheet('half');
+  let startY = null;
+  heading?.addEventListener('touchstart', event => {
+    startY = event.touches[0].clientY;
+  }, {passive:true});
+  heading?.addEventListener('touchend', event => {
+    if (startY === null) return;
+    const distance = event.changedTouches[0].clientY - startY;
+    startY = null;
+    if (Math.abs(distance) < 45) return;
+    const states = ['compact','half','expanded'];
+    const index = states.indexOf(communitySheet.dataset.sheet);
+    setCommunitySheet(states[Math.max(0, Math.min(2, index + (distance < 0 ? 1 : -1)))]);
+  }, {passive:true});
+}
