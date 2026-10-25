@@ -7,12 +7,24 @@ export function proposalUrl(record) {
 }
 export function setupRecordEditor(map, community) {
   const panel=$('#contribution-panel'),form=$('#record-form'),status=$('#record-editor-status');
-  let original=null, id=crypto.randomUUID(),vertices=[],drawing=false,downloadUrl;
+  let original=null, id=crypto.randomUUID(),vertices=[],drawing=false,downloadUrl,preview=null;
+  function drawPreview(geometry) {
+    preview=geometry;
+    if(!map.getSource('community-draft'))map.addSource('community-draft',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+    for(const layer of [
+      {id:'community-draft-area',type:'fill',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':'#f59e0b','fill-opacity':0.25}},
+      {id:'community-draft-line',type:'line',filter:['!=',['geometry-type'],'Point'],paint:{'line-color':'#d97706','line-width':4,'line-dasharray':[2,2]}},
+      {id:'community-draft-point',type:'circle',filter:['==',['geometry-type'],'Point'],paint:{'circle-color':'#d97706','circle-radius':8,'circle-stroke-color':'#ffffff','circle-stroke-width':2}},
+    ])if(!map.getLayer(layer.id))map.addLayer({...layer,source:'community-draft'});
+    map.getSource('community-draft').setData({type:'FeatureCollection',features:geometry?[{type:'Feature',properties:{draft:true},geometry}]:[]});
+  }
+  map.on('style.load',()=>drawPreview(panel.hidden?null:preview));
   const output=$('#record-output');
   function message(text) { status.textContent=text; }
   function invalidate() { output.hidden=true;$('#record-consent').checked=false; }
   function stopDrawing() { drawing=false;vertices=[];$('#record-draw').setAttribute('aria-pressed','false');map.getCanvas().style.cursor=''; }
   function reset() {
+    drawPreview(null);$('#record-current-details').hidden=true;$('#record-current').textContent='';
     form.reset();original=null;id=crypto.randomUUID();stopDrawing();invalidate();$('#record-select').value='';$('#record-delete').disabled=true;$('#record-restore').disabled=true;
     $('#record-geometry').value=JSON.stringify({type:'Point',coordinates:[Number(map.getCenter().lng.toFixed(7)),Number(map.getCenter().lat.toFixed(7))]},null,2);
     $('#record-date').value=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Colombo'});
@@ -23,7 +35,7 @@ export function setupRecordEditor(map, community) {
     $('#record-type').value=record.featureType;$('#record-name').value=record.properties.names.primary;
     for(const lang of ['en','ta','si'])$(`#record-name-${lang}`).value=record.properties.names[lang] || '';
     for(const key of ['category','address','website','phone','description'])$(`#record-${key}`).value=record.properties[key] || '';
-    $('#record-geometry').value=JSON.stringify(record.geometry,null,2);$('#record-before').textContent=JSON.stringify(record,null,2);
+    $('#record-geometry').value=JSON.stringify(record.geometry,null,2);$('#record-before').textContent=JSON.stringify(record,null,2);$('#record-current').textContent=JSON.stringify(record,null,2);$('#record-current-details').hidden=false;drawPreview(record.geometry);
     $('#record-delete').disabled=record.status==='deleted';$('#record-restore').disabled=record.status!=='deleted';
     message(`Editing revision ${record.revision}. Existing provenance is retained; add evidence for your change.`);
   }
@@ -34,7 +46,7 @@ export function setupRecordEditor(map, community) {
   }
   function open() {panel.hidden=false;$('#community-toggle').setAttribute('aria-expanded','true');$('#layers-panel').hidden=true;$('#directions-panel').hidden=true;$('#layers-toggle').setAttribute('aria-expanded','false');$('#directions-toggle').setAttribute('aria-expanded','false');refresh();$('#record-name').focus();}
   $('#community-toggle').addEventListener('click',()=>{if(panel.hidden)open();else close();});
-  function close(){panel.hidden=true;stopDrawing();$('#community-toggle').setAttribute('aria-expanded','false');}
+  function close(){panel.hidden=true;drawPreview(null);stopDrawing();$('#community-toggle').setAttribute('aria-expanded','false');}
   $('#contribution-close').addEventListener('click',close);
   document.addEventListener('keydown',event=>{if(event.key==='Escape')close();});
   $('#layers-toggle').addEventListener('click',close);$('#directions-toggle').addEventListener('click',close);
@@ -47,6 +59,7 @@ export function setupRecordEditor(map, community) {
   map.on('click',event=>{
     if(!drawing || panel.hidden)return;
     vertices.push([Number(event.lngLat.lng.toFixed(7)),Number(event.lngLat.lat.toFixed(7))]);
+    drawPreview(vertices.length===1?{type:'Point',coordinates:vertices[0]}:{type:'LineString',coordinates:vertices});
     const type=RECORD_TYPES[$('#record-type').value];
     if(type==='Point'){ $('#record-geometry').value=JSON.stringify({type,coordinates:vertices[0]},null,2);stopDrawing();message('Point selected.'); }
     else message(`${vertices.length} vertices selected. Finish drawing when ready.`);
@@ -54,7 +67,7 @@ export function setupRecordEditor(map, community) {
   $('#record-finish').addEventListener('click',()=>{
     const type=RECORD_TYPES[$('#record-type').value];
     if(!drawing || vertices.length<(type==='Polygon'?3:2)){message('Draw at least 3 polygon vertices or 2 line vertices.');return;}
-    $('#record-geometry').value=JSON.stringify({type,coordinates:type==='Polygon'?[[...vertices,vertices[0]]]:vertices},null,2);stopDrawing();invalidate();message('Geometry captured. Review the coordinates before proposing.');
+    $('#record-geometry').value=JSON.stringify({type,coordinates:type==='Polygon'?[[...vertices,vertices[0]]]:vertices},null,2);drawPreview(JSON.parse($('#record-geometry').value));stopDrawing();invalidate();message('Geometry captured. Review the coordinates before proposing.');
   });
   async function build(statusValue='active') {
     if(!community.available)throw Error('Published community records must load before creating a proposal');
@@ -71,7 +84,7 @@ export function setupRecordEditor(map, community) {
   async function propose(statusValue='active') {
     output.hidden=true;
     try {
-      const record=await build(statusValue);
+      const record=await build(statusValue);drawPreview(record.geometry);
       if(downloadUrl)URL.revokeObjectURL(downloadUrl);
       downloadUrl=URL.createObjectURL(new Blob([JSON.stringify(record,null,2)+'\n'],{type:'application/json'}));
       $('#record-download').href=downloadUrl;$('#record-download').download=`${record.id}.json`;

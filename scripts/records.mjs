@@ -2,15 +2,18 @@ import { readFile, readdir, mkdir, writeFile, lstat } from 'node:fs/promises';
 import { resolve, relative, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-import { parseRecordJson, validateRecord, validateTransition, recordPath, stableJson, recordFeature, MAX_RECORD_BYTES, MAX_RECORDS } from '../assets/js/record-model.js';
+import { parseRecordJson, validateRecord, validateTransition, recordPath, stableJson, recordFeature, MAX_RECORD_BYTES, MAX_RECORDS, RECORD_TYPES } from '../assets/js/record-model.js';
 export async function loadRecords(root) {
   const records = new Map(); const directory = join(root,'records');
+  let visited=0;
   async function walk(path) {
+    try { if((await lstat(path)).isSymbolicLink()) throw Error('Record symlinks are forbidden'); } catch(error) { if(error.code==='ENOENT' && path===directory)return;throw error; }
     let entries; try { entries = await readdir(path,{withFileTypes:true}); } catch(error) { if(error.code === 'ENOENT' && path === directory) return; throw error; }
     for (const entry of entries.sort((a,b)=>a.name.localeCompare(b.name))) {
+      if(++visited>25000)throw Error('Record tree exceeds entry limit');
       const file=join(path,entry.name); const info=await lstat(file);
       if (info.isSymbolicLink()) throw Error('Record symlinks are forbidden');
-      if (entry.isDirectory()) { if(relative(directory,file).split('/').length > 2) throw Error('Unexpected record directory'); await walk(file); }
+      if (entry.isDirectory()) { const parts=relative(directory,file).split('/'); if(parts.length>2 || !Object.hasOwn(RECORD_TYPES,parts[0]) || (parts.length===2 && !/^[a-f0-9]{2}$/.test(parts[1]))) throw Error('Unexpected record directory'); await walk(file); }
       else if (entry.name.endsWith('.json')) {
         if(info.size>MAX_RECORD_BYTES) throw Error('Record exceeds 128 KiB');
         const record=validateRecord(parseRecordJson(await readFile(file,'utf8')));

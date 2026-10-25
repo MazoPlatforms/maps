@@ -6,7 +6,7 @@ import { readFile, mkdtemp, mkdir, rm } from 'node:fs/promises';
 import { resolve, extname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { buildRecords, compareRecords } from './records.mjs';
-import { validateRecord, parseRecordJson, recordHash } from '../assets/js/record-model.js';
+import { validateRecord, parseRecordJson, recordHash, stableJson } from '../assets/js/record-model.js';
 const { chromium }=await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root=resolve('.'),stage=await mkdtemp(join(tmpdir(),'mazo-community-browser-'));
 let records=new Map();await buildRecords(records,stage);
@@ -46,7 +46,7 @@ try {
     const created=await proposal();assert.equal(created.revision,1);assert.equal(created.properties.names.ta,'சோதனை');
     const github=new URL(await page.locator('#record-github').getAttribute('href'));assert.equal(github.hostname,'github.com');assert.equal(JSON.parse(github.searchParams.get('value')).id,created.id);
     const downloadEvent=page.waitForEvent('download');await page.click('#record-download');const download=await downloadEvent;assert.equal(download.suggestedFilename(),`${created.id}.json`);
-    assert.deepEqual(JSON.parse(await readFile(await download.path(),'utf8')),created);
+    assert.equal(stableJson(JSON.parse(await readFile(await download.path(),'utf8'))),stableJson(created));
     await compareRecords(records,new Map([[created.id,created]]));records=new Map([[created.id,created]]);await buildRecords(records,stage);
     // Accept the proposal into an isolated publication and verify map/search reads it.
     await page.reload();await page.waitForFunction(()=>document.querySelector('#community-status').textContent.includes('1 published'));

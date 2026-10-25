@@ -108,6 +108,7 @@
           <p>Do not duplicate an Overture feature to correct it. Upstream replacement is not enabled in this release.</p>
           <details><summary>Admin review · <span id="record-count">0</span> records</summary><p>Review sources, duplicates and before/after geometry. Validation alone does not approve a proposal.</p><a href="https://github.com/MazoPlatforms/maps/pulls" target="_blank" rel="noopener noreferrer">Open review queue</a> · <a href="https://github.com/MazoPlatforms/maps/tree/main/records" target="_blank" rel="noopener noreferrer">Browse JSON records</a></details>
           <label for="record-select">Published record</label><select id="record-select"><option value="">New record</option></select><button id="record-new" type="button">New record</button>
+          <details id="record-current-details" hidden><summary>Published record and sources</summary><pre id="record-current"></pre></details>
           <form id="record-form">
             <label for="record-type">Feature type</label><select id="record-type" name="featureType"><option value="place">Place</option><option value="building">Building</option><option value="road">Road</option><option value="land">Land</option><option value="land_use">Land use</option><option value="water">Water</option><option value="infrastructure">Infrastructure</option><option value="administrative_boundary">Administrative boundary</option></select>
             <label for="record-name">Primary name</label><input id="record-name" name="primary" maxlength="200" required/>
