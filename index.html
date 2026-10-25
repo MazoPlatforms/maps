@@ -68,6 +68,7 @@
           <label><input type="checkbox" data-layer="buildings" checked/> Buildings</label>
           <label><input type="checkbox" data-layer="places" checked/> Places</label>
           <label><input type="checkbox" data-layer="landmarks" checked/> Cities & destinations</label>
+          <label><input type="checkbox" data-layer="community" checked/> Community records</label>
           <label for="city-select">Quick city view</label>
           <select id="city-select" aria-label="Choose a place"><option value="island">Sri Lanka · All island</option><option value="colombo">Colombo</option><option value="jaffna">Jaffna</option><option value="kandy">Kandy</option><option value="galle">Galle</option><option value="trincomalee">Trincomalee</option><option value="batticaloa">Batticaloa</option></select>
           <button id="map-fullscreen" aria-label="Enter fullscreen" aria-pressed="false">Fullscreen</button>
@@ -99,8 +100,41 @@
             </div>
           </form>
         </section>
+        <section class="panel tool-panel contribution-panel" id="contribution-panel" aria-label="Community contributions" hidden>
+          <header class="directions-heading"><h2>Community map data</h2><button id="contribution-close" type="button" aria-label="Close contribution editor">×</button></header>
+          <p id="community-status" role="status">Loading community records…</p>
+          <p>Suggest new data or edit published community records. Admins review proposals on GitHub before publication. <a href="./CONTRIBUTING.md" target="_blank" rel="noopener">Contribution guide</a></p>
+          <p>Do not duplicate an Overture feature to correct it. Upstream replacement is not enabled in this release.</p>
+          <details><summary>Admin review · <span id="record-count">0</span> records</summary><p>Review sources, duplicates and before/after geometry. Validation alone does not approve a proposal.</p><a href="https://github.com/MazoPlatforms/maps/pulls" target="_blank" rel="noopener noreferrer">Open review queue</a> · <a href="https://github.com/MazoPlatforms/maps/tree/main/records" target="_blank" rel="noopener noreferrer">Browse JSON records</a></details>
+          <label for="record-select">Published record</label><select id="record-select"><option value="">New record</option></select><button id="record-new" type="button">New record</button>
+          <details id="record-current-details" hidden><summary>Published record and sources</summary><pre id="record-current"></pre></details>
+          <form id="record-form">
+            <label for="record-type">Feature type</label><select id="record-type" name="featureType"><option value="place">Place</option><option value="building">Building</option><option value="road">Road</option><option value="land">Land</option><option value="land_use">Land use</option><option value="water">Water</option><option value="infrastructure">Infrastructure</option><option value="administrative_boundary">Administrative boundary</option></select>
+            <label for="record-name">Primary name</label><input id="record-name" name="primary" maxlength="200" required/>
+            <details><summary>Names in other languages</summary><label for="record-name-en">English</label><input id="record-name-en" name="en" maxlength="200"/><label for="record-name-ta">தமிழ்</label><input id="record-name-ta" name="ta" maxlength="200"/><label for="record-name-si">සිංහල</label><input id="record-name-si" name="si" maxlength="200"/></details>
+            <label for="record-category">Category</label><input id="record-category" name="category" placeholder="e.g. pharmacy" maxlength="80" required/>
+            <label for="record-address">Public address (optional)</label><input id="record-address" name="address" maxlength="500"/>
+            <label for="record-website">Website (optional, HTTPS)</label><input id="record-website" name="website" type="url" maxlength="500"/>
+            <label for="record-phone">Public business phone (optional)</label><input id="record-phone" name="phone" maxlength="80"/>
+            <label for="record-description">Description (optional)</label><textarea id="record-description" name="description" maxlength="2000"></textarea>
+            <label for="record-geometry">GeoJSON geometry · [longitude, latitude]</label><textarea id="record-geometry" name="geometry" rows="6" required spellcheck="false"></textarea>
+            <div class="record-actions"><button id="record-center" type="button">Use map center</button><button id="record-draw" type="button" aria-pressed="false">Draw on map</button><button id="record-finish" type="button">Finish drawing</button></div>
+            <label for="record-source">Source / survey description</label><input id="record-source" name="source" maxlength="200" required/>
+            <label for="record-source-url">Evidence URL (optional, HTTPS)</label><input id="record-source-url" name="sourceUrl" type="url" maxlength="500"/>
+            <label for="record-attribution">Source attribution</label><input id="record-attribution" name="attribution" maxlength="300" required/>
+            <label for="record-license">License for supplied data</label><select id="record-license" name="license" required><option value="">Choose a license you can grant</option><option value="CC0-1.0">CC0 1.0</option><option value="CC-BY-4.0">CC BY 4.0</option><option value="ODbL-1.0">ODbL 1.0</option><option value="CDLA-Permissive-2.0">CDLA Permissive 2.0</option></select>
+            <label for="record-date">Observation / source date</label><input id="record-date" name="observedAt" type="date" required/>
+            <label for="record-note">What changed and why?</label><textarea id="record-note" name="changeNote" maxlength="1000" required></textarea>
+            <label class="record-consent"><input id="record-consent" type="checkbox" required/> I have permission to publish these details under the stated license. No private personal data or copied proprietary map content.</label>
+            <div class="record-actions"><button type="submit" class="primary-button">Prepare JSON proposal</button><button id="record-delete" type="button" disabled>Propose deletion</button><button id="record-restore" type="button" disabled>Propose restore</button></div>
+            <div class="record-actions"><button id="record-save" type="button">Save draft</button><button id="record-load" type="button">Restore draft</button><button id="record-discard" type="button">Discard draft</button></div>
+          </form>
+          <p id="record-editor-status" role="status" aria-live="polite"></p>
+          <div id="record-output" hidden><p>Repository path: <code id="record-path"></code></p><div class="record-actions"><a id="record-download">Download JSON</a><a id="record-github" target="_blank" rel="noopener noreferrer">Open GitHub proposal</a></div><p>On GitHub, create a branch and pull request. Updating a record? Replace its existing JSON file using the path above. Download alone does not submit anything.</p><details><summary>Before</summary><pre id="record-before"></pre></details><details open><summary>Proposed record</summary><pre id="record-after"></pre></details></div>
+        </section>
         <div class="map-loading" id="map-status" role="status" aria-live="polite"><span class="loading-pulse" aria-hidden="true"></span><span>Loading Sri Lanka</span></div>
         <div class="map-actions">
+          <button class="icon-button" id="community-toggle" aria-label="Contribute map data" aria-expanded="false" aria-controls="contribution-panel" title="Contribute"><span aria-hidden="true">＋</span></button>
           <button class="icon-button" id="map-locate" aria-label="Find my location" title="My location"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg></button>
           <button class="icon-button" id="map-reset" aria-label="Reset map view to Sri Lanka" title="Island view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 2 8M4 4v6h6"/></svg></button>
         </div>

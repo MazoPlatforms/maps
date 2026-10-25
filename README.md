@@ -2,7 +2,7 @@
 
 **Mazo Maps** is an open-source mapping project by Mazo Platforms, Inc. It publishes a Sri Lanka vector basemap built from official Overture Maps data and displayed with MapLibre.
 
-GitHub Actions resolves the latest official Overture release, extracts features intersecting `[79.3, 5.8, 82.1, 10.1]`, builds four PMTiles archives, validates their feature layers and byte-range delivery, and deploys when the site payload fits GitHub Pages. The release manifest records source counts and archive hashes. This is a regional extract, not a completeness guarantee or a service-coverage claim. The map does not publish project-owned POIs.
+GitHub Actions resolves the latest official Overture release, extracts features intersecting `[79.3, 5.8, 82.1, 10.1]`, builds four PMTiles archives, validates their feature layers and byte-range delivery, and deploys when the site payload fits GitHub Pages. The release manifest records source counts and archive hashes. This is a regional extract, not a completeness guarantee or a service-coverage claim. Reviewed community JSON records can supplement this upstream baseline; they do not imply complete local coverage.
 
 The website opens directly into a full-screen map with floating search, category
 filters, layers, directions handoff and light/dark controls. A small licensed
@@ -24,11 +24,16 @@ docs/                      Architecture, data-source and attribution notes
 .github/workflows/         Overture tile build, verification and Pages deployment
 ```
 
+## Community maintenance
+
+Use the map’s **＋** contribution panel to prepare a JSON proposal. Contributors submit GitHub pull requests; admins review the exact commit before merging. Each accepted feature lives in `records/<type>/<prefix>/<id>.json`; Actions compiles a checksummed community map/search bundle. See [Contributing](CONTRIBUTING.md) for lifecycle, licenses, review checks and required branch rules. Baseline Overture replacements are not enabled by this bounded release.
+
 ## Run locally
 
 Serve this directory with any static HTTP server, then open its local URL. For example, with Python:
 
 ```sh
+node scripts/records.mjs --output data/community
 python3 -m http.server 8000
 ```
 
@@ -48,4 +53,4 @@ The workflow downloads and processes data only on GitHub-hosted runners. A verif
 
 ## Roadmap boundary
 
-Only the listed Overture regional extract is included. Coverage depends on the selected release and source data; no Google Maps equivalence or complete local POI coverage is claimed. Label glyphs remain a public external dependency. No geographic data is invented or bundled as a placeholder.
+The national baseline is the listed Overture regional extract, supplemented by any accepted community JSON records. Coverage depends on the selected release and source data; no Google Maps equivalence or complete local POI coverage is claimed. Label glyphs remain a public external dependency. No geographic data is invented or bundled as a placeholder.

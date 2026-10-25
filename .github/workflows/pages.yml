@@ -3,6 +3,9 @@ name: Build and publish Sri Lanka basemap
 on:
   pull_request:
     paths:
+      - 'records/**'
+      - 'schemas/**'
+      - 'scripts/records.mjs'
       - 'index.html'
       - 'assets/**'
       - 'scripts/verify-rendering.mjs'
@@ -12,6 +15,9 @@ on:
   push:
     branches: [main]
     paths:
+      - 'records/**'
+      - 'schemas/**'
+      - 'scripts/records.mjs'
       - 'index.html'
       - 'assets/**'
       - 'docs/**'
@@ -46,9 +52,25 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate and compile community publication
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -n "$BASE_REF" && "$BASE_REF" != 0000000000000000000000000000000000000000 ]]; then
+            git worktree add --detach "$RUNNER_TEMP/records-base" "$BASE_REF"
+            if [[ -f "$RUNNER_TEMP/records-base/scripts/records.mjs" ]]; then
+              node "$RUNNER_TEMP/records-base/scripts/records.mjs" --root "$GITHUB_WORKSPACE" --base "$RUNNER_TEMP/records-base" --output data/community
+            else
+              node scripts/records.mjs --base "$RUNNER_TEMP/records-base" --output data/community
+            fi
+          else
+            node scripts/records.mjs --output data/community
+          fi
       - run: node --test tests/*.test.mjs
       - name: Verify candidate desktop and mobile rendering against real map data
         run: |
@@ -79,6 +101,10 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Resolve latest official Overture release
         id: release
@@ -140,7 +166,8 @@ jobs:
         id: size
         run: |
           mkdir -p _site
-          rsync -a --exclude='.git/' --exclude='.github/' --exclude='_site/' --exclude='counts/' --exclude='data/canonical/' --exclude='data/boundaries/' ./ _site/
+          rsync -a --exclude='.git/' --exclude='.github/' --exclude='_site/' --exclude='counts/' --exclude='data/canonical/' --exclude='data/boundaries/' --exclude='records/' --exclude='node_modules/' --exclude='record-review/' ./ _site/
+          node scripts/records.mjs --output _site/data/community
           python3 scripts/finalize-styles.py _site
           site_bytes="$(du -sb _site | cut -f1)"
           # Keep headroom below GitHub Pages' published-site 1 GB hard limit.

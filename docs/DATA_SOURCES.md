@@ -17,3 +17,12 @@ The map renderer is MapLibre GL JS. The PMTiles browser adapter uses HTTP range 
 ## Refresh
 
 Every `main` push and manual workflow dispatch resolves the latest official Overture release and rebuilds the regional archives. Review the generated manifest and Actions browser verification before treating a deployment as current. If Pages limits block publication, the generated site remains available as a short-lived Actions artifact.
+
+## Reviewed community records
+
+`records/` contains one editable JSON file per contributed feature. Each entry
+retains sources, licenses, observation dates and attributions. The initial
+community dataset is empty, deliberately avoiding invented geographic examples.
+Accepted records compile into `data/community/manifest.json` and content-addressed
+record/GeoJSON bundles. This is a supplemental layer, not a replacement Overture
+release. See [contribution rules](../CONTRIBUTING.md) and [data licenses](../LICENSE-DATA.md).

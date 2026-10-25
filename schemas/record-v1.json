@@ -1,0 +1,493 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$"
+    },
+    "featureType": {
+      "enum": [
+        "place",
+        "building",
+        "road",
+        "land",
+        "land_use",
+        "water",
+        "infrastructure",
+        "administrative_boundary"
+      ]
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "previous": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      ]
+    },
+    "status": {
+      "enum": [
+        "active",
+        "deleted"
+      ]
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "Point",
+            "LineString",
+            "Polygon"
+          ]
+        },
+        "coordinates": {}
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Point"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "coordinates": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number",
+                    "minimum": 79.3,
+                    "maximum": 82.1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 5.8,
+                    "maximum": 10.1
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "LineString"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "coordinates": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 79.3,
+                      "maximum": 82.1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 5.8,
+                      "maximum": 10.1
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "minItems": 2,
+                "maxItems": 500
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Polygon"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "coordinates": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number",
+                        "minimum": 79.3,
+                        "maximum": 82.1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 5.8,
+                        "maximum": 10.1
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "minItems": 4,
+                  "maxItems": 500
+                },
+                "minItems": 1,
+                "maxItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "properties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "names": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "primary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "en": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "ta": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "si": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          },
+          "required": [
+            "primary"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "address": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "website": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "names",
+        "category"
+      ]
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "license": {
+            "enum": [
+              "CC0-1.0",
+              "CC-BY-4.0",
+              "ODbL-1.0",
+              "CDLA-Permissive-2.0"
+            ]
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "attribution": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "name",
+          "license",
+          "observedAt",
+          "attribution"
+        ]
+      }
+    },
+    "changeNote": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "featureType",
+    "revision",
+    "previous",
+    "status",
+    "geometry",
+    "properties",
+    "sources",
+    "changeNote"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mazoplatforms.github.io/maps/schemas/record-v1.json",
+  "title": "Mazo community geographic record",
+  "description": "Structural schema. record-model.js also validates geometry topology, size limits and revision transitions.",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "featureType": {
+            "const": "place"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "geometry": {
+            "properties": {
+              "type": {
+                "const": "Point"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "featureType": {
+            "const": "building"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "geometry": {
+            "properties": {
+              "type": {
+                "const": "Polygon"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "featureType": {
+            "const": "road"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "geometry": {
+            "properties": {
+              "type": {
+                "const": "LineString"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "featureType": {
+            "const": "land"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "geometry": {
+            "properties": {
+              "type": {
+                "const": "Polygon"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "featureType": {
+            "const": "land_use"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "geometry": {
+            "properties": {
+              "type": {
+                "const": "Polygon"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "featureType": {
+            "const": "water"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "geometry": {
+            "properties": {
+              "type": {
+                "const": "Polygon"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "featureType": {
+            "const": "infrastructure"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "geometry": {
+            "properties": {
+              "type": {
+                "const": "Point"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "featureType": {
+            "const": "administrative_boundary"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "geometry": {
+            "properties": {
+              "type": {
+                "const": "Polygon"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "revision": {
+            "const": 1
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "previous": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "previous": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    }
+  ]
+}

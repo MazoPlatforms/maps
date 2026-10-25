@@ -1,0 +1,52 @@
+name: Validate JSON records
+on:
+  pull_request:
+  push:
+    branches: [main, feat/community-json-records]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  records:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+          persist-credentials: false
+      # Run the validator from the trusted base once bootstrapped. A proposed
+      # validator/schema change must not weaken validation of its own records.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || (github.event.before != '0000000000000000000000000000000000000000' && github.event.before) || github.sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate record transitions and build review evidence
+        env:
+          IS_PR: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if [[ -f trusted/scripts/records.mjs ]]; then
+            node trusted/scripts/records.mjs --root candidate --base trusted --report record-review --output candidate/data/community
+          else
+            node candidate/scripts/records.mjs --root candidate --output candidate/data/community
+          fi
+      - name: Test candidate code without credentials
+        working-directory: candidate
+        run: node --test tests/*.test.mjs
+      - name: Verify editor and published community records in Chromium
+        working-directory: candidate
+        run: |
+          npm install --prefix "$RUNNER_TEMP/community-browser" --no-save --no-package-lock playwright@1.55.0
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/community-browser/node_modules/playwright/index.mjs" CHROMIUM_PATH="$(command -v google-chrome)" node scripts/verify-community.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: community-record-review
+          path: |
+            record-review/
+            candidate/verification/community-*.png
+          if-no-files-found: ignore
+          retention-days: 14
