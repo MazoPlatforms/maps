@@ -4,14 +4,14 @@ import { dirname, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 
 const bounds=[79.3,5.8,82.1,10.1];
-const normalize=s=>String(s??'').normalize('NFKC').toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu,' ').trim();
+const normalize=s=>String(s??'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 const hash=s=>createHash('sha256').update(s).digest('hex');
 function id(f,origin){
   const p=f.properties??{};
   if(origin==='osm'){
     const type=p.osm_type??p['@type']; const num=p.osm_id??p['@id'];
-    if(['node','way','relation'].includes(String(type)) && /^\\d+$/.test(String(num))) return `osm:${type}:${num}`;
-    if(typeof f.id==='string' && /^((node|way|relation)\\/\\d+|osm:(node|way|relation):\\d+)$/.test(f.id)) return f.id.replace(/^([^:]+)\\/(\\d+)$/,'osm:$1:$2');
+    if(['node','way','relation'].includes(String(type)) && /^\d+$/.test(String(num))) return `osm:${type}:${num}`;
+    if(typeof f.id==='string' && /^((node|way|relation)\/\d+|osm:(node|way|relation):\d+)$/.test(f.id)) return f.id.replace(/^([^:]+)\/(\d+)$/,'osm:$1:$2');
   }
   return String(p.id??f.id??'');
 }
@@ -60,7 +60,7 @@ async function main(){
   result.report.inputs={osmSha256:hash(osmBytes),overtureSha256:hash(overtureBytes)};
   for(const [path,value] of [[get('--report'),result.report],[get('--overlay'),result.overlay]]){
     await mkdir(dirname(resolve(path)),{recursive:true});
-    await writeFile(path,JSON.stringify(value,null,2)+'\\n');
+    await writeFile(path,JSON.stringify(value,null,2)+'\n');
   }
   console.log(JSON.stringify({matched:result.report.matchedCount,review:result.report.reviewCount,osmOnly:result.report.osmOnlyCount,issues:result.report.issueCount}));
 }
