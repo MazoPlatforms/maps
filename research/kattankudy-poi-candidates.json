@@ -218,5 +218,27 @@
     "Find independently licensed geolocation and attribution",
     "Compare against Overture and community data",
     "Publish only confirmed missing POIs through reviewed individual JSON files"
-  ]
+  ],
+  "comparison": {
+    "method": "Repository text index spot-check plus community record inventory",
+    "coverage": "partial",
+    "checkedSources": [
+      "GitHub repository indexed code search",
+      "records/place directory listing",
+      "data/canonical/manifest.json"
+    ],
+    "limitations": [
+      "Overture basemap is stored in generated PMTiles or external data, not fully searchable via GitHub code search",
+      "Canonical data shards are gzip binaries and were not decompressed in this check",
+      "No independent coordinates or provenance validated"
+    ],
+    "findings": {
+      "publishedCommunityRecordCountInspected": 1,
+      "knownSampleRecord": "Mazo Platforms, Inc. tombstoned in this branch",
+      "confirmedMissing": 0,
+      "confirmedPresent": 0,
+      "unresolved": 26
+    },
+    "conclusion": "All candidates remain unresolved; absence from GitHub text search does not prove absence from map tiles"
+  }
 }
