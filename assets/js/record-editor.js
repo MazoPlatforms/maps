@@ -1,8 +1,8 @@
 import { RECORD_TYPES, validateRecord, validateTransition, recordHash, recordPath, recordLabel, parseRecordJson, stableJson } from './record-model.js';
 const $=selector=>document.querySelector(selector);
 export function proposalUrl(record) {
-  const url=new URL('https://github.com/MazoPlatforms/maps/new/main');
-  url.searchParams.set('filename',recordPath(record));url.searchParams.set('value',JSON.stringify(record,null,2)+'\n');
+  const url=new URL(record.revision===1 ? 'https://github.com/MazoPlatforms/maps/new/main' : `https://github.com/MazoPlatforms/maps/edit/main/${recordPath(record)}`);
+  if(record.revision===1){url.searchParams.set('filename',recordPath(record));url.searchParams.set('value',JSON.stringify(record,null,2)+'\n');}
   return url.href;
 }
 export function setupRecordEditor(map, community) {
@@ -89,8 +89,8 @@ export function setupRecordEditor(map, community) {
       downloadUrl=URL.createObjectURL(new Blob([JSON.stringify(record,null,2)+'\n'],{type:'application/json'}));
       $('#record-download').href=downloadUrl;$('#record-download').download=`${record.id}.json`;
       $('#record-path').textContent=recordPath(record);$('#record-after').textContent=JSON.stringify(record,null,2);
-      const link=proposalUrl(record);$('#record-github').hidden=link.length>7000;$('#record-github').href=link;
-      output.hidden=false;message(link.length>7000?'Proposal validated. Download JSON and upload it to the exact path shown, then open a pull request.':'Proposal validated. Open GitHub, choose a new branch, then create a pull request. For edits, replace the existing file with this JSON.');
+      const link=proposalUrl(record);$('#record-github').hidden=link.length>7000;$('#record-github').href=link;$('#record-github').textContent=original?'Edit existing JSON on GitHub':'Open GitHub proposal';
+      output.hidden=false;message(original?'Download the proposal, open the GitHub edit page, replace the existing JSON and create a branch/pull request.':link.length>7000?'Proposal validated. Download JSON and upload it to the exact path shown, then open a pull request.':'Proposal validated. Open GitHub, choose a new branch, then create a pull request. For edits, replace the existing file with this JSON.');
     }catch(error){message(error.message);}
   }
   form.addEventListener('submit',event=>{event.preventDefault();propose(original?.status || 'active');});

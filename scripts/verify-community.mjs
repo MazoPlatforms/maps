@@ -55,7 +55,7 @@ try {
     await page.fill('#map-search','Browser fixture');await page.waitForSelector('#search-results button');assert.match(await page.locator('#search-results').textContent(),/Browser fixture/);
     await page.fill('#map-search','சோதனை');await page.waitForSelector('#search-results button');
     await page.click('#community-toggle');await page.selectOption('#record-select',created.id);await page.fill('#record-name','Corrected browser fixture');await fillEvidence();
-    const edited=await proposal();assert.equal(edited.id,created.id);assert.equal(edited.revision,2);assert.equal(edited.previous,await recordHash(created));
+    const edited=await proposal();assert.ok((await page.locator('#record-github').getAttribute('href')).includes('/edit/main/records/'));assert.equal(edited.id,created.id);assert.equal(edited.revision,2);assert.equal(edited.previous,await recordHash(created));
     await compareRecords(records,new Map([[edited.id,edited]]));records=new Map([[edited.id,edited]]);await buildRecords(records,stage);
     await page.reload();await page.waitForFunction(()=>document.querySelector('#community-status').textContent.includes('1 published'));
     await page.click('#community-toggle');await page.selectOption('#record-select',edited.id);await fillEvidence();const deleted=await proposal('#record-delete');
