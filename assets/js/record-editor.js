@@ -44,7 +44,7 @@ export function setupRecordEditor(map, community) {
     for(const record of community.records)select.append(new Option(`${recordLabel(record)}${record.status==='deleted'?' (deleted)':''}`,record.id));
     select.value=selected;$('#record-count').textContent=String(community.records.length);
   }
-  function open() {panel.hidden=false;$('#community-toggle').setAttribute('aria-expanded','true');$('#layers-panel').hidden=true;$('#directions-panel').hidden=true;$('#layers-toggle').setAttribute('aria-expanded','false');$('#directions-toggle').setAttribute('aria-expanded','false');refresh();$('#record-name').focus();}
+  function open() {panel.hidden=false;$('#community-toggle').setAttribute('aria-expanded','true');$('#layers-panel').hidden=true;$('#directions-panel').hidden=true;$('#layers-toggle').setAttribute('aria-expanded','false');$('#directions-toggle').setAttribute('aria-expanded','false');refresh();document.dispatchEvent(new Event('mazo:community-open'));$('#record-name').focus();}
   $('#community-toggle').addEventListener('click',()=>{if(panel.hidden)open();else close();});
   function close(){panel.hidden=true;drawPreview(null);stopDrawing();$('#community-toggle').setAttribute('aria-expanded','false');}
   $('#contribution-close').addEventListener('click',close);
@@ -58,6 +58,7 @@ export function setupRecordEditor(map, community) {
   $('#record-draw').addEventListener('click',()=>{invalidate();if(drawing){stopDrawing();return;}drawing=true;vertices=[];$('#record-draw').setAttribute('aria-pressed','true');map.getCanvas().style.cursor='crosshair';message('Click the map for a point or vertices. Use Finish drawing for a line/polygon.');});
   map.on('click',event=>{
     if(!drawing || panel.hidden)return;
+    document.dispatchEvent(new Event('mazo:community-map-pick'));
     vertices.push([Number(event.lngLat.lng.toFixed(7)),Number(event.lngLat.lat.toFixed(7))]);
     drawPreview(vertices.length===1?{type:'Point',coordinates:vertices[0]}:{type:'LineString',coordinates:vertices});
     const type=RECORD_TYPES[$('#record-type').value];
