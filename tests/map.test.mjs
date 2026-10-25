@@ -74,6 +74,13 @@ function createNode() {
     append(...children) {
       this.children.push(...children);
     },
+    after() {},
+    querySelector(selector) {
+      return selector === 'header' ? createNode() : null;
+    },
+    querySelectorAll(selector) {
+      return selector === 'button' ? this.children.filter((child) => child.type === 'button') : [];
+    },
   };
 }
 
