@@ -165,3 +165,26 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
  .contribution-panel { top: 110px; bottom: 50px; right: 8px; width: min(330px, calc(100% - 58px)); max-height: calc(100dvh - 170px); }
  .utility-controls { gap: 4px; }
 }
+
+
+/* Responsive community bottom sheet with three user-selectable snap states. */
+.community-sheet-controls { display:flex; gap:6px; margin:8px 0 12px; }
+.community-sheet-controls button { flex:1; min-width:0; font-size:12px; }
+.community-sheet-controls button[aria-pressed="true"] { background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); }
+@media (max-width: 600px) {
+  .contribution-panel {
+    position:absolute; inset:auto 0 0 !important; width:100% !important;
+    max-width:none !important; max-height:none !important;
+    border-radius:18px 18px 0 0; border-bottom:0;
+    padding:12px 16px calc(18px + env(safe-area-inset-bottom));
+    overscroll-behavior:contain; transition:height .22s ease;
+    z-index:5;
+  }
+  .contribution-panel[data-sheet="compact"] { height: min(25dvh, 220px); }
+  .contribution-panel[data-sheet="half"] { height: 55dvh; }
+  .contribution-panel[data-sheet="expanded"] { height: 92dvh; }
+  .contribution-panel > header { touch-action:pan-y; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contribution-panel { transition:none; }
+}
