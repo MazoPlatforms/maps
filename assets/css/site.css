@@ -167,10 +167,6 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 }
 
 
-/* Responsive community bottom sheet with three user-selectable snap states. */
-.community-sheet-controls { display:flex; gap:6px; margin:8px 0 12px; }
-.community-sheet-controls button { flex:1; min-width:0; font-size:12px; }
-.community-sheet-controls button[aria-pressed="true"] { background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); }
 @media (max-width: 600px) {
   .contribution-panel {
     position:absolute; inset:auto 0 0 !important; width:100% !important;
@@ -182,7 +178,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   }
   .contribution-panel[data-sheet="compact"] { height: min(25dvh, 220px); }
   .contribution-panel[data-sheet="half"] { height: 55dvh; }
-  .contribution-panel[data-sheet="expanded"] { height: 92dvh; }
+
   .contribution-panel > header { touch-action:pan-y; }
 }
 @media (prefers-reduced-motion: reduce) {
