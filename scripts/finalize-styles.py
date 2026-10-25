@@ -90,12 +90,10 @@ for page in (site / "index.html", site / "docs/index.html"):
         )
         page.write_text(content)
 
-app = site / "assets/js/app.js"
-if app.is_file():
-    app.write_text(re.sub(r"(\./(?:config|archive-source|explorer)\.js)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", app.read_text()))
-explorer = site / "assets/js/explorer.js"
-if explorer.is_file():
-    explorer.write_text(re.sub(r"(\./routing\.js)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", explorer.read_text()))
+# Version every local JS dependency, including the editor's transitive imports.
+for module in (site / "assets/js").glob("*.js"):
+    content = re.sub(r"((?:\./|\.\./)[A-Za-z0-9_./-]+\.js)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", module.read_text())
+    module.write_text(content)
 config = site / "assets/js/config.js"
 if config.is_file():
     config.write_text(re.sub(r"(sri-lanka-(?:light|dark)\.json)(?:\?v=[a-f0-9]+)?", rf"\1?v={version}", config.read_text()))

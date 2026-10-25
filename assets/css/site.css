@@ -145,3 +145,23 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 @media(prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* Community editor: scrollable panel leaves the map available for geometry input. */
+.contribution-panel { width: 390px; max-height: calc(100dvh - 115px); overflow-y: auto; }
+.contribution-panel p { font-size: 12px; line-height: 1.55; }
+.contribution-panel a { color: var(--accent); text-decoration: underline; }
+.contribution-panel details { margin: 12px 0; }
+.contribution-panel summary { cursor: pointer; font-size: 13px; }
+.contribution-panel textarea { width: 100%; padding: 8px; resize: vertical; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--surface-alt); font: inherit; }
+.contribution-panel pre, .contribution-panel code { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+.contribution-panel input:not([type=checkbox]), .contribution-panel select { width: 100%; }
+.record-actions { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; }
+.record-actions a { padding: 8px 0; }
+.record-consent { display: flex; gap: 8px; align-items: start; line-height: 1.5; }
+#record-consent { flex-shrink: 0; width: 18px; height: 18px; }
+#community-toggle { font-size: 26px; }
+#contribution-close { margin-left: auto; min-width: 40px; }
+@media(max-width:600px) {
+ .contribution-panel { top: 110px; bottom: 50px; right: 8px; width: min(330px, calc(100% - 58px)); max-height: calc(100dvh - 170px); }
+ .utility-controls { gap: 4px; }
+}

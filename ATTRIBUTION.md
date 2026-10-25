@@ -52,3 +52,11 @@ a dedicated provider or self hosted OSRM service.
 
 The UI uses a self hosted Latin subset of Inter, licensed under the SIL Open Font
 License 1.1; the license is included at `assets/fonts/OFL-Inter.txt`.
+
+## Community-maintained records
+
+The optional community layer retains each record's source attribution and license
+in `data/community/manifest.json` and its checksummed records bundle. It does not
+relicense upstream Overture data. Admins must review evidence and license
+compatibility before accepting data. No invented demonstration records are shipped.
+See [Contributing](CONTRIBUTING.md).
