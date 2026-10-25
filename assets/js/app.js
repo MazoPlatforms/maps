@@ -137,7 +137,10 @@ function upgradeToFullStyle() {
 function startExplorerWhenReady(maplibre) {
   const start = () => {
     if (!map || explorerStarted) return;
-    if (!map.isStyleLoaded()) {
+    // isStyleLoaded also waits for every source and glyph request.  The
+    // controls only need the parsed style, so do not let a slow tile/font
+    // request block community data or search startup.
+    if (!map.getStyle()?.layers) {
       requestAnimationFrame(start);
       return;
     }

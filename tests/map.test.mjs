@@ -120,6 +120,9 @@ async function startApp() {
     getLayer() {
       return {};
     }
+    getStyle() {
+      return { layers: [] };
+    }
     isStyleLoaded() {
       return true;
     }
