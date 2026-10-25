@@ -3,7 +3,7 @@ export function communityLayers(dark = false) {
   return [
     {id:'community-polygons',type:'fill',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':dark?'#6c9d85':'#709e85','fill-opacity':0.4}},
     {id:'community-lines',type:'line',filter:['!=',['geometry-type'],'Point'],paint:{'line-color':dark?'#b1d8bc':'#2b6a49','line-width':3}},
-    {id:'community-points',type:'circle',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':6,'circle-color':dark?'#9de0b7':'#237a4b','circle-stroke-color':dark?'#10291a':'#ffffff','circle-stroke-width':2}},
+    {id:'community-points',type:'symbol',filter:['==',['geometry-type'],'Point'],layout:{'icon-image':['concat','mazo-poi-',['match',['downcase',['get','category']],['pharmacy','hospital','clinic','doctor','dentist','medical'],'health',['restaurant','cafe','bakery','food','takeaway'],'food',['shop','supermarket','market','store','retail'],'shop',['hotel','guest_house','hostel','lodging'],'hotel',['school','college','university','education'],'school',['mosque','temple','church','worship'],'worship',['bus_station','railway_station','taxi','transport'],'transport',['park','garden','playground'],'park','place']],'icon-size':0.85,'icon-allow-overlap':false}},
     {id:'community-labels',type:'symbol',layout:{'text-field':['get','name'],'text-font':['Noto Sans Regular'],'text-size':13,'text-offset':[0,1.2],'text-anchor':'top'},paint:{'text-color':dark?'#dcfce7':'#17472c','text-halo-color':dark?'#14251a':'#ffffff','text-halo-width':1.5}},
   ].map(layer=>({...layer,source:'community'}));
 }
