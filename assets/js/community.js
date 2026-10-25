@@ -1,9 +1,29 @@
 import { validateRecord, recordFeature, recordLabel, MAX_RECORDS } from './record-model.js';
+
+export function communityIconCategory(category = '') {
+  const value = String(category).toLowerCase().replace(/[_-]+/g, ' ').trim();
+  if (/pharmacy|hospital|clinic|doctor|dentist|medical|health|ayurved/.test(value)) return 'health';
+  if (/restaurant|cafe|coffee|bakery|food|takeaway|canteen|dining/.test(value)) return 'food';
+  if (/shop|store|market|retail|jewel|supermarket|grocery|mall|electronics|book|shoe|wholesale/.test(value)) return 'shop';
+  if (/hotel|guest|hostel|lodg|resort|accommodation/.test(value)) return 'hotel';
+  if (/school|college|university|education|training|library|tuition/.test(value)) return 'school';
+  if (/mosque|temple|church|worship|religious|shrine/.test(value)) return 'worship';
+  if (/bus|rail|taxi|transport|station|airport|post office/.test(value)) return 'transport';
+  if (/park|garden|playground|beach|nature/.test(value)) return 'park';
+  return 'place';
+}
+function publishedFeatures(records) {
+  return records.filter(record => record.status === 'active').map(record => {
+    const feature = recordFeature(record);
+    feature.properties.iconCategory = communityIconCategory(record.properties.category);
+    return feature;
+  });
+}
 export function communityLayers(dark = false) {
   return [
     {id:'community-polygons',type:'fill',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':dark?'#6c9d85':'#709e85','fill-opacity':0.4}},
-    {id:'community-lines',type:'line',filter:['!=',['geometry-type'],'Point'],paint:{'line-color':dark?'#b1d8bc':'#2b6a49','line-width':3}},
-    {id:'community-points',type:'symbol',filter:['==',['geometry-type'],'Point'],layout:{'icon-image':['concat','mazo-poi-',['match',['downcase',['get','category']],['pharmacy','hospital','clinic','doctor','dentist','medical'],'health',['restaurant','cafe','bakery','food','takeaway'],'food',['shop','supermarket','market','store','retail'],'shop',['hotel','guest_house','hostel','lodging'],'hotel',['school','college','university','education'],'school',['mosque','temple','church','worship'],'worship',['bus_station','railway_station','taxi','transport'],'transport',['park','garden','playground'],'park','place']],'icon-size':0.85,'icon-allow-overlap':false}},
+    {id:'community-lines',type:'line',filter:['==',['geometry-type'],'LineString'],paint:{'line-color':dark?'#b1d8bc':'#2b6a49','line-width':3}},
+    {id:'community-points',type:'symbol',filter:['==',['geometry-type'],'Point'],layout:{'icon-image':['concat','mazo-poi-',['coalesce',['get','iconCategory'],'place']],'icon-size':0.85,'icon-anchor':'bottom','icon-allow-overlap':true,'icon-ignore-placement':false}},
     {id:'community-labels',type:'symbol',layout:{'text-field':['get','name'],'text-font':['Noto Sans Regular'],'text-size':13,'text-offset':[0,1.2],'text-anchor':'top'},paint:{'text-color':dark?'#dcfce7':'#17472c','text-halo-color':dark?'#14251a':'#ffffff','text-halo-width':1.5}},
   ].map(layer=>({...layer,source:'community'}));
 }
@@ -30,15 +50,17 @@ export async function setupCommunity(map, siteRoot) {
   const status=document.querySelector('#community-status');
   function install() {
     if(!available)return;
-    if(!map.getSource('community')) map.addSource('community',{type:'geojson',data:{type:'FeatureCollection',features:records.filter(r=>r.status==='active').map(recordFeature)},attribution:'Mazo community · source-specific licenses; see community records'});
+    const data={type:'FeatureCollection',features:publishedFeatures(records)};
+    if(!map.getSource('community')) map.addSource('community',{type:'geojson',data,attribution:'Mazo community · source-specific licenses; see community records'});
+    else map.getSource('community').setData(data);
     for(const layer of communityLayers(document.documentElement.dataset.theme==='dark')) if(!map.getLayer(layer.id))map.addLayer(layer);
     document.dispatchEvent(new CustomEvent('mazo:community-ready'));
   }
   map.on('style.load',install);
   try {
     records=await fetchCommunity(siteRoot);available=true;install();
-    status.textContent=`${records.filter(r=>r.status==='active').length} published community records`;
-  } catch(error) { status.textContent=`${error.message}. Contributions cannot be edited until publication loads.`; }
+    if(status) status.textContent=`${records.filter(r=>r.status==='active').length} published community records`;
+  } catch(error) { if(status) status.textContent=`${error.message}. Contributions cannot be edited until publication loads.`; }
   return {
     get records(){return records;}, get available(){return available;},
     features:()=>records.filter(r=>r.status==='active').map(record=>({...recordFeature(record),properties:{...recordFeature(record).properties,name:recordLabel(record),displayName:record.properties.names.primary,aliases:Object.values(record.properties.names).join(' ')}})),
