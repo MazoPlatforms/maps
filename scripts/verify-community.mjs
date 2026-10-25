@@ -41,7 +41,7 @@ try {
       await page.locator(`#record-form ${button}`).click();await page.waitForSelector('#record-output:not([hidden])');
       return validateRecord(parseRecordJson(await page.locator('#record-after').textContent()));
     }
-    await page.fill('#record-name','Browser fixture — not published');await page.fill('#record-name-ta','சோதனை');await page.fill('#record-category','pharmacy');
+    await page.fill('#record-name','Browser fixture — not published');await page.locator('#record-form details summary').click();await page.fill('#record-name-ta','சோதனை');await page.fill('#record-category','pharmacy');
     await page.fill('#record-geometry','{"type":"Point","coordinates":[81.695,7.71]}');await fillEvidence();
     const created=await proposal();assert.equal(created.revision,1);assert.equal(created.properties.names.ta,'சோதனை');
     const github=new URL(await page.locator('#record-github').getAttribute('href'));assert.equal(github.hostname,'github.com');assert.equal(JSON.parse(github.searchParams.get('value')).id,created.id);

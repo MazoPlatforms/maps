@@ -131,6 +131,9 @@ export async function setupExplorer(map, maplibre, siteRoot) {
       select(published || hit);
     }
   });
+  for (const feature of community.features().filter(f=>f.geometry.type==='Point')) {
+    addCatalog(feature); const option=document.createElement('option');option.value=feature.properties.name;$('#destinations').append(option);
+  }
   const destinationUrl = new URL('./assets/data/destinations.geojson',siteRoot);
   destinationUrl.search = new URL(import.meta.url).search;
   fetch(destinationUrl).then(async r=>{
@@ -146,6 +149,7 @@ export async function setupExplorer(map, maplibre, siteRoot) {
       globalThis.__mazoMapTimings.destinationIndexMs=Math.round((performance.now()-indexStarted)*100)/100;
     }
     const list=$('#destinations');
+    list.replaceChildren();
     for(const f of catalog){const option=document.createElement('option');option.value=f.properties.name;list.append(option);}
     addDestinations();
   }).catch(()=>{search.placeholder='Search visible places';$('#route-status').textContent='City index unavailable. Select places on the map for directions.';});

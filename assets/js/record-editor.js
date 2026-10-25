@@ -1,4 +1,4 @@
-import { RECORD_TYPES, validateRecord, recordHash, recordPath, recordLabel, parseRecordJson, stableJson } from './record-model.js';
+import { RECORD_TYPES, validateRecord, validateTransition, recordHash, recordPath, recordLabel, parseRecordJson, stableJson } from './record-model.js';
 const $=selector=>document.querySelector(selector);
 export function proposalUrl(record) {
   const url=new URL('https://github.com/MazoPlatforms/maps/new/main');
@@ -40,7 +40,7 @@ export function setupRecordEditor(map, community) {
   $('#layers-toggle').addEventListener('click',close);$('#directions-toggle').addEventListener('click',close);
   $('#record-select').addEventListener('change',()=>{const record=community.resolve($('#record-select').value);record?fill(record):reset();});
   $('#record-new').addEventListener('click',reset);
-  form.addEventListener('input',invalidate);
+  form.addEventListener('input',event=>{if(event.target.id==='record-consent')output.hidden=true;else invalidate();});
   $('#record-type').addEventListener('change',()=>{stopDrawing();$('#record-geometry').value='';message(`Provide ${RECORD_TYPES[$('#record-type').value]} geometry, or draw on the map.`);});
   $('#record-center').addEventListener('click',()=>{invalidate();const c=map.getCenter();if(RECORD_TYPES[$('#record-type').value]!=='Point'){message('Use Draw to add road/polygon vertices.');return;}$('#record-geometry').value=JSON.stringify({type:'Point',coordinates:[Number(c.lng.toFixed(7)),Number(c.lat.toFixed(7))]},null,2);});
   $('#record-draw').addEventListener('click',()=>{invalidate();if(drawing){stopDrawing();return;}drawing=true;vertices=[];$('#record-draw').setAttribute('aria-pressed','true');map.getCanvas().style.cursor='crosshair';message('Click the map for a point or vertices. Use Finish drawing for a line/polygon.');});
@@ -65,8 +65,8 @@ export function setupRecordEditor(map, community) {
     for(const key of ['address','website','phone','description']){const value=$(`#record-${key}`).value.trim();if(value)properties[key]=value;}
     const source={name:$('#record-source').value.trim(),license:$('#record-license').value,observedAt:$('#record-date').value,attribution:$('#record-attribution').value.trim()};
     if($('#record-source-url').value.trim())source.url=$('#record-source-url').value.trim();
-    const record={schemaVersion:1,id,featureType:$('#record-type').value,revision:original?original.revision+1:1,previous:original?await recordHash(original):null,status:statusValue,geometry:parseRecordJson($('#record-geometry').value),properties,sources:[...(original?.sources || []),source],changeNote:$('#record-note').value.trim()};
-    return validateRecord(record);
+    const record={schemaVersion:1,id,featureType:$('#record-type').value,revision:original?original.revision+1:1,previous:original?await recordHash(original):null,status:statusValue,geometry:parseRecordJson($('#record-geometry').value),properties,sources:original?.sources.some(existing=>stableJson(existing)===stableJson(source)) ? [...original.sources] : [...(original?.sources || []),source],changeNote:$('#record-note').value.trim()};
+    validateRecord(record);await validateTransition(original,record);return record;
   }
   async function propose(statusValue='active') {
     output.hidden=true;
