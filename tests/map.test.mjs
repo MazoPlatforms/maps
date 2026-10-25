@@ -144,6 +144,7 @@ async function startApp() {
     URL,
     URLSearchParams,
     document,
+    Event: class { constructor(type) { this.type = type; } },
     performance: { now: () => 42 },
     localStorage: {
       getItem() {
