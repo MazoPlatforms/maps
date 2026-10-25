@@ -51,6 +51,10 @@ Project source is licensed under MIT; see [LICENSE](LICENSE). Third-party softwa
 
 The workflow downloads and processes data only on GitHub-hosted runners. A verified site artifact is retained for seven days. If the assembled site exceeds a 900 MiB safety threshold, Pages deployment is skipped and the artifact remains available from the run. GitHub Pages has a 1 GB published-site limit. In repository settings, set **Build and deployment → Source** to **GitHub Actions**. The project URL is `https://mazoplatforms.github.io/maps/`.
 
+## OpenStreetMap integration roadmap
+
+The project is evaluating a separately sourced OpenStreetMap snapshot alongside the existing Overture baseline. The [OSM + Overture integration policy](docs/OSM_OVERTURE_INTEGRATION.md) defines provenance, licensing, duplicate detection, acceptance checks, and staged activation. **No second OSM basemap or merged dataset is enabled yet.** Existing Overture and community layers remain unchanged.
+
 ## Roadmap boundary
 
 The national baseline is the listed Overture regional extract, supplemented by any accepted community JSON records. Coverage depends on the selected release and source data; no Google Maps equivalence or complete local POI coverage is claimed. Label glyphs remain a public external dependency. No geographic data is invented or bundled as a placeholder.
