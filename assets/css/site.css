@@ -188,3 +188,22 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 @media (prefers-reduced-motion: reduce) {
   .contribution-panel { transition:none; }
 }
+
+
+/* Keep the community action aligned with the upper-right map tools.
+   Separates it from MapLibre's zoom + control on narrow screens. */
+#community-toggle { font-size: 20px; line-height: 1; }
+#community-toggle span { display:block; line-height:1; }
+@media (max-width:600px) {
+  #community-toggle {
+    position:fixed;
+    top:calc(max(8px, env(safe-area-inset-top)) + 3 * 43px);
+    right:8px;
+    bottom:auto;
+    width:38px;
+    height:38px;
+    padding:6px;
+    z-index:3;
+  }
+  .map-actions { bottom:calc(168px + env(safe-area-inset-bottom)); }
+}
